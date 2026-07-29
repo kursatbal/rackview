@@ -140,7 +140,137 @@ function buildGeneralTab(device) {
   maybeRow("Warranty end", "warranty_end", device.warranty_end);
   if (panelEditMode || device.notes) wrap.appendChild(editableBlock("Notes", "notes", device.notes));
   if (!panelEditMode && !wrap.childElementCount) wrap.appendChild(h("div", { class: "tab-empty" }, ["No general info yet — click Edit to add some."]));
+  if (device.device_type.category === "server" && panelEditMode) wrap.appendChild(buildRearConfigSection(device));
   return wrap;
+}
+
+// ---- Server rear-port configurator (RACKVIEW_PORT_YAPILANDIRICI.md) ----
+// Servers only. Draft state is per-device so switching devices doesn't leak a stale edit.
+let rearConfigDraft = null;
+let rearConfigDraftDeviceId = null;
+
+function inferRearConfigFromCatalog(device) {
+  const catalogDev = (typeof rvFindDevice === "function") ? rvFindDevice(device.device_type.model) : null;
+  const opts = (catalogDev && catalogDev.opts) || {};
+  const layout = opts.rearLayout || "ocp";
+  return {
+    fc_ports: layout === "fc" ? (opts.fcCards || 2) * 2 : 0,
+    fc_speed: "16Gb",
+    nic_ports: layout === "ocp" ? (opts.ocpCards || 2) * 2 : 0,
+    nic_speed: "25GbE",
+    lom: opts.lom === false ? "yok" : opts.lomPorts === 2 ? "2x1GbE" : opts.lomPorts === 0 ? "yok" : "4x1GbE",
+    idrac: true,
+  };
+}
+
+function rearConfigPortNames(cfg) {
+  const names = [];
+  for (let i = 1; i <= (cfg.fc_ports || 0); i++) names.push("FC" + i);
+  for (let i = 1; i <= (cfg.nic_ports || 0); i++) names.push("NIC" + i);
+  const lomN = cfg.lom === "4x1GbE" ? 4 : cfg.lom === "2x1GbE" ? 2 : 0;
+  for (let i = 1; i <= lomN; i++) names.push("LOM" + i);
+  if (cfg.idrac) names.push("iDRAC");
+  return names;
+}
+
+function rearConfigSummary(cfg) {
+  const parts = [];
+  if (cfg.fc_ports) parts.push(`${cfg.fc_ports}× ${cfg.fc_speed} FC`);
+  if (cfg.nic_ports) parts.push(`${cfg.nic_ports}× ${cfg.nic_speed} NIC`);
+  const lomN = cfg.lom === "4x1GbE" ? 4 : cfg.lom === "2x1GbE" ? 2 : 0;
+  if (lomN) parts.push(`${lomN}× 1GbE LOM`);
+  if (cfg.idrac) parts.push("iDRAC");
+  return parts.length ? parts.join(" · ") : "No ports selected";
+}
+
+function buildRearConfigSection(device) {
+  if (rearConfigDraftDeviceId !== device.id) {
+    rearConfigDraft = device.metadata_json && device.metadata_json.rear_config
+      ? Object.assign({}, device.metadata_json.rear_config)
+      : inferRearConfigFromCatalog(device);
+    rearConfigDraftDeviceId = device.id;
+  }
+  const cfg = rearConfigDraft;
+  const hasOverride = !!(device.metadata_json && device.metadata_json.rear_config);
+
+  const wrap = h("div", { class: "rear-cfg" });
+  wrap.appendChild(sectionTitle("Rear-panel ports"));
+  wrap.appendChild(h("div", { class: "rear-cfg-note" }, [
+    hasOverride ? "Custom configuration for this device." : "Using the model's default layout — pick a value below to override it.",
+  ]));
+
+  const btnGroup = (label, options, current, onPick) => {
+    const row = h("div", { class: "rear-cfg-row" });
+    row.appendChild(h("div", { class: "rear-cfg-label" }, [label]));
+    const opts = h("div", { class: "rear-cfg-opts" });
+    options.forEach(opt => {
+      const btn = h("button", { class: "rear-cfg-btn" + (String(current) === String(opt) ? " active" : "") }, [String(opt)]);
+      btn.onclick = () => { onPick(opt); rerenderRearConfigSection(device); };
+      opts.appendChild(btn);
+    });
+    row.appendChild(opts);
+    return row;
+  };
+
+  wrap.appendChild(btnGroup("FC ports", [0, 2, 4, 6], cfg.fc_ports, v => { cfg.fc_ports = v; }));
+  if (cfg.fc_ports > 0) wrap.appendChild(btnGroup("FC speed", ["16Gb", "32Gb", "64Gb"], cfg.fc_speed, v => { cfg.fc_speed = v; }));
+  wrap.appendChild(btnGroup("NIC ports", [0, 2, 4, 6], cfg.nic_ports, v => { cfg.nic_ports = v; }));
+  if (cfg.nic_ports > 0) wrap.appendChild(btnGroup("NIC speed", ["10GbE", "25GbE", "100GbE"], cfg.nic_speed, v => { cfg.nic_speed = v; }));
+  wrap.appendChild(btnGroup("LOM", ["4x1GbE", "2x1GbE", "yok"], cfg.lom, v => { cfg.lom = v; }));
+  wrap.appendChild(btnGroup("iDRAC / MGMT", [true, false], cfg.idrac, v => { cfg.idrac = v; }));
+
+  wrap.appendChild(h("div", { class: "rear-cfg-preview" }, ["→ " + rearConfigSummary(cfg)]));
+
+  const actions = h("div", { class: "rear-cfg-actions" });
+  const saveBtn = h("button", { class: "btn-link" }, ["Save rear config"]);
+  saveBtn.onclick = () => saveRearConfig(device, cfg);
+  actions.appendChild(saveBtn);
+  if (hasOverride) {
+    const resetBtn = h("button", { class: "btn-link" }, ["Reset to model default"]);
+    resetBtn.onclick = () => saveRearConfig(device, null);
+    actions.appendChild(resetBtn);
+  }
+  wrap.appendChild(actions);
+
+  return wrap;
+}
+
+function rerenderRearConfigSection(device) {
+  const old = panelEl.querySelector(".rear-cfg");
+  if (!old) return;
+  old.replaceWith(buildRearConfigSection(device));
+}
+
+async function saveRearConfig(device, cfg) {
+  if (cfg && !cfg.fc_ports && !cfg.nic_ports && cfg.lom === "yok" && !cfg.idrac) {
+    window.alert("Select at least one port type.");
+    return;
+  }
+
+  const newPortNames = cfg ? rearConfigPortNames(cfg) : null; // null = reverting to model default, can't predict names, be conservative below
+  const myCables = (cables || []).filter(c => c.a_device_id === device.id || c.b_device_id === device.id);
+  const affected = myCables.filter(c => {
+    const ownPort = c.a_device_id === device.id ? c.a_port : c.b_port;
+    return newPortNames ? !newPortNames.includes(ownPort) : true;
+  });
+
+  if (affected.length) {
+    const portList = affected.map(c => c.a_device_id === device.id ? c.a_port : c.b_port).join(", ");
+    const ok = window.confirm(`This will remove ${affected.length} cable(s) on port(s): ${portList}. Continue?`);
+    if (!ok) return;
+    for (const c of affected) {
+      await fetch(`/api/cables/${c.id}`, { method: "DELETE" });
+    }
+  }
+
+  await fetch(`/api/devices/${device.id}`, {
+    method: "PUT", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ metadata_json: { rear_config: cfg } }),
+  });
+  rearConfigDraft = null;
+  rearConfigDraftDeviceId = null;
+  await panelReload();
+  if (typeof refreshCabling === "function") refreshCabling();
 }
 
 function subInfoFor(device, ownPort) {
@@ -501,14 +631,38 @@ function buildImpactTab(device) {
 function buildActionBar() {
   const bar = h("div", { class: "panel-action-bar" });
   const count = h("span", { id: "panel-chg-count" }, ["0 field(s) changed"]);
+  const deleteBtn = h("button", { class: "delete-btn" }, ["Delete device"]);
+  deleteBtn.onclick = deleteCurrentDevice;
   const discardBtn = h("button", {}, ["Discard"]);
   discardBtn.onclick = () => { panelEditMode = false; renderPanelBody(); };
   const saveBtn = h("button", { class: "save-btn" }, ["Save"]);
   saveBtn.onclick = savePanelChanges;
   bar.appendChild(count);
+  bar.appendChild(deleteBtn);
   bar.appendChild(discardBtn);
   bar.appendChild(saveBtn);
   return bar;
+}
+
+async function deleteCurrentDevice() {
+  const device = rack.devices.find(d => d.id === panelDeviceId);
+  if (!device) return;
+  const cableCount = (cables || []).filter(c => c.a_device_id === device.id || c.b_device_id === device.id).length;
+  const warning = cableCount
+    ? `Delete "${device.name}"? This will also remove ${cableCount} connected cable(s). This cannot be undone.`
+    : `Delete "${device.name}"? This cannot be undone.`;
+  if (!window.confirm(warning)) return;
+
+  const res = await fetch(`/api/devices/${device.id}`, { method: "DELETE" });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    window.alert(`Could not delete: ${err.error || res.status}`);
+    return;
+  }
+  panelEditMode = false;
+  panelDeviceId = null;
+  if (typeof resetSelection === "function") resetSelection();
+  await panelReload();
 }
 
 function updateEditBar() {

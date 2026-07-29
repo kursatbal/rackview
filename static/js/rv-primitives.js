@@ -344,7 +344,56 @@ function rvCtrlPanel(parent, x, y, w, h, ctx, opts) {
   return g;
 }
 
+// Per-instance server rear-port override (RACKVIEW_PORT_YAPILANDIRICI.md).
+// Only used when a device has an explicit rear_config; every server stencil's default
+// (unconfigured) rendering is untouched — this function is purely additive.
+function drawServerRearPorts(g, ctx, x0, portY, config) {
+  const LABEL_DY = 19;
+  const GAP = 6;
+  let cx = x0;
+
+  if (config.fc_ports > 0) {
+    const startX = cx;
+    for (let i = 0; i < config.fc_ports; i++) {
+      const w = rvLc(g, cx, portY, ctx, 'FC' + (i + 1));
+      cx += w + 5;
+    }
+    rvLabel(g, startX, portY + LABEL_DY, `${config.fc_ports}× ${config.fc_speed || '16Gb'} FC`);
+    cx += GAP;
+  }
+
+  if (config.nic_ports > 0) {
+    const startX = cx;
+    for (let i = 0; i < config.nic_ports; i++) {
+      const w = rvSfp(g, cx, portY, ctx, 'NIC' + (i + 1), { lit: true });
+      cx += w + 5;
+    }
+    rvLabel(g, startX, portY + LABEL_DY, `${config.nic_ports}× ${config.nic_speed || '25GbE'} NIC`);
+    cx += GAP;
+  }
+
+  const lomN = config.lom === '4x1GbE' ? 4 : config.lom === '2x1GbE' ? 2 : 0;
+  if (lomN > 0) {
+    const startX = cx;
+    for (let i = 0; i < lomN; i++) {
+      const w = rvRj45(g, cx, portY, ctx, 'LOM' + (i + 1), { lit: i < 2 });
+      cx += w + 3;
+    }
+    rvLabel(g, startX, portY + LABEL_DY, `${lomN}× 1GbE LOM`);
+    cx += GAP;
+  }
+
+  if (config.idrac) {
+    rvRj45(g, cx, portY, ctx, 'iDRAC', { lit: true });
+    rvLabel(g, cx - 2, portY + LABEL_DY, 'iDRAC');
+    cx += 20;
+  }
+
+  return cx;
+}
+
 if (typeof module !== 'undefined') module.exports = {
   el, RV_U, rvHit, rvChassis, rvLabel, rvRj45, rvSfp, rvQsfp, rvLc, rvIec,
-  rvVga, rvUsb, rvPsu, rvFan, rvBay, rvBayRow, rvCard, rvBlank, rvCtrlPanel
+  rvVga, rvUsb, rvPsu, rvFan, rvBay, rvBayRow, rvCard, rvBlank, rvCtrlPanel,
+  drawServerRearPorts
 };

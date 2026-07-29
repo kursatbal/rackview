@@ -351,6 +351,7 @@ function drawDevice(rootG, device, y) {
       refreshCabling();
     },
     toSvgPoint: (clientX, clientY) => clientToSvg(document.getElementById("rack-svg"), clientX, clientY),
+    rearConfig: (device.metadata_json && device.metadata_json.rear_config) || null,
     getLabelText: (key, fallback) => {
       const texts = device.metadata_json && device.metadata_json.group_labels;
       return (texts && texts[key]) || fallback;

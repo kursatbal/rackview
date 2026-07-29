@@ -16,9 +16,10 @@ Tracking what's plugged into what in a data center usually means a spreadsheet, 
 
 ## Features
 
-- **Realistic rack elevations** — 220+ real device models (Dell, HPE, Cisco, Arista, …), front/rear views, drag-and-drop placement
+- **Realistic rack elevations** — 220+ real device models (Dell, HPE, Cisco, Arista, …), front/rear views, drag-and-drop placement, and empty U's auto-collapse so long gaps don't eat the screen
 - **Smart cabling** — automatic front/rear port matching, medium-aware color/dash styles (fiber, DAC, Cat6a, power, SAS), routes that never cross over other ports
-- **Right-click actions** — jump to a cable's other end, show only one device's cabling, rename a port or a device label, drag labels out of the way
+- **Configurable server rear panels** — pick FC/NIC port counts and speeds, LOM, and iDRAC per device instead of a fixed template; warns before deleting cables on ports you remove
+- **Right-click actions** — jump to a cable's other end or delete it, show only one device's cabling, delete a device, rename a port/device/group label, drag labels out of the way
 - **Search** (Ctrl+K) — find devices by IP, MAC, serial, port, or VLAN across every rack
 - **Impact analysis** — "what breaks if this device goes down," including redundancy loss, across the whole customer's infrastructure
 - **LLDP discovery** — paste switch LLDP output, match it against existing cabling, bulk-apply new/updated links

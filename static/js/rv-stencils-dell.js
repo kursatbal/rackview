@@ -17,6 +17,15 @@ const RV_STENCILS_DELL = {
     rear(g, ctx) {
       const { x, y, w, h } = ctx;
       const c = rvChassis(g, x, y, w, 1);
+
+      if (ctx.rearConfig) {
+        drawServerRearPorts(g, ctx, c.innerX + 2, y + 8, ctx.rearConfig);
+        const psuW = 108;
+        rvPsu(g, x + w - 15 - psuW * 2 - 8, y + 4, psuW, h - 8, ctx, 'PSU 1');
+        rvPsu(g, x + w - 15 - psuW - 4, y + 4, psuW, h - 8, ctx, 'PSU 2');
+        return;
+      }
+
       const layout = ctx.rearLayout || 'ocp';
       let cx = c.innerX + 2;
 
@@ -85,8 +94,21 @@ const RV_STENCILS_DELL = {
     rear(g, ctx) {
       const { x, y, w, h } = ctx;
       const c = rvChassis(g, x, y, w, 2);
-      const layout = ctx.rearLayout || 'ocp';
       const half = (h - 10) / 2;
+
+      if (ctx.rearConfig) {
+        drawServerRearPorts(g, ctx, c.innerX + 2, y + 8, ctx.rearConfig);
+        const psuW = 116;
+        const px = x + w - 15 - psuW - 4;
+        rvPsu(g, px, y + 4, psuW, half, ctx, 'PSU 1');
+        rvPsu(g, px, y + 6 + half, psuW, half, ctx, 'PSU 2');
+        for (let k = 0; k < 2; k++)
+          for (let r = 0; r < 2; r++)
+            rvFan(g, px - 90 + k * 38, y + 15 + r * 26, 13, ctx, 'Fan ' + (k * 2 + r + 1));
+        return;
+      }
+
+      const layout = ctx.rearLayout || 'ocp';
       let cx = c.innerX + 2;
 
       if (layout === 'fc') {
@@ -159,6 +181,16 @@ const RV_STENCILS_DELL = {
       const { x, y, w, h } = ctx;
       const c = rvChassis(g, x, y, w, 4);
       const q = (h - 14) / 4;
+
+      if (ctx.rearConfig) {
+        drawServerRearPorts(g, ctx, c.innerX + 2, y + 30, ctx.rearConfig);
+        const psuW = 108;
+        const px = x + w - 15 - psuW - 4;
+        for (let k = 0; k < 4; k++)
+          rvPsu(g, px, y + 5 + k * (q + 2.5), psuW, q, ctx, 'PSU ' + (k + 1));
+        return;
+      }
+
       let cx = c.innerX + 2;
       for (let r = 0; r < 4; r++) rvBlank(g, cx, y + 5 + r * (q + 2.5), 130, q);
       cx += 136;

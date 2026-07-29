@@ -132,7 +132,16 @@ async function placeDevice(deviceTypeId, positionU) {
     alert(`Could not add: ${err.error || res.status}`);
     return;
   }
+  const created = await res.json();
   await reloadData();
+  // Drop straight into editing the new device on the General tab — for servers this
+  // surfaces the rear-port configurator immediately instead of leaving it to be found later.
+  // focusDevice()'s selection-change plumbing resets edit mode/tab as a side effect, so
+  // those flags have to be (re-)applied AFTER it runs, then the panel re-rendered.
+  if (typeof focusDevice === "function") focusDevice(created.id);
+  panelEditMode = true;
+  panelActiveTab = "general";
+  if (typeof renderPanelBody === "function") renderPanelBody();
 }
 
 function setupCatalogDropZone() {

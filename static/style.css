@@ -64,6 +64,66 @@ body {
   margin-bottom: 10px;
 }
 
+.rear-cfg {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #D3D1C7;
+}
+
+.rear-cfg-note {
+  font-size: 11px;
+  color: #5F5E5A;
+  margin-bottom: 8px;
+}
+
+.rear-cfg-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.rear-cfg-label {
+  width: 80px;
+  flex-shrink: 0;
+  font-size: 11px;
+  color: #5F5E5A;
+}
+
+.rear-cfg-opts {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.rear-cfg-btn {
+  font-family: monospace;
+  font-size: 11px;
+  padding: 3px 8px;
+  border: 1px solid #888780;
+  background: #F1EFE8;
+  color: #2C2C2A;
+  cursor: pointer;
+}
+
+.rear-cfg-btn.active {
+  background: #9FE1CB;
+  border-color: #0F6E56;
+  font-weight: bold;
+}
+
+.rear-cfg-preview {
+  font-size: 12px;
+  font-weight: bold;
+  color: #0F6E56;
+  margin: 10px 0;
+}
+
+.rear-cfg-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .search-overlay {
   display: none;
   position: fixed;
@@ -686,6 +746,16 @@ body {
 .panel-action-bar .save-btn {
   border-color: #0F6E56;
   background: #9FE1CB;
+}
+
+.panel-action-bar .delete-btn {
+  border-color: #A32D2D;
+  color: #A32D2D;
+}
+
+.panel-action-bar .delete-btn:hover {
+  background: #A32D2D;
+  color: #F1EFE8;
 }
 
 #panel.edit .ed {

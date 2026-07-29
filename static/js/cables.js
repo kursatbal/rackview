@@ -146,6 +146,30 @@ function showDeviceContextMenu(ev, deviceId) {
     refreshCabling();
   };
   menu.appendChild(btn);
+
+  const del = document.createElement("button");
+  del.textContent = "Delete device";
+  del.className = "cable-ctx-danger";
+  del.onclick = async () => {
+    hideDeviceContextMenu();
+    const device = currentRack && currentRack.devices.find(d => d.id === deviceId);
+    if (!device) return;
+    const cableCount = (currentCables || []).filter(c => c.a_device_id === deviceId || c.b_device_id === deviceId).length;
+    const warning = cableCount
+      ? `Delete "${device.name}"? This will also remove ${cableCount} connected cable(s). This cannot be undone.`
+      : `Delete "${device.name}"? This cannot be undone.`;
+    if (!window.confirm(warning)) return;
+    const res = await fetch(`/api/devices/${deviceId}`, { method: "DELETE" });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      window.alert(`Could not delete: ${err.error || res.status}`);
+      return;
+    }
+    if (typeof resetSelection === "function") resetSelection();
+    if (typeof reloadData === "function") await reloadData();
+  };
+  menu.appendChild(del);
+
   document.body.appendChild(menu);
 
   setTimeout(() => document.addEventListener("click", hideDeviceContextMenu, { once: true }), 0);

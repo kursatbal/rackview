@@ -269,7 +269,8 @@ function rvRender(svg, model, face, x, y, w, hooks) {
     onLabelDrag: (hooks && hooks.onLabelDrag) || null,
     getLabelText: (hooks && hooks.getLabelText) || null,
     onLabelRename: (hooks && hooks.onLabelRename) || null,
-    toSvgPoint: (hooks && hooks.toSvgPoint) || null
+    toSvgPoint: (hooks && hooks.toSvgPoint) || null,
+    rearConfig: (hooks && hooks.rearConfig) || null
   }, dev.opts || {});
   (face === 'rear' ? st.rear : st.front).call(st, g, ctx);
   return g;
