@@ -2,6 +2,14 @@
 
 A data-center rack elevation and cable-management tool. Visualize racks, devices, and cabling as realistic SVG diagrams — no build step, no framework, just Python/Flask and vanilla JS.
 
+## Download
+
+Just want to try it? Grab the Windows desktop build — no Python or install needed:
+
+**[⬇ Download RackView.zip](https://github.com/kursatbal/rackview/releases/latest)** — unzip, run `RackView.exe`, it opens in your browser automatically with demo data.
+
+(Unsigned `.exe` — Windows SmartScreen may warn "Unknown publisher" on first run; click **More info → Run anyway**.)
+
 ## Why
 
 Tracking what's plugged into what in a data center usually means a spreadsheet, a Visio file nobody updates, or a trip to the DC. RackView keeps rack elevations, cabling, and device details in one place, browsable and searchable.
@@ -28,7 +36,7 @@ Tracking what's plugged into what in a data center usually means a spreadsheet, 
 Requires Python 3.11+.
 
 ```bash
-git clone https://github.com/<your-username>/rackview.git
+git clone https://github.com/kursatbal/rackview.git
 cd rackview
 python -m venv venv
 venv\Scripts\activate        # Windows
