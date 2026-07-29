@@ -12,6 +12,73 @@ let cablingOn = false;
 let cablingMode = null;
 let pendingCablePort = null;
 let selectedCableId = null;
+let followLine = null;
+
+function showCablingHint(text) {
+  const hint = document.getElementById("cabling-hint");
+  if (!hint) return;
+  if (text) { hint.textContent = text; hint.style.display = "block"; }
+  else { hint.style.display = "none"; }
+}
+
+function highlightCablableDevices(sourceDeviceId) {
+  Object.entries(registry).forEach(([id, rec]) => {
+    if (!rec.group) return;
+    rec.group.style.opacity = Number(id) === sourceDeviceId ? "0.4" : "";
+  });
+}
+
+function clearCablableHighlight() {
+  Object.values(registry).forEach(rec => { if (rec.group) rec.group.style.opacity = ""; });
+}
+
+// The cable end "sticks" to the cursor between the two clicks, instead of nothing visibly
+// happening after the first click (RACKVIEW_KABLO_EKLEME.md).
+function startFollowLine(sourcePt) {
+  stopFollowLine();
+  const svgEl = document.getElementById("rack-svg");
+  const rootG = svgEl && svgEl.firstChild;
+  const layer = document.getElementById("cable-layer") || rootG;
+  if (!svgEl || !layer) return;
+  const line = el("path", {
+    stroke: "#1D9E75", fill: "none", "stroke-width": 2,
+    "stroke-dasharray": "4 3", "stroke-linecap": "round", "pointer-events": "none",
+  });
+  layer.appendChild(line);
+  const onMove = ev => {
+    const p = clientToSvg(svgEl, ev.clientX, ev.clientY);
+    line.setAttribute("d", `M ${sourcePt.x},${sourcePt.y} Q ${(sourcePt.x + p.x) / 2},${sourcePt.y - 20} ${p.x},${p.y}`);
+  };
+  document.addEventListener("mousemove", onMove);
+  followLine = { line, onMove };
+}
+
+function stopFollowLine() {
+  if (!followLine) return;
+  document.removeEventListener("mousemove", followLine.onMove);
+  if (followLine.line && followLine.line.remove) followLine.line.remove();
+  followLine = null;
+}
+
+function showToast(title, detail) {
+  const container = document.getElementById("toast-container");
+  if (!container) return;
+  const toast = document.createElement("div");
+  toast.className = "toast toast-success";
+  const titleEl = document.createElement("div");
+  titleEl.className = "toast-title";
+  titleEl.textContent = title;
+  toast.appendChild(titleEl);
+  if (detail) {
+    const detailEl = document.createElement("div");
+    detailEl.className = "toast-detail";
+    detailEl.textContent = detail;
+    toast.appendChild(detailEl);
+  }
+  toast.addEventListener("click", () => toast.remove());
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
 
 // A user-given port name (metadata_json.port_labels) overrides the raw stencil port name for display.
 // The raw name is never lost — it stays the lookup key for ports/cables, only the label shown changes.
@@ -491,6 +558,9 @@ function setCablingMode(mode) {
   pendingCablePort = null;
   selectedPort = null;
   selectedCableId = null;
+  stopFollowLine();
+  clearCablableHighlight();
+  showCablingHint(cablingMode === "create" ? "Select source port · ESC to cancel" : null);
 
   const btn = document.getElementById("btn-cabling");
   btn.textContent = cablingOn ? `Cabling: ${CABLING_MODE_LABELS[cablingMode]}` : "Cabling";
@@ -507,6 +577,9 @@ function turnOffCabling() {
   pendingCablePort = null;
   selectedPort = null;
   selectedCableId = null;
+  stopFollowLine();
+  clearCablableHighlight();
+  showCablingHint(null);
 
   const btn = document.getElementById("btn-cabling");
   btn.textContent = "Cabling";
@@ -518,8 +591,15 @@ function turnOffCabling() {
 
 function cancelPendingCable() {
   pendingCablePort = null;
+  stopFollowLine();
+  clearCablableHighlight();
+  showCablingHint(cablingMode === "create" ? "Select source port · ESC to cancel" : null);
   refreshCabling();
 }
+
+document.addEventListener("keydown", ev => {
+  if (ev.key === "Escape" && cablingMode === "create") cancelPendingCable();
+});
 
 function promptForMedium() {
   const options = Object.keys(CABLE_STYLE);
@@ -544,6 +624,11 @@ async function createCable(a, b, medium) {
     alert(`Could not add cable: ${err.error || res.status}`);
     return;
   }
+  const aDev = currentRack && currentRack.devices.find(d => d.id === a.deviceId);
+  const bDev = currentRack && currentRack.devices.find(d => d.id === b.deviceId);
+  const style = CABLE_STYLE[medium];
+  showToast("✓ Cable added",
+    `${aDev ? aDev.name : "?"} ${portDisplayName(a.deviceId, a.portName)} → ${bDev ? bDev.name : "?"} ${portDisplayName(b.deviceId, b.portName)} · ${(style && style.name) || medium}`);
   await reloadData();
 }
 
@@ -554,12 +639,20 @@ function handleCreateCableClick(deviceId, portName) {
   }
   if (!pendingCablePort) {
     pendingCablePort = { deviceId, portName };
+    const rec = registry[deviceId];
+    const pt = rec && rec.ports[portName];
+    if (pt) startFollowLine(pt);
+    highlightCablableDevices(deviceId);
+    showCablingHint("Select target port · ESC to cancel");
     refreshCabling();
     return;
   }
   if (pendingCablePort.deviceId === deviceId && pendingCablePort.portName === portName) {
     cancelPendingCable();
     return;
+  }
+  if (pendingCablePort.deviceId === deviceId) {
+    return; // same device as source — not a valid target, ignore the click
   }
   const medium = promptForMedium();
   if (!medium) {
@@ -568,6 +661,9 @@ function handleCreateCableClick(deviceId, portName) {
   }
   const a = pendingCablePort;
   pendingCablePort = null;
+  stopFollowLine();
+  clearCablableHighlight();
+  showCablingHint("Select source port · ESC to cancel");
   createCable(a, { deviceId, portName }, medium);
   refreshCabling();
 }

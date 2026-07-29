@@ -496,6 +496,31 @@ function focusDevice(id) {
   }
 }
 
+// Thin colored port borders after an LLDP compare (RACKVIEW_KABLO_TAKIP.md) — deliberately not a big
+// circle, since ports sit dense and two rows deep; a circle would swallow the neighboring ports.
+const LLDP_MARKER_COLORS = { conflict: "#A32D2D", new: "#0F6E56", removed: "#B8791A" };
+
+function applyLldpMarkers(deviceId, items) {
+  clearLldpMarkers();
+  const rec = registry[deviceId];
+  if (!rec || !rec.group) return;
+  const layer = el("g", { id: "lldp-marker-layer" });
+  (items || []).forEach(item => {
+    const color = LLDP_MARKER_COLORS[item.status];
+    const pos = rec.ports[item.port];
+    if (!color || !pos) return;
+    layer.appendChild(el("rect", {
+      x: pos.x - 8, y: pos.y - 6, width: 16, height: 12, rx: 1.5,
+      fill: "none", stroke: color, "stroke-width": 2, "pointer-events": "none",
+    }));
+  });
+  rec.group.appendChild(layer);
+}
+
+function clearLldpMarkers() {
+  document.querySelectorAll("#lldp-marker-layer").forEach(e => e.remove());
+}
+
 function applyImpactHighlight(data) {
   Object.values(registry).forEach(rec => {
     if (!rec.body) return;

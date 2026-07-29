@@ -1,13 +1,14 @@
 import os
 import re
 import sys
+from datetime import datetime, timezone
 from io import BytesIO
 
 from flask import Flask, jsonify, request, send_from_directory, Response
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
-from models import db, DeviceType, Rack, Device, Cable, ArpEntry
+from models import db, DeviceType, Rack, Device, Cable, ArpEntry, LldpDiscovery
 
 
 def _data_dir():
@@ -776,8 +777,10 @@ def lldp_match():
             cable_by_local_port[c.b_port] = c
 
     results = []
+    seen_local_ports = set()
     for n in neighbors:
         local_port = n.get("localPort")
+        seen_local_ports.add(local_port)
         remote_system = (n.get("remoteSystem") or "").strip()
         remote_port = n.get("remotePort")
         cable = cable_by_local_port.get(local_port)
@@ -806,7 +809,38 @@ def lldp_match():
                 "device_known": remote_device is not None,
                 "remote_device_id": remote_device.id if remote_device else None,
             })
-    return jsonify({"switch_id": switch_id, "results": results})
+
+    # Recorded cables on this switch that no incoming LLDP neighbor accounts for — likely unplugged.
+    for local_port, cable in cable_by_local_port.items():
+        if local_port in seen_local_ports:
+            continue
+        other_id = cable.b_device_id if cable.a_device_id == switch_id else cable.a_device_id
+        other_port = cable.b_port if cable.a_device_id == switch_id else cable.a_port
+        other_device = Device.query.get(other_id)
+        results.append({
+            "localPort": local_port, "remoteSystem": None, "remotePort": None,
+            "remoteChassisId": None, "status": "removed",
+            "cable_id": cable.id,
+            "recorded": {"device_name": other_device.name if other_device else None, "port": other_port},
+            "device_known": other_device is not None,
+            "remote_device_id": other_device.id if other_device else None,
+        })
+
+    summary = {
+        "changed": sum(1 for r in results if r["status"] == "conflict"),
+        "added": sum(1 for r in results if r["status"] == "new"),
+        "removed": sum(1 for r in results if r["status"] == "removed"),
+    }
+    discovery = LldpDiscovery(
+        timestamp=datetime.now(timezone.utc),
+        switch_id=switch_id, switch_name=switch.name,
+        raw_lldp=payload.get("raw_lldp"),
+        results=results, summary=summary,
+    )
+    db.session.add(discovery)
+    db.session.commit()
+
+    return jsonify({"switch_id": switch_id, "results": results, "history_id": discovery.id})
 
 
 @app.route("/api/lldp/apply", methods=["POST"])
@@ -836,6 +870,14 @@ def lldp_apply():
                 db.and_(Cable.b_device_id == switch_id, Cable.b_port == local_port),
             )
         ).first()
+
+        if action == "remove":
+            if existing:
+                db.session.delete(existing)
+                created.append({"localPort": local_port, "removed": True})
+            else:
+                skipped.append({"localPort": local_port, "reason": "no cable on this port to remove"})
+            continue
 
         remote_device = Device.query.filter(
             db.func.lower(Device.name) == remote_system.lower(),
@@ -874,6 +916,35 @@ def lldp_apply():
     return jsonify({"created": created, "skipped": skipped})
 
 
+@app.route("/api/lldp/history")
+def lldp_history():
+    rows = LldpDiscovery.query.order_by(LldpDiscovery.timestamp.desc()).limit(50).all()
+    return jsonify([r.to_dict(include_results=False) for r in rows])
+
+
+@app.route("/api/lldp/history/<int:history_id>")
+def lldp_history_detail(history_id):
+    row = LldpDiscovery.query.get_or_404(history_id)
+    return jsonify(row.to_dict())
+
+
+@app.route("/api/lldp/history/<int:history_id>/apply", methods=["POST"])
+def lldp_history_apply(history_id):
+    row = LldpDiscovery.query.get_or_404(history_id)
+    row.applied = True
+    row.applied_at = datetime.now(timezone.utc)
+    db.session.commit()
+    return jsonify(row.to_dict(include_results=False))
+
+
+@app.route("/api/lldp/history/<int:history_id>", methods=["DELETE"])
+def lldp_history_delete(history_id):
+    row = LldpDiscovery.query.get_or_404(history_id)
+    db.session.delete(row)
+    db.session.commit()
+    return "", 204
+
+
 def _ensure_db():
     first_run = not os.path.exists(DB_PATH)
     with app.app_context():
@@ -899,4 +970,9 @@ if __name__ == "__main__":
         threading.Thread(target=_open_browser, daemon=True).start()
         app.run(host="127.0.0.1", debug=False, use_reloader=False, threaded=True)
     else:
+        # Dev mode never runs seed.py automatically, but new tables (e.g. a fresh model added
+        # to models.py) still need creating on an existing dev DB — create_all() only adds
+        # what's missing, it never touches existing tables/rows.
+        with app.app_context():
+            db.create_all()
         app.run(host="127.0.0.1", debug=True, use_reloader=False, threaded=True)

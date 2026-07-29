@@ -55,6 +55,19 @@ async function main() {
     if (window.onSelectionChange) window.onSelectionChange(initialDeviceId);
   }
 
+  // Coming from an LLDP compare (lldp.js's goToPortOnRack) — draw thin colored borders on the
+  // ports that differ, one-shot (cleared from storage so a later visit doesn't show stale markers).
+  try {
+    const raw = sessionStorage.getItem("rackview_lldp_markers");
+    if (raw) {
+      sessionStorage.removeItem("rackview_lldp_markers");
+      const markers = JSON.parse(raw);
+      if (markers.deviceId === initialDeviceId && typeof applyLldpMarkers === "function") {
+        applyLldpMarkers(markers.deviceId, markers.items);
+      }
+    }
+  } catch (e) { /* sessionStorage/JSON issue — just skip the overlay */ }
+
   document.getElementById("btn-front").onclick = () => {
     setFace("front");
     setActiveFaceButton("front");

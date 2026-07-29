@@ -124,3 +124,30 @@ class ArpEntry(db.Model):
             "port": self.port,
             "vlan": self.vlan,
         }
+
+
+class LldpDiscovery(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.DateTime, nullable=False)
+    switch_id = db.Column(db.Integer, db.ForeignKey("device.id"), nullable=False)
+    switch_name = db.Column(db.String, nullable=False)
+    raw_lldp = db.Column(db.Text, nullable=True)
+    results = db.Column(db.JSON, nullable=False, default=list)
+    summary = db.Column(db.JSON, nullable=False, default=dict)
+    applied = db.Column(db.Boolean, nullable=False, default=False)
+    applied_at = db.Column(db.DateTime, nullable=True)
+
+    def to_dict(self, include_results=True):
+        data = {
+            "id": self.id,
+            "timestamp": self.timestamp.isoformat(),
+            "switch_id": self.switch_id,
+            "switch_name": self.switch_name,
+            "summary": self.summary,
+            "applied": self.applied,
+            "applied_at": self.applied_at.isoformat() if self.applied_at else None,
+        }
+        if include_results:
+            data["raw_lldp"] = self.raw_lldp
+            data["results"] = self.results
+        return data

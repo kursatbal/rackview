@@ -9,7 +9,12 @@ function el(tag, attrs, parent) {
 }
 
 function rvHit(parent, x, y, w, h, ctx, portName) {
-  const r = el('rect', { x, y, width: w, height: h, fill: 'transparent', 'data-port': portName || '' }, parent);
+  // A small hit-area pad so a click near a port's edge still registers (RACKVIEW_KABLO_EKLEME.md).
+  // Kept conservative (1.5px) since the tightest port spacing seen across the stencils is ~4px —
+  // a bigger fixed pad would start overlapping the neighboring port's own hit area.
+  const PAD = 1.5;
+  const r = el('rect', { x: x - PAD, y: y - PAD, width: w + PAD * 2, height: h + PAD * 2,
+    fill: 'transparent', 'data-port': portName || '' }, parent);
   if (portName && ctx && ctx.registerPort) ctx.registerPort(portName, x + w / 2, y + h / 2);
   if (ctx && ctx.onPortClick && portName) {
     r.style.cursor = 'pointer';

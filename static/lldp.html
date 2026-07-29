@@ -36,17 +36,29 @@
         <button id="btn-parse" class="primary">Parse &amp; match</button>
       </div>
       <div id="lldp-parse-error" class="lldp-error"></div>
+
+      <div class="lldp-history-section">
+        <div class="lldp-history-title">History</div>
+        <div id="lldp-history-list" class="lldp-history-list">
+          <div class="lldp-empty">No discoveries yet.</div>
+        </div>
+      </div>
     </div>
 
     <div class="lldp-results-col">
+      <div id="lldp-summary" class="lldp-summary"></div>
       <div class="lldp-results-header">
         <div class="lldp-chips" id="lldp-filter-chips">
           <button class="chip active" data-filter="all">All</button>
           <button class="chip" data-filter="new">New</button>
+          <button class="chip" data-filter="conflict">Changed</button>
+          <button class="chip" data-filter="removed">Removed</button>
           <button class="chip" data-filter="matched">Matched</button>
-          <button class="chip" data-filter="conflict">Conflicting</button>
         </div>
-        <button id="btn-bulk-create" class="primary" disabled>Bulk-create 0 new cables</button>
+        <div class="lldp-header-actions">
+          <button id="btn-view-on-rack" class="btn-link" style="display:none">View on rack</button>
+          <button id="btn-apply-all" class="primary" disabled>Apply all changes</button>
+        </div>
       </div>
       <div id="lldp-results-list" class="lldp-results-list">
         <div class="lldp-empty">Paste LLDP output (or load a sample) and click "Parse &amp; match".</div>

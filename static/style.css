@@ -351,6 +351,7 @@ body {
 }
 
 .rack-container {
+  position: relative;
   flex: 1;
   overflow: auto;
   display: flex;
@@ -863,6 +864,63 @@ body {
   font-weight: bold;
 }
 
+.cabling-hint {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2C2C2A;
+  color: #E6E4DC;
+  padding: 7px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: monospace;
+  z-index: 900;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+
+.toast-container {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 5000;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 8px;
+}
+
+.toast {
+  background: #F1EFE8;
+  border: 1px solid #0F6E56;
+  border-left: 4px solid #0F6E56;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-family: monospace;
+  min-width: 200px;
+  max-width: 320px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  animation: toast-in 0.15s ease-out;
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.toast-title {
+  font-size: 12px;
+  font-weight: bold;
+  color: #0F6E56;
+}
+
+.toast-detail {
+  font-size: 11px;
+  color: #5F5E5A;
+  margin-top: 2px;
+}
+
 .lldp-page {
   display: flex;
   gap: 16px;
@@ -926,6 +984,93 @@ body {
   min-height: 14px;
 }
 
+.lldp-history-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  flex: 1;
+}
+
+.lldp-history-title {
+  font-size: 11px;
+  font-weight: bold;
+  color: #5F5E5A;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.lldp-history-list {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lh {
+  border: 1px solid #B4B2A9;
+  border-radius: 5px;
+  padding: 6px 8px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.lh:hover {
+  background: #F1EFE8;
+}
+
+.lh.active {
+  border-color: #0F6E56;
+  box-shadow: 0 0 0 1px #0F6E56;
+}
+
+.lh.done {
+  opacity: 0.7;
+}
+
+.lh-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+}
+
+.lh-time {
+  color: #5F5E5A;
+}
+
+.lh-switch {
+  font-weight: bold;
+  flex: 1;
+}
+
+.lh-del {
+  border: none;
+  background: none;
+  color: #A32D2D;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.lh-summary {
+  font-size: 11px;
+  color: #5F5E5A;
+  margin-top: 2px;
+}
+
+.lh-state {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  color: #B8791A;
+  margin-top: 2px;
+}
+
+.lh.done .lh-state {
+  color: #0F6E56;
+}
+
 .lldp-results-col {
   flex: 1;
   display: flex;
@@ -946,7 +1091,28 @@ body {
   gap: 4px;
 }
 
-#btn-bulk-create {
+.lldp-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lldp-summary {
+  margin-bottom: 8px;
+}
+
+.lldp-summary-line {
+  font-size: 12px;
+  font-weight: bold;
+  color: #2C2C2A;
+}
+
+.lldp-summary-ok {
+  font-size: 12px;
+  color: #0F6E56;
+}
+
+#btn-apply-all {
   font-family: monospace;
   font-size: 12px;
   padding: 6px 12px;
@@ -954,7 +1120,7 @@ body {
   cursor: pointer;
 }
 
-#btn-bulk-create:disabled {
+#btn-apply-all:disabled {
   opacity: 0.4;
   cursor: not-allowed;
   border-color: #888780;
@@ -984,13 +1150,23 @@ body {
 
 .lr.new { border-left-color: #0F6E56; }
 .lr.matched { border-left-color: #888780; opacity: 0.75; }
-.lr.conflict { border-left-color: #B8791A; }
+.lr.conflict { border-left-color: #A32D2D; }
+.lr.removed { border-left-color: #B8791A; }
 
 .lr .lt {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 12.5px;
+}
+
+.lr-port-link {
+  cursor: pointer;
+  text-decoration: underline dotted;
+}
+
+.lr-port-link:hover {
+  color: #0F6E56;
 }
 
 .lr .bd {
@@ -1003,7 +1179,8 @@ body {
 
 .lr .bd.new { background: #DFF5E6; color: #0F6E56; }
 .lr .bd.matched { background: #E4E2D8; color: #5F5E5A; }
-.lr .bd.conflict { background: #FBEDD4; color: #B8791A; }
+.lr .bd.conflict { background: #FCE8E6; color: #A32D2D; }
+.lr .bd.removed { background: #FBEDD4; color: #B8791A; }
 
 .lr .lb {
   font-size: 11px;
@@ -1051,6 +1228,11 @@ body {
 .lr .ba {
   border-color: #0F6E56;
   background: #9FE1CB;
+}
+
+.lr .ba.danger {
+  border-color: #A32D2D;
+  background: #F3B4B0;
 }
 
 .floor-customer-label {
