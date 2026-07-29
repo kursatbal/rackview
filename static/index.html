@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RackView</title>
+  <link rel="stylesheet" href="style.css" onerror="this.onerror=null;this.href='style.css?retry='+Date.now()">
+</head>
+<body>
+  <header class="toolbar">
+    <a id="btn-back-floor" class="btn-link" href="floor.html" style="display:none">← Floor</a>
+    <span class="title" id="page-title">RackView</span>
+    <div class="spacer"></div>
+    <button id="btn-search" title="Search (Ctrl+K)">Search</button>
+    <a id="btn-lldp" class="btn-link" href="lldp.html">LLDP Discovery</a>
+    <button id="btn-front" class="active">Front</button>
+    <button id="btn-rear">Rear</button>
+    <div class="dropdown">
+      <button id="btn-cabling">Cabling</button>
+      <div id="cabling-menu" class="dropdown-menu">
+        <button data-mode="selected">Show selected device's cabling</button>
+        <button data-mode="create">Create cabling</button>
+        <button id="btn-cabling-off" data-mode="off">Hide cabling</button>
+      </div>
+    </div>
+    <button id="btn-edit">Edit</button>
+    <button id="btn-reset">Reset</button>
+    <a id="btn-export-cables" class="btn-link" title="Export all cables in this rack to Excel">Export cables</a>
+    <button id="btn-help" title="How to use RackView">?</button>
+  </header>
+  <main class="layout">
+    <aside id="catalog" class="catalog"></aside>
+    <div class="rack-container">
+      <svg id="rack-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      <div id="cable-info" class="cable-info"></div>
+      <div id="cable-legend" class="cable-legend"></div>
+    </div>
+    <aside id="panel" class="panel">Select a device.</aside>
+  </main>
+
+  <div id="rv-tooltip" class="rv-tooltip"></div>
+
+  <div id="help-overlay" class="help-overlay">
+    <div class="help-box">
+      <button id="help-close" class="help-close" title="Close">&times;</button>
+      <h2>Welcome to RackView</h2>
+      <p class="help-intro">Quick tour of what you can do here.</p>
+      <div class="help-grid">
+        <div class="help-item">
+          <h3>✏️ Edit mode</h3>
+          <p>Click <b>Edit</b> in the top bar to drag devices into new U positions, rename/delete them, or edit their fields (IP, serial, notes…) in the side panel.</p>
+        </div>
+        <div class="help-item">
+          <h3>🔌 Show cabling</h3>
+          <p><b>Right-click a device</b> → "Show cabling" to see only its connections. Or use the <b>Cabling</b> menu for "Create cabling" (click port → port to draw a new cable).</p>
+        </div>
+        <div class="help-item">
+          <h3>🏷️ Renaming &amp; labels</h3>
+          <p><b>Right-click a port</b> to give it a custom display name. <b>Right-click a device's name</b> (left side) to rename it, or drag that label / a port group label somewhere less cluttered.</p>
+        </div>
+        <div class="help-item">
+          <h3>✂️ Cable actions</h3>
+          <p><b>Right-click a cable</b> to jump to the device on the other end, or delete it. Hover any cable for a quick tooltip.</p>
+        </div>
+        <div class="help-item">
+          <h3>🔍 Search &amp; Impact</h3>
+          <p><b>Search</b> (or Ctrl+K) finds devices by IP, MAC, serial, port, VLAN. Click a device → <b>Impact</b> tab to see what breaks if it goes down.</p>
+        </div>
+        <div class="help-item">
+          <h3>📡 LLDP &amp; Export</h3>
+          <p><b>LLDP Discovery</b> matches switch output to existing cabling. <b>Export cables</b> downloads the rack's cabling as an Excel file.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="search-overlay" class="search-overlay">
+    <div class="search-box">
+      <div class="search-input-row">
+        <input id="search-input" type="text" placeholder="Search IP, MAC, device, port, serial, VLAN…" autocomplete="off">
+        <span id="search-type-badge" class="search-type-badge"></span>
+      </div>
+      <div id="search-results" class="search-results"></div>
+    </div>
+  </div>
+
+  <script src="js/bundle-index.js"></script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RackView — Floor View</title>
+  <link rel="stylesheet" href="style.css" onerror="this.onerror=null;this.href='style.css?retry='+Date.now()">
+</head>
+<body>
+  <header class="toolbar">
+    <span class="title">RackView — Floor View</span>
+    <div class="spacer"></div>
+    <label class="floor-customer-label" for="customer-select">Customer:</label>
+    <select id="customer-select"></select>
+    <span id="customer-summary" class="floor-summary"></span>
+    <label class="floor-toggle">
+      <input type="checkbox" id="chk-show-all-cables"> Show all cables
+    </label>
+  </header>
+
+  <div class="floor-container">
+    <svg id="floor-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div id="floor-empty" class="floor-empty" style="display:none">No racks for this customer.</div>
+  </div>
+
+  <div id="rv-tooltip" class="rv-tooltip"></div>
+
+  <script src="js/bundle-floor.js"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RackView — LLDP Discovery</title>
+  <link rel="stylesheet" href="style.css" onerror="this.onerror=null;this.href='style.css?retry='+Date.now()">
+</head>
+<body>
+  <header class="toolbar">
+    <span class="title">RackView — LLDP Discovery</span>
+    <div class="spacer"></div>
+    <a class="btn-link" href="index.html">Back to rack</a>
+  </header>
+
+  <main class="lldp-page">
+    <div class="lldp-input-col">
+      <div class="lldp-field">
+        <label for="lldp-switch-select">Source switch</label>
+        <select id="lldp-switch-select"></select>
+      </div>
+
+      <div class="lldp-field">
+        <label for="lldp-textarea">LLDP neighbor output</label>
+        <textarea id="lldp-textarea" placeholder="Paste 'show lldp neighbors' (or equivalent) output here…"></textarea>
+      </div>
+
+      <div class="lldp-actions">
+        <div class="dropdown">
+          <button id="btn-load-sample">Load sample ▾</button>
+          <div id="sample-menu" class="dropdown-menu">
+            <button data-sample="lldp-cisco-nxos.txt">Cisco NX-OS / IOS</button>
+            <button data-sample="lldp-dell-os10.txt">Dell OS10</button>
+            <button data-sample="lldp-aruba.txt">Aruba / HPE</button>
+          </div>
+        </div>
+        <button id="btn-parse" class="primary">Parse &amp; match</button>
+      </div>
+      <div id="lldp-parse-error" class="lldp-error"></div>
+    </div>
+
+    <div class="lldp-results-col">
+      <div class="lldp-results-header">
+        <div class="lldp-chips" id="lldp-filter-chips">
+          <button class="chip active" data-filter="all">All</button>
+          <button class="chip" data-filter="new">New</button>
+          <button class="chip" data-filter="matched">Matched</button>
+          <button class="chip" data-filter="conflict">Conflicting</button>
+        </div>
+        <button id="btn-bulk-create" class="primary" disabled>Bulk-create 0 new cables</button>
+      </div>
+      <div id="lldp-results-list" class="lldp-results-list">
+        <div class="lldp-empty">Paste LLDP output (or load a sample) and click "Parse &amp; match".</div>
+      </div>
+    </div>
+  </main>
+
+  <script src="js/lldp.js"></script>
+</body>
+</html>

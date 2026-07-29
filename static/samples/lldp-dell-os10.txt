@@ -1,0 +1,14 @@
+Remote Chassis ID: 00:50:56:a1:3f:22
+Remote Port ID: vmnic1
+Remote System Name: ESX-01
+Local Port ID: Te1/0/1
+
+Remote Chassis ID: 00:50:56:a1:3f:24
+Remote Port ID: mgmt0
+Remote System Name: ESX-02
+Local Port ID: Te1/0/4
+
+Remote Chassis ID: 00:50:56:a1:9c:02
+Remote Port ID: CtrlB mgmt
+Remote System Name: SAN-02
+Local Port ID: Te1/0/5

@@ -1,0 +1,902 @@
+import os
+import re
+import sys
+from io import BytesIO
+
+from flask import Flask, jsonify, request, send_from_directory, Response
+from openpyxl import Workbook
+from openpyxl.styles import Font
+
+from models import db, DeviceType, Rack, Device, Cable, ArpEntry
+
+
+def _data_dir():
+    # Packaged (PyInstaller) runs extract to a temp/read-only bundle dir, so the
+    # database must live somewhere stable and writable outside of it instead.
+    if getattr(sys, "frozen", False):
+        base = os.environ.get("LOCALAPPDATA") or os.path.expanduser("~")
+        d = os.path.join(base, "RackView")
+    else:
+        d = os.path.join(os.path.dirname(os.path.abspath(__file__)), "instance")
+    os.makedirs(d, exist_ok=True)
+    return d
+
+
+DB_PATH = os.path.join(_data_dir(), "rackview.db")
+
+app = Flask(__name__, static_folder="static", static_url_path="")
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{DB_PATH}"
+db.init_app(app)
+
+JS_DIR = os.path.join(os.path.dirname(__file__), "static", "js")
+
+INDEX_BUNDLE_FILES = [
+    "rv-defs.js", "rv-primitives.js", "rv-stencils-dell.js", "rv-stencils-misc.js",
+    "rv-device-catalog.js", "rack.js", "panel.js", "cables.js", "catalog.js", "search.js", "main.js",
+]
+FLOOR_BUNDLE_FILES = ["rv-defs.js", "rv-primitives.js", "floor.js"]
+
+
+def _bundle(filenames):
+    parts = []
+    for name in filenames:
+        with open(os.path.join(JS_DIR, name), encoding="utf-8") as f:
+            parts.append(f"// ---- {name} ----\n" + f.read())
+    return Response("\n;\n".join(parts), mimetype="text/javascript")
+
+
+@app.route("/js/bundle-index.js")
+def bundle_index():
+    return _bundle(INDEX_BUNDLE_FILES)
+
+
+@app.route("/js/bundle-floor.js")
+def bundle_floor():
+    return _bundle(FLOOR_BUNDLE_FILES)
+
+
+@app.route("/")
+def index():
+    return send_from_directory(app.static_folder, "index.html")
+
+
+@app.route("/api/racks")
+def list_racks():
+    racks = Rack.query.all()
+    return jsonify([r.to_dict() for r in racks])
+
+
+@app.route("/api/racks/<int:rack_id>")
+def get_rack(rack_id):
+    rack = Rack.query.get_or_404(rack_id)
+    devices = Device.query.filter_by(rack_id=rack.id).all()
+    data = rack.to_dict()
+    data["devices"] = [d.to_dict() for d in devices]
+    return jsonify(data)
+
+
+@app.route("/api/racks/<int:rack_id>/cables")
+def get_rack_cables(rack_id):
+    device_ids = [d.id for d in Device.query.filter_by(rack_id=rack_id).all()]
+    cables = Cable.query.filter(
+        db.or_(Cable.a_device_id.in_(device_ids), Cable.b_device_id.in_(device_ids))
+    ).all()
+    return jsonify([c.to_dict() for c in cables])
+
+
+@app.route("/api/racks/<int:rack_id>/devices")
+def get_rack_devices(rack_id):
+    Rack.query.get_or_404(rack_id)
+    devices = Device.query.filter_by(rack_id=rack_id).all()
+    return jsonify([d.to_dict() for d in devices])
+
+
+CABLE_EXPORT_HEADERS = [
+    "Source device", "Source port", "Target device", "Target port",
+    "Medium", "Label", "Source rack", "Target rack",
+]
+
+
+def _cable_export_row(cable, devices_by_id):
+    a = devices_by_id.get(cable.a_device_id)
+    b = devices_by_id.get(cable.b_device_id)
+    return [
+        a.name if a else "?", cable.a_port,
+        b.name if b else "?", cable.b_port,
+        cable.medium, cable.label or "",
+        a.rack.name if a else "", b.rack.name if b else "",
+    ]
+
+
+def _xlsx_response(sheet_title, headers, rows, filename):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = sheet_title
+    ws.append(headers)
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+    for row in rows:
+        ws.append(row)
+    for col in ws.columns:
+        width = max((len(str(c.value)) for c in col if c.value is not None), default=8)
+        ws.column_dimensions[col[0].column_letter].width = min(width + 2, 50)
+
+    buf = BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    return Response(
+        buf.read(),
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
+
+
+@app.route("/api/racks/<int:rack_id>/export.xlsx")
+def export_rack_cables(rack_id):
+    rack = Rack.query.get_or_404(rack_id)
+    device_ids = [d.id for d in Device.query.filter_by(rack_id=rack_id).all()]
+    cables = Cable.query.filter(
+        db.or_(Cable.a_device_id.in_(device_ids), Cable.b_device_id.in_(device_ids))
+    ).all()
+    all_ids = {c.a_device_id for c in cables} | {c.b_device_id for c in cables}
+    devices_by_id = {d.id: d for d in Device.query.filter(Device.id.in_(all_ids)).all()}
+    rows = [_cable_export_row(c, devices_by_id) for c in cables]
+    safe_name = re.sub(r"[^A-Za-z0-9_-]+", "_", rack.name)
+    return _xlsx_response("Cables", CABLE_EXPORT_HEADERS, rows, f"{safe_name}_cables.xlsx")
+
+
+@app.route("/api/devices/<int:device_id>/export.xlsx")
+def export_device_connections(device_id):
+    device = Device.query.get_or_404(device_id)
+    cables = Cable.query.filter(
+        db.or_(Cable.a_device_id == device_id, Cable.b_device_id == device_id)
+    ).all()
+    all_ids = {c.a_device_id for c in cables} | {c.b_device_id for c in cables}
+    devices_by_id = {d.id: d for d in Device.query.filter(Device.id.in_(all_ids)).all()}
+    rows = [_cable_export_row(c, devices_by_id) for c in cables]
+    safe_name = re.sub(r"[^A-Za-z0-9_-]+", "_", device.name)
+    return _xlsx_response("Connections", CABLE_EXPORT_HEADERS, rows, f"{safe_name}_connections.xlsx")
+
+
+@app.route("/api/racks", methods=["POST"])
+def create_rack():
+    payload = request.get_json()
+    rack = Rack(
+        name=payload["name"],
+        site=payload.get("site", ""),
+        u_height=payload.get("u_height", 42),
+        customer=payload.get("customer"),
+        row=payload.get("row", 1),
+        col=payload.get("col", 1),
+    )
+    db.session.add(rack)
+    db.session.commit()
+    return jsonify(rack.to_dict()), 201
+
+
+@app.route("/api/racks/<int:rack_id>", methods=["PUT"])
+def update_rack(rack_id):
+    rack = Rack.query.get_or_404(rack_id)
+    payload = request.get_json()
+    rack.name = payload.get("name", rack.name)
+    rack.site = payload.get("site", rack.site)
+    rack.u_height = payload.get("u_height", rack.u_height)
+    rack.customer = payload.get("customer", rack.customer)
+    rack.row = payload.get("row", rack.row)
+    rack.col = payload.get("col", rack.col)
+    db.session.commit()
+    return jsonify(rack.to_dict())
+
+
+@app.route("/api/customers")
+def list_customers():
+    racks = Rack.query.all()
+    by_customer = {}
+    for r in racks:
+        key = r.customer or "(no customer)"
+        by_customer.setdefault(key, {"customer": key, "rack_count": 0, "device_count": 0})
+        by_customer[key]["rack_count"] += 1
+        by_customer[key]["device_count"] += Device.query.filter_by(rack_id=r.id).count()
+    return jsonify(sorted(by_customer.values(), key=lambda c: c["customer"]))
+
+
+@app.route("/api/customers/<string:customer>/racks")
+def customer_racks(customer):
+    racks = Rack.query.filter_by(customer=customer).all()
+    out = []
+    for r in racks:
+        data = r.to_dict()
+        data["devices"] = [d.to_dict() for d in Device.query.filter_by(rack_id=r.id).all()]
+        out.append(data)
+    return jsonify(out)
+
+
+@app.route("/api/floor/<string:customer>/cables")
+def floor_cables(customer):
+    rack_ids = [r.id for r in Rack.query.filter_by(customer=customer).all()]
+    device_rows = Device.query.filter(Device.rack_id.in_(rack_ids)).all()
+    rack_by_device = {d.id: d.rack_id for d in device_rows}
+    device_ids = list(rack_by_device.keys())
+    cables = Cable.query.filter(
+        db.or_(Cable.a_device_id.in_(device_ids), Cable.b_device_id.in_(device_ids))
+    ).all()
+    out = []
+    for c in cables:
+        data = c.to_dict()
+        data["a_rack_id"] = rack_by_device.get(c.a_device_id)
+        data["b_rack_id"] = rack_by_device.get(c.b_device_id)
+        data["inter_rack"] = data["a_rack_id"] != data["b_rack_id"]
+        out.append(data)
+    return jsonify(out)
+
+
+@app.route("/api/devices/<int:device_id>")
+def get_device(device_id):
+    device = Device.query.get_or_404(device_id)
+    data = device.to_dict()
+    arp = ArpEntry.query.filter_by(device_id=device_id).all()
+    data["arp"] = [a.to_dict() for a in arp]
+    return jsonify(data)
+
+
+@app.route("/api/device-types")
+def list_device_types():
+    types = DeviceType.query.all()
+    return jsonify([t.to_dict() for t in types])
+
+
+def _check_u_overlap(rack, position_u, u_height, exclude_device_id=None):
+    if position_u < 1 or position_u + u_height - 1 > rack.u_height:
+        return "out of rack bounds", 400
+
+    new_lo, new_hi = position_u, position_u + u_height - 1
+    query = Device.query.filter_by(rack_id=rack.id)
+    if exclude_device_id is not None:
+        query = query.filter(Device.id != exclude_device_id)
+
+    for other in query.all():
+        other_lo = other.position_u
+        other_hi = other.position_u + other.device_type.u_height - 1
+        if new_lo <= other_hi and other_lo <= new_hi:
+            return f"overlaps with device {other.name}", 409
+
+    return None, None
+
+
+@app.route("/api/devices", methods=["POST"])
+def create_device():
+    payload = request.get_json()
+    rack = Rack.query.get_or_404(payload["rack_id"])
+    device_type = DeviceType.query.get_or_404(payload["device_type_id"])
+
+    error, status = _check_u_overlap(rack, payload["position_u"], device_type.u_height)
+    if error:
+        return jsonify({"error": error}), status
+
+    device = Device(
+        rack_id=rack.id,
+        device_type_id=device_type.id,
+        name=payload["name"],
+        position_u=payload["position_u"],
+        serial=payload.get("serial"),
+        mgmt_ip=payload.get("mgmt_ip"),
+        notes=payload.get("notes"),
+        metadata_json=payload.get("metadata_json"),
+    )
+    db.session.add(device)
+    db.session.commit()
+    return jsonify(device.to_dict()), 201
+
+
+@app.route("/api/devices/<int:device_id>", methods=["PUT"])
+def update_device(device_id):
+    device = Device.query.get_or_404(device_id)
+    payload = request.get_json()
+
+    new_position_u = payload.get("position_u", device.position_u)
+    new_type_id = payload.get("device_type_id", device.device_type_id)
+    device_type = DeviceType.query.get_or_404(new_type_id)
+
+    if "position_u" in payload or "device_type_id" in payload:
+        error, status = _check_u_overlap(
+            device.rack, new_position_u, device_type.u_height, exclude_device_id=device.id
+        )
+        if error:
+            return jsonify({"error": error}), status
+
+    new_name = payload.get("name", device.name)
+    if new_name != device.name:
+        dup = Device.query.filter(
+            Device.rack_id == device.rack_id,
+            Device.id != device.id,
+            Device.name == new_name,
+        ).first()
+        if dup:
+            return jsonify({"error": f"device name '{new_name}' already used in this rack"}), 409
+
+    device.position_u = new_position_u
+    device.device_type_id = new_type_id
+    device.name = new_name
+    device.serial = payload.get("serial", device.serial)
+    device.mgmt_ip = payload.get("mgmt_ip", device.mgmt_ip)
+    device.notes = payload.get("notes", device.notes)
+    device.owner_team = payload.get("owner_team", device.owner_team)
+    device.warranty_end = payload.get("warranty_end", device.warranty_end)
+    device.role_label = payload.get("role_label", device.role_label)
+    device.line_cards = payload.get("line_cards", device.line_cards)
+
+    known_keys = {
+        "position_u", "device_type_id", "name", "serial", "mgmt_ip", "notes",
+        "owner_team", "warranty_end", "role_label", "line_cards", "metadata_json",
+    }
+    extra = {k: v for k, v in payload.items() if k not in known_keys}
+    if extra or "metadata_json" in payload:
+        merged = dict(device.metadata_json or {})
+        incoming = dict(payload.get("metadata_json") or {})
+        incoming.update(extra)
+        for k, v in incoming.items():
+            if isinstance(v, dict) and isinstance(merged.get(k), dict):
+                merged[k] = {**merged[k], **v}
+            else:
+                merged[k] = v
+        device.metadata_json = merged
+
+    db.session.commit()
+    return jsonify(device.to_dict())
+
+
+@app.route("/api/devices/<int:device_id>", methods=["DELETE"])
+def delete_device(device_id):
+    device = Device.query.get_or_404(device_id)
+    Cable.query.filter(
+        db.or_(Cable.a_device_id == device_id, Cable.b_device_id == device_id)
+    ).delete()
+    db.session.delete(device)
+    db.session.commit()
+    return "", 204
+
+
+@app.route("/api/cables", methods=["POST"])
+def create_cable():
+    payload = request.get_json()
+    cable = Cable(
+        a_device_id=payload["a_device_id"],
+        a_port=payload["a_port"],
+        b_device_id=payload["b_device_id"],
+        b_port=payload["b_port"],
+        medium=payload["medium"],
+        label=payload.get("label"),
+        color=payload.get("color"),
+    )
+    db.session.add(cable)
+    db.session.commit()
+    return jsonify(cable.to_dict()), 201
+
+
+@app.route("/api/cables/<int:cable_id>", methods=["PUT"])
+def update_cable(cable_id):
+    cable = Cable.query.get_or_404(cable_id)
+    payload = request.get_json()
+    cable.a_device_id = payload.get("a_device_id", cable.a_device_id)
+    cable.a_port = payload.get("a_port", cable.a_port)
+    cable.b_device_id = payload.get("b_device_id", cable.b_device_id)
+    cable.b_port = payload.get("b_port", cable.b_port)
+    cable.medium = payload.get("medium", cable.medium)
+    cable.label = payload.get("label", cable.label)
+    cable.color = payload.get("color", cable.color)
+    db.session.commit()
+    return jsonify(cable.to_dict())
+
+
+@app.route("/api/cables/<int:cable_id>", methods=["DELETE"])
+def delete_cable(cable_id):
+    cable = Cable.query.get_or_404(cable_id)
+    db.session.delete(cable)
+    db.session.commit()
+    return "", 204
+
+
+@app.route("/api/devices/<int:device_id>/free-ports")
+def get_free_ports(device_id):
+    device = Device.query.get_or_404(device_id)
+    device_type = device.device_type
+    all_ports = list(device_type.front_ports or []) + list(device_type.rear_ports or [])
+
+    used = set()
+    cables = Cable.query.filter(
+        db.or_(Cable.a_device_id == device_id, Cable.b_device_id == device_id)
+    ).all()
+    for c in cables:
+        if c.a_device_id == device_id:
+            used.add(c.a_port)
+        if c.b_device_id == device_id:
+            used.add(c.b_port)
+
+    free = [p for p in all_ports if p["name"] not in used]
+    return jsonify(free)
+
+
+def _normalize_mac(s):
+    hexonly = re.sub(r"[^0-9a-fA-F]", "", s or "")
+    if len(hexonly) != 12:
+        return None
+    return ":".join(hexonly[i:i + 2] for i in range(0, 12, 2)).lower()
+
+
+def _detect_query_type(q):
+    s = q.strip()
+    if re.match(r"^\d{1,3}(\.\d{1,3}){3}$", s):
+        return "ip"
+    if re.match(r"^([0-9a-f]{2}[:-]){5}[0-9a-f]{2}$", s, re.I):
+        return "mac"
+    if re.match(r"^([0-9a-f]{4}\.){2}[0-9a-f]{4}$", s, re.I):
+        return "mac"
+    if re.match(r"^([0-9a-f]{2}:){7}[0-9a-f]{2}$", s, re.I):
+        return "wwpn"
+    if re.match(r"^(eth|gi|te|xe|fc|port)\s*[\d/]+$", s, re.I):
+        return "port"
+    if re.match(r"^vlan\s*\d+$", s, re.I) or re.match(r"^\d{1,4}$", s):
+        return "vlan"
+    return "text"
+
+
+@app.route("/api/search")
+def search():
+    q = (request.args.get("q") or "").strip()
+    if not q:
+        return jsonify({"query": q, "detected_type": "text", "results": []})
+
+    qtype = _detect_query_type(q)
+    ql = q.lower()
+    mac_norm = _normalize_mac(q) if qtype == "mac" else None
+
+    customer = request.args.get("customer")
+    device_query = Device.query
+    if customer:
+        rack_ids = [r.id for r in Rack.query.filter_by(customer=customer).all()]
+        device_query = device_query.filter(Device.rack_id.in_(rack_ids))
+    devices = device_query.all()
+    dev_by_id = {d.id: d for d in devices}
+    scored = []
+
+    def add(device, context, reason, score):
+        scored.append((score, {
+            "device_id": device.id,
+            "device_name": device.name,
+            "rack": device.rack.name,
+            "rack_id": device.rack_id,
+            "position": f"U{device.position_u}",
+            "model": f"{device.device_type.vendor} {device.device_type.model}",
+            "context": context,
+            "match_reason": reason,
+        }))
+
+    for d in devices:
+        if ql and ql in d.name.lower():
+            add(d, "", f"Device name matches '{q}'", 100 if d.name.lower() == ql else 60)
+        if d.serial and ql in d.serial.lower():
+            add(d, "", f"Serial matches: {d.serial}", 100 if d.serial.lower() == ql else 70)
+        if d.mgmt_ip and (d.mgmt_ip == q or (qtype == "ip" and ql in d.mgmt_ip.lower())):
+            add(d, "Mgmt IP", f"IP matched: {d.mgmt_ip}", 100 if d.mgmt_ip == q else 60)
+
+        meta = d.metadata_json or {}
+        for key in ("oob_ip", "vmotion_ip", "cluster_ip"):
+            val = meta.get(key)
+            if val and (str(val) == q or (qtype == "ip" and ql in str(val).lower())):
+                add(d, key, f"IP matched: {val}", 100 if str(val) == q else 60)
+        for k, v in (meta.get("ctrl_ips") or {}).items():
+            if v and (str(v) == q or (qtype == "ip" and ql in str(v).lower())):
+                add(d, f"{k} IP", f"IP matched: {v}", 100 if str(v) == q else 60)
+
+    for a in ArpEntry.query.all():
+        d = dev_by_id.get(a.device_id)
+        if not d:
+            continue
+        if a.ip and (a.ip == q or (qtype == "ip" and ql in a.ip.lower())):
+            add(d, f"ARP on {a.port}", f"ARP: IP matched {a.ip}", 90)
+        mac_field_norm = _normalize_mac(a.mac) if a.mac else None
+        if mac_norm and mac_field_norm == mac_norm:
+            add(d, f"ARP on {a.port}", f"ARP: MAC matched {a.mac}", 90)
+
+    for c in Cable.query.all():
+        for side_dev_id, side_port in ((c.a_device_id, c.a_port), (c.b_device_id, c.b_port)):
+            d = dev_by_id.get(side_dev_id)
+            if not d or not side_port:
+                continue
+            if qtype == "port" and side_port.lower() == ql:
+                add(d, side_port, f"Port matches: {side_port}", 95)
+            elif qtype in ("port", "text") and ql in side_port.lower():
+                add(d, side_port, f"Port contains: {side_port}", 50)
+        if qtype == "vlan" and c.label:
+            vlan_q = re.sub(r"^vlan\s*", "", ql, flags=re.I)
+            if vlan_q and vlan_q in c.label.lower():
+                for side_dev_id, side_port in ((c.a_device_id, c.a_port), (c.b_device_id, c.b_port)):
+                    d = dev_by_id.get(side_dev_id)
+                    if d:
+                        add(d, side_port, f"VLAN {vlan_q} in config: {c.label}", 55)
+
+    best = {}
+    for score, r in scored:
+        key = (r["device_id"], r["context"], r["match_reason"])
+        if key not in best or best[key][0] < score:
+            best[key] = (score, r)
+    ranked = sorted(best.values(), key=lambda x: -x[0])
+    return jsonify({
+        "query": q,
+        "detected_type": qtype,
+        "results": [r for _, r in ranked][:30],
+    })
+
+
+def _classify_purpose(cable):
+    if cable.medium == "power":
+        return "power"
+    if cable.medium in ("fiber", "sas"):
+        return "storage"
+    label = (cable.label or "").lower()
+    if "mgmt" in label or "idrac" in label or "ilo" in label:
+        return "mgmt"
+    if cable.medium == "cat6a":
+        return "mgmt"
+    return "data"
+
+
+_PURPOSE_LABELS = {"data": "data path", "mgmt": "management", "storage": "storage path", "power": "power feed"}
+
+
+def _cable_port_for(cable, device_id):
+    return cable.a_port if cable.a_device_id == device_id else cable.b_port
+
+
+def _find_alternates(peer_id, purpose, down_device_id, all_cables):
+    alts = []
+    for c in all_cables:
+        if c.a_device_id != peer_id and c.b_device_id != peer_id:
+            continue
+        other = c.b_device_id if c.a_device_id == peer_id else c.a_device_id
+        if other == down_device_id:
+            continue
+        if _classify_purpose(c) == purpose:
+            alts.append(c)
+    return alts
+
+
+@app.route("/api/devices/<int:device_id>/impact")
+def device_impact(device_id):
+    device = Device.query.get_or_404(device_id)
+    customer = device.rack.customer
+    if customer:
+        customer_rack_ids = [r.id for r in Rack.query.filter_by(customer=customer).all()]
+    else:
+        customer_rack_ids = [device.rack_id]
+    rack_device_ids = [d.id for d in Device.query.filter(Device.rack_id.in_(customer_rack_ids)).all()]
+    all_devices = Device.query.filter(Device.id.in_(rack_device_ids)).all()
+    dev_by_id = {d.id: d for d in all_devices}
+    all_cables = Cable.query.filter(
+        db.or_(Cable.a_device_id.in_(rack_device_ids), Cable.b_device_id.in_(rack_device_ids))
+    ).all()
+
+    affected = [c for c in all_cables if c.a_device_id == device_id or c.b_device_id == device_id]
+    by_peer = {}
+    for c in affected:
+        peer = c.b_device_id if c.a_device_id == device_id else c.a_device_id
+        by_peer.setdefault(peer, []).append(c)
+
+    critical, degraded = [], []
+    for peer_id, cables in by_peer.items():
+        peer = dev_by_id.get(peer_id)
+        if not peer:
+            continue
+        for cable in cables:
+            purpose = _classify_purpose(cable)
+            alternates = _find_alternates(peer_id, purpose, device_id, all_cables)
+            port_label = _cable_port_for(cable, peer_id)
+            if not alternates:
+                critical.append({
+                    "device_id": peer.id, "device_name": peer.name,
+                    "rack_id": peer.rack_id, "rack_name": peer.rack.name,
+                    "reason": f"{_PURPOSE_LABELS[purpose]} access lost",
+                    "detail": f"{port_label} · only path",
+                })
+            else:
+                alt_labels = ", ".join(_cable_port_for(a, peer_id) for a in alternates)
+                degraded.append({
+                    "device_id": peer.id, "device_name": peer.name,
+                    "rack_id": peer.rack_id, "rack_name": peer.rack.name,
+                    "reason": f"{_PURPOSE_LABELS[purpose]} drops to one leg",
+                    "detail": f"{port_label} lost, {alt_labels} stays up",
+                })
+
+    safe = [
+        {"device_id": d.id, "device_name": d.name, "rack_id": d.rack_id, "rack_name": d.rack.name, "reason": "no connection"}
+        for d in all_devices if d.id != device_id and d.id not in by_peer
+    ]
+
+    severity = "critical" if critical else ("degraded" if degraded else "safe")
+    return jsonify({
+        "severity": severity,
+        "counts": {"critical": len(critical), "degraded": len(degraded), "safe": len(safe)},
+        "critical": critical,
+        "degraded": degraded,
+        "safe": safe,
+    })
+
+
+def _parse_lldp_cisco(lines):
+    out = []
+    started = False
+    for line in lines:
+        s = line.strip()
+        if not s:
+            continue
+        if re.match(r"^Device\s+ID", s, re.I):
+            started = True
+            continue
+        if not started:
+            continue
+        parts = s.split()
+        if len(parts) < 5:
+            continue
+        device_id, local_intf, _holdtime, capability = parts[0], parts[1], parts[2], parts[3]
+        port_id = " ".join(parts[4:])
+        out.append({
+            "localPort": local_intf,
+            "remoteSystem": device_id,
+            "remotePort": port_id,
+            "remoteChassisId": None,
+            "capabilities": capability.split(","),
+        })
+    return out
+
+
+def _parse_lldp_dell(lines):
+    out = []
+    cur = {}
+
+    def flush(rec):
+        if rec.get("localPort") or rec.get("remoteSystem"):
+            out.append({
+                "localPort": rec.get("localPort"),
+                "remoteSystem": rec.get("remoteSystem"),
+                "remotePort": rec.get("remotePort"),
+                "remoteChassisId": rec.get("remoteChassisId"),
+                "capabilities": [],
+            })
+
+    for line in lines:
+        s = line.strip()
+        if not s:
+            if cur:
+                flush(cur)
+                cur = {}
+            continue
+        m = re.match(r"^Remote Chassis ID:\s*(.+)$", s, re.I)
+        if m:
+            if cur.get("localPort") or cur.get("remoteSystem"):
+                flush(cur)
+                cur = {}
+            cur["remoteChassisId"] = m.group(1).strip()
+            continue
+        m = re.match(r"^Remote Port ID:\s*(.+)$", s, re.I)
+        if m:
+            cur["remotePort"] = m.group(1).strip()
+            continue
+        m = re.match(r"^Remote System Name:\s*(.+)$", s, re.I)
+        if m:
+            cur["remoteSystem"] = m.group(1).strip()
+            continue
+        m = re.match(r"^Local Port ID:\s*(.+)$", s, re.I)
+        if m:
+            cur["localPort"] = m.group(1).strip()
+            continue
+    if cur:
+        flush(cur)
+    return out
+
+
+def _parse_lldp_aruba(lines):
+    out = []
+    started = False
+    for line in lines:
+        s = line.strip()
+        if not s:
+            continue
+        if re.match(r"^LocalPort", s, re.I):
+            started = True
+            continue
+        if not started:
+            continue
+        parts = s.split()
+        if len(parts) < 4:
+            continue
+        local_port, chassis_id, port_id = parts[0], parts[1], parts[2]
+        sys_name = " ".join(parts[3:])
+        out.append({
+            "localPort": local_port,
+            "remoteSystem": sys_name,
+            "remotePort": port_id,
+            "remoteChassisId": chassis_id,
+            "capabilities": [],
+        })
+    return out
+
+
+def _parse_lldp(text):
+    lines = text.splitlines()
+    non_empty = [l for l in lines if l.strip()]
+    if not non_empty:
+        return []
+    if any(l.strip().lower().startswith("remote chassis id:") for l in non_empty):
+        return _parse_lldp_dell(lines)
+    if any(re.match(r"^device\s+id\s+local\s+intf", l.strip(), re.I) for l in non_empty):
+        return _parse_lldp_cisco(lines)
+    if any(re.match(r"^localport\s+chassisid", l.strip(), re.I) for l in non_empty):
+        return _parse_lldp_aruba(lines)
+    return []
+
+
+@app.route("/api/lldp/parse", methods=["POST"])
+def lldp_parse():
+    payload = request.get_json()
+    text = payload.get("text", "")
+    neighbors = _parse_lldp(text)
+    return jsonify({"neighbors": neighbors})
+
+
+def _port_aliases(device, physical_port):
+    aliases = {(physical_port or "").lower()}
+    meta = (device and device.metadata_json) or {}
+    for vnic, phys in (meta.get("vmnic_map") or {}).items():
+        if phys == physical_port:
+            aliases.add(vnic.lower())
+    return aliases
+
+
+@app.route("/api/lldp/match", methods=["POST"])
+def lldp_match():
+    payload = request.get_json()
+    neighbors = payload.get("neighbors", [])
+    switch_id = payload.get("switch_id")
+    switch = Device.query.get_or_404(switch_id)
+
+    customer = switch.rack.customer
+    if customer:
+        customer_rack_ids = [r.id for r in Rack.query.filter_by(customer=customer).all()]
+    else:
+        customer_rack_ids = [switch.rack_id]
+    devices_by_name = {d.name.lower(): d for d in Device.query.filter(Device.rack_id.in_(customer_rack_ids)).all()}
+    cables = Cable.query.filter(
+        db.or_(Cable.a_device_id == switch_id, Cable.b_device_id == switch_id)
+    ).all()
+    cable_by_local_port = {}
+    for c in cables:
+        if c.a_device_id == switch_id:
+            cable_by_local_port[c.a_port] = c
+        if c.b_device_id == switch_id:
+            cable_by_local_port[c.b_port] = c
+
+    results = []
+    for n in neighbors:
+        local_port = n.get("localPort")
+        remote_system = (n.get("remoteSystem") or "").strip()
+        remote_port = n.get("remotePort")
+        cable = cable_by_local_port.get(local_port)
+        remote_device = devices_by_name.get(remote_system.lower())
+
+        if cable:
+            other_id = cable.b_device_id if cable.a_device_id == switch_id else cable.a_device_id
+            other_port = cable.b_port if cable.a_device_id == switch_id else cable.a_port
+            other_device = Device.query.get(other_id)
+            same_device = bool(other_device) and other_device.name.lower() == remote_system.lower()
+            same_port = (remote_port or "").lower() in _port_aliases(other_device, other_port)
+            status = "matched" if (same_device and same_port) else "conflict"
+            results.append({
+                "localPort": local_port, "remoteSystem": remote_system, "remotePort": remote_port,
+                "remoteChassisId": n.get("remoteChassisId"), "status": status,
+                "cable_id": cable.id,
+                "recorded": {"device_name": other_device.name if other_device else None, "port": other_port},
+                "device_known": remote_device is not None,
+                "remote_device_id": remote_device.id if remote_device else None,
+            })
+        else:
+            results.append({
+                "localPort": local_port, "remoteSystem": remote_system, "remotePort": remote_port,
+                "remoteChassisId": n.get("remoteChassisId"), "status": "new",
+                "cable_id": None, "recorded": None,
+                "device_known": remote_device is not None,
+                "remote_device_id": remote_device.id if remote_device else None,
+            })
+    return jsonify({"switch_id": switch_id, "results": results})
+
+
+@app.route("/api/lldp/apply", methods=["POST"])
+def lldp_apply():
+    payload = request.get_json()
+    switch_id = payload.get("switch_id")
+    records = payload.get("records", [])
+    created, skipped = [], []
+
+    switch = Device.query.get_or_404(switch_id)
+    customer = switch.rack.customer
+    if customer:
+        customer_rack_ids = [r.id for r in Rack.query.filter_by(customer=customer).all()]
+    else:
+        customer_rack_ids = [switch.rack_id]
+
+    for r in records:
+        local_port = r.get("localPort")
+        remote_system = (r.get("remoteSystem") or "").strip()
+        remote_port = r.get("remotePort")
+        medium = r.get("medium") or "cat6a"
+        action = r.get("action", "create")
+
+        existing = Cable.query.filter(
+            db.or_(
+                db.and_(Cable.a_device_id == switch_id, Cable.a_port == local_port),
+                db.and_(Cable.b_device_id == switch_id, Cable.b_port == local_port),
+            )
+        ).first()
+
+        remote_device = Device.query.filter(
+            db.func.lower(Device.name) == remote_system.lower(),
+            Device.rack_id.in_(customer_rack_ids),
+        ).first()
+        if not remote_device:
+            skipped.append({"localPort": local_port, "reason": f"unknown device '{remote_system}'"})
+            continue
+
+        if existing:
+            if action == "update":
+                if existing.a_device_id == switch_id:
+                    existing.b_device_id = remote_device.id
+                    existing.b_port = remote_port or "?"
+                else:
+                    existing.a_device_id = remote_device.id
+                    existing.a_port = remote_port or "?"
+                if "(updated via LLDP)" not in (existing.label or ""):
+                    existing.label = ((existing.label or "").strip() + " (updated via LLDP)").strip()
+                db.session.flush()
+                created.append(existing.to_dict())
+            else:
+                skipped.append({"localPort": local_port, "reason": "cable already exists on this port"})
+            continue
+
+        cable = Cable(
+            a_device_id=switch_id, a_port=local_port,
+            b_device_id=remote_device.id, b_port=remote_port or "?",
+            medium=medium, label="via LLDP discovery",
+        )
+        db.session.add(cable)
+        db.session.flush()
+        created.append(cable.to_dict())
+
+    db.session.commit()
+    return jsonify({"created": created, "skipped": skipped})
+
+
+def _ensure_db():
+    first_run = not os.path.exists(DB_PATH)
+    with app.app_context():
+        if first_run:
+            from seed import seed
+            seed()
+        else:
+            db.create_all()  # safety net if a newer build adds a column/table
+
+
+if __name__ == "__main__":
+    if getattr(sys, "frozen", False):
+        import threading
+        import time
+        import webbrowser
+
+        _ensure_db()
+
+        def _open_browser():
+            time.sleep(1.2)
+            webbrowser.open("http://127.0.0.1:5000")
+
+        threading.Thread(target=_open_browser, daemon=True).start()
+        app.run(host="127.0.0.1", debug=False, use_reloader=False, threaded=True)
+    else:
+        app.run(host="127.0.0.1", debug=True, use_reloader=False, threaded=True)

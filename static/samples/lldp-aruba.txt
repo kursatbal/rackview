@@ -1,0 +1,4 @@
+LocalPort  ChassisId          PortId    SysName
+1/1/1      00:50:56:a1:3f:21  vmnic0    ESX-01
+1/1/2      00:50:56:a1:3f:23  vmnic0    ESX-03
+1/1/9      9c:1c:12:aa:44:10  1/1/9     SW-EDGE-02

@@ -1,0 +1,6 @@
+Device ID    Local Intf   Hold-time  Capability  Port ID
+ESX-01       Eth1/1       120        B,R         vmnic0
+ESX-01       Eth1/25      120        B,R         iDRAC
+ESX-02       Eth1/28      120        B,R         mgmt0
+ESX-04       Eth1/4       120        B,R         vmnic0
+PP-01        Eth1/49      120        B,R         LC 2

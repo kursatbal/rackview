@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>primitives test</title></head>
+<body style="background:#F1EFE8">
+<svg width="700" height="120" xmlns="http://www.w3.org/2000/svg">
+  <script>
+  const s = document.currentScript.parentElement;
+  </script>
+</svg>
+<script src="js/primitives.js"></script>
+<script>
+  const svg = document.querySelector("svg");
+  const items = [
+    () => rj45(10, 10, svg),
+    () => rj45(40, 10, svg, { dark: true }),
+    () => sfp(70, 10, svg),
+    () => qsfp(105, 10, svg),
+    () => lc(145, 10, svg),
+    () => iec(175, 10, svg, "c13"),
+    () => iec(205, 10, svg, "c14"),
+    () => psu(240, 10, svg),
+    () => fanModule(300, 10, svg),
+  ];
+  items.forEach(fn => fn());
+  const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+  svg.appendChild(g);
+  bay(330, 10, 12, 60, g, {});
+</script>
+</body>
+</html>
