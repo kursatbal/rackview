@@ -168,16 +168,19 @@ const RV_CATALOG = [
   { model: 'Cable Manager 2U',       vendor: 'Generic', stencil: 'cable-manager', u: 2, opts: { uHeight: 2, rings: 7 } },
 
   // ===================== FIREWALL =====================
-  { model: 'FortiGate 200G',         vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 18, sfpPorts: 8 } },
-  { model: 'FortiGate 400F',         vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 18, sfpPorts: 8 } },
-  { model: 'FortiGate 600F',         vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 18, sfpPorts: 16 } },
-  { model: 'FortiGate 900G',         vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 16, sfpPorts: 16 } },
-  { model: 'FortiGate 1000F',        vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 16, sfpPorts: 16 } },
-  { model: 'FortiGate 1800F',        vendor: 'Fortinet', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 24, sfpPorts: 16, qsfpPorts: 8 } },
-  { model: 'FortiGate 2600F',        vendor: 'Fortinet', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 24, sfpPorts: 24, qsfpPorts: 8 } },
-  { model: 'FortiGate 3500F',        vendor: 'Fortinet', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 16, sfpPorts: 24, qsfpPorts: 12 } },
-  { model: 'FortiGate 90G',          vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 14, sfpPorts: 4 } },
-  { model: 'FortiGate 120G',         vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 16, sfpPorts: 6 } },
+  // Port counts per RACKVIEW_FORTIGATE_PORTLAR.md (vendor datasheet figures). sfpPorts folds
+  // together SFP/SFP+/SFP28 since they're visually identical (rvFortiSfp doesn't distinguish
+  // speed) — only the physically-larger QSFP gets its own count.
+  { model: 'FortiGate 200G',         vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 18, sfpPorts: 12 } },
+  { model: 'FortiGate 400F',         vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 18, sfpPorts: 16 } },
+  { model: 'FortiGate 600F',         vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 16, sfpPorts: 16 } },
+  { model: 'FortiGate 900G',         vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 16, sfpPorts: 20 } },
+  { model: 'FortiGate 1000F',        vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 18, sfpPorts: 16, qsfpPorts: 2 } },
+  { model: 'FortiGate 1800F',        vendor: 'Fortinet', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 18, sfpPorts: 22, qsfpPorts: 4 } },
+  { model: 'FortiGate 2600F',        vendor: 'Fortinet', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 18, sfpPorts: 16, qsfpPorts: 4 } },
+  { model: 'FortiGate 3500F',        vendor: 'Fortinet', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 2,  sfpPorts: 32, qsfpPorts: 6 } },
+  { model: 'FortiGate 90G',          vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 8,  sfpPorts: 2 } },
+  { model: 'FortiGate 120G',         vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 10, sfpPorts: 4 } },
   { model: 'PA-3410',                vendor: 'Palo Alto', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 12, sfpPorts: 12 } },
   { model: 'PA-3420',                vendor: 'Palo Alto', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 12, sfpPorts: 12 } },
   { model: 'PA-3440',                vendor: 'Palo Alto', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 12, sfpPorts: 12 } },

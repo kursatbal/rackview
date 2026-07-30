@@ -375,6 +375,80 @@ if (typeof module !== 'undefined') module.exports = {
   RV_STENCILS, RV_STENCILS_HPE, RV_STENCILS_SWITCH, RV_STENCILS_STORAGE, RV_STENCILS_INFRA
 };
 
+// FortiGate-only port artwork — deliberately separate from the shared rvRj45/rvSfp/rvQsfp
+// primitives (used by 50+ other stencils) so tuning these for the FortiGate family can never
+// shift how any other vendor's device renders: RACKVIEW_FORTIGATE.md.
+//
+// Copper RJ45 (gold pin + dark jack) and SFP/fiber (blue accent) get a clearly different tone at
+// a glance; QSFP is the same fiber tone but visibly larger. `s` uniformly scales box + pitch
+// together so a model with unusually many ports never overlaps its own neighbors or the MGMT/PSU
+// block — see fortiRowLayout below.
+function rvFortiRj45(g, x, y, ctx, portName, opts) {
+  opts = opts || {};
+  const s = opts.s || 1;
+  const w = 12 * s, h = 9.5 * s;
+  el('rect', { x, y, width: w, height: h, rx: 1, fill: '#3A3A38', stroke: '#1A1A18', 'stroke-width': 0.5 }, g);
+  el('rect', { x: x + 1.5 * s, y: y + 1.5 * s, width: w - 3 * s, height: 1.6 * s, fill: '#D4A843' }, g);
+  el('rect', { x: x + 2.3 * s, y: y + 5 * s, width: w - 4.6 * s, height: 3.2 * s, fill: '#141312' }, g);
+  if (opts.lit) el('circle', { cx: x + w - 1.6 * s, cy: y + 1.6 * s, r: 0.9 * s, fill: 'url(#rvLedGreen)', filter: 'url(#rvGlow)' }, g);
+  rvHit(g, x, y, w, h, ctx, portName);
+  return w;
+}
+
+function rvFortiSfp(g, x, y, ctx, portName, opts) {
+  opts = opts || {};
+  const s = opts.s || 1;
+  const w = 13 * s, h = 9.5 * s;
+  el('rect', { x, y, width: w, height: h, rx: 0.9 * s, fill: '#2A3A44', stroke: '#14202A', 'stroke-width': 0.5 }, g);
+  el('rect', { x: x + 1.6 * s, y: y + 2.4 * s, width: w - 3.2 * s, height: h - 4.4 * s, rx: 0.4 * s, fill: '#0A1218' }, g);
+  el('rect', { x: x + 1.6 * s, y: y + h * 0.42, width: w - 3.2 * s, height: 0.9 * s, fill: '#4A9EDE' }, g);
+  if (opts.lit) el('circle', { cx: x + w - 1.7 * s, cy: y + 1.6 * s, r: 0.9 * s, fill: 'url(#rvLedGreen)', filter: 'url(#rvGlow)' }, g);
+  rvHit(g, x, y, w, h, ctx, portName);
+  return w;
+}
+
+function rvFortiQsfp(g, x, y, ctx, portName, opts) {
+  opts = opts || {};
+  const s = opts.s || 1;
+  const w = 18 * s, h = 12 * s;
+  el('rect', { x, y, width: w, height: h, rx: 1 * s, fill: '#2A3A44', stroke: '#14202A', 'stroke-width': 0.55 * s }, g);
+  el('rect', { x: x + 2 * s, y: y + 3 * s, width: w - 4 * s, height: h - 5.6 * s, rx: 0.5 * s, fill: '#0A1218' }, g);
+  el('rect', { x: x + 2 * s, y: y + h * 0.42, width: w - 4 * s, height: 1.2 * s, fill: '#5AAEEE' }, g);
+  rvHit(g, x, y, w, h, ctx, portName);
+  return w;
+}
+
+// Lays out copper/SFP/QSFP as consecutive groups (8-per-block gap, larger gap between types).
+// If the natural width would overflow the room available before the LCD/MGMT block, the whole
+// row — box sizes included — scales down uniformly so a model with unusually many ports (e.g. a
+// 24-copper/24-SFP/8-QSFP 2600F) still never overlaps its own ports or the panel next to it.
+function fortiRowLayout(startX, availWidth, segments) {
+  const GROUP_GAP = 4, REGION_GAP = 9;
+  const active = segments.filter(s => s.count > 0);
+  let natural = 0;
+  active.forEach((seg, i) => {
+    natural += seg.count * seg.spacing + Math.floor((seg.count - 1) / 8) * GROUP_GAP;
+    if (i > 0) natural += REGION_GAP;
+  });
+  const scale = natural > availWidth && natural > 0 ? Math.max(availWidth / natural, 0.55) : 1;
+  const rows = [];
+  let px = startX;
+  let firstDrawn = true;
+  segments.forEach(seg => {
+    if (seg.count === 0) { rows.push([]); return; }
+    if (!firstDrawn) px += REGION_GAP * scale;
+    firstDrawn = false;
+    const xs = [];
+    for (let i = 0; i < seg.count; i++) {
+      if (i > 0 && i % 8 === 0) px += GROUP_GAP * scale;
+      xs.push(px);
+      px += seg.spacing * scale;
+    }
+    rows.push(xs);
+  });
+  return { rows, scale };
+}
+
 const RV_STENCILS_NETWORK = {
 
   'firewall-1u': {
@@ -383,12 +457,27 @@ const RV_STENCILS_NETWORK = {
       const { x, y, w, h } = ctx;
       const c = rvChassis(g, x, y, w, 1, { dark: true });
       el('rect', { x: x + 16, y: y + 2, width: 3, height: h - 4, rx: 1, fill: '#D64545' }, g);
-      let px = c.innerX + 4;
       const cu = ctx.copperPorts || 16;
-      for (let i = 0; i < cu; i++) { rvRj45(g, px, y + 3, ctx, 'port' + (i + 1), { dark: true, lit: i < cu * 0.4 }); px += 14; }
-      px = c.innerX + 4;
       const sf = ctx.sfpPorts || 8;
-      for (let i = 0; i < sf; i++) { rvSfp(g, px, y + 15, ctx, 'port' + (cu + i + 1), { lit: i < sf / 2 }); px += 15; }
+      const qs = ctx.qsfpPorts || 0;
+      // Real 1U FortiGates stack copper into two rows (top/bottom) rather than one long strip —
+      // a single row made the device look far wider than the real hardware: RACKVIEW_FORTIGATE_2SIRA.md.
+      const cuTop = Math.ceil(cu / 2), cuBot = cu - cuTop;
+      const startX = c.innerX + 4;
+      const availW = (x + w - 130 - 10) - startX;
+      const { rows, scale } = fortiRowLayout(startX, availW, [
+        { count: cuTop, spacing: 14 }, { count: sf, spacing: 15 }, { count: qs, spacing: 21 },
+      ]);
+      const copperXs = rows[0];
+      const topY = y + 2, botY = topY + (9.5 + 3) * scale;
+      // Both rows share the same x's (drawn from the same array) so they line up exactly; the
+      // shorter bottom row (when cu is odd) just uses the first cuBot of them.
+      copperXs.forEach((px, i) => rvFortiRj45(g, px, topY, ctx, 'port' + (i + 1), { lit: i < cuTop * 0.4, s: scale }));
+      copperXs.slice(0, cuBot).forEach((px, i) => rvFortiRj45(g, px, botY, ctx, 'port' + (cuTop + i + 1), { lit: i < cuBot * 0.4, s: scale }));
+      rows[1].forEach((px, i) => rvFortiSfp(g, px, y + 9, ctx, 'port' + (cu + i + 1), { lit: i < sf / 2, s: scale }));
+      // A handful of 1U models (e.g. 1000F) carry a couple of QSFP+ uplinks alongside RJ45/SFP —
+      // firewall-2u already draws QSFP, this just extends the same fortiRowLayout segment to 1U.
+      rows[2].forEach((px, i) => rvFortiQsfp(g, px, y + 8, ctx, 'port' + (cu + sf + i + 1), { s: scale }));
       const mx = x + w - 130;
       el('rect', { x: mx, y: y + 6, width: 52, height: 17, rx: 1, fill: '#1A2E24', stroke: '#0E1512', 'stroke-width': 0.5 }, g);
       el('rect', { x: mx + 2, y: y + 8, width: 48, height: 2.4, fill: '#5DCAA5', opacity: 0.5 }, g);
@@ -409,14 +498,20 @@ const RV_STENCILS_NETWORK = {
       const c = rvChassis(g, x, y, w, 2, { dark: true });
       el('rect', { x: x + 16, y: y + 2, width: 3, height: h - 4, rx: 1, fill: '#D64545' }, g);
       const cu = ctx.copperPorts || 24;
-      for (let r = 0; r < 2; r++) for (let i = 0; i < cu / 2; i++)
-        rvRj45(g, c.innerX + 4 + i * 14, y + (r ? 17 : 4), ctx, 'port' + (r * cu / 2 + i + 1), { dark: true, lit: i < 5 });
       const sf = ctx.sfpPorts || 16;
-      for (let r = 0; r < 2; r++) for (let i = 0; i < sf / 2; i++)
-        rvSfp(g, c.innerX + 180 + i * 15, y + (r ? 16 : 3), ctx, 'port' + (cu + r * sf / 2 + i + 1), { lit: i < 4 });
       const qs = ctx.qsfpPorts || 8;
-      for (let r = 0; r < 2; r++) for (let i = 0; i < qs / 2; i++)
-        rvQsfp(g, c.innerX + 310 + i * 20, y + (r ? 32 : 4), ctx, 'port' + (cu + sf + r * qs / 2 + i + 1));
+      const cuRow = cu / 2, sfRow = sf / 2, qsRow = qs / 2;
+      const startX = c.innerX + 4;
+      const availW = (x + w - 250 - 10) - startX;
+      const { rows, scale } = fortiRowLayout(startX, availW, [
+        { count: cuRow, spacing: 14 }, { count: sfRow, spacing: 15 }, { count: qsRow, spacing: 21 },
+      ]);
+      [0, 1].forEach(r => {
+        const py = y + (r ? 17 : 4);
+        rows[0].forEach((px, i) => rvFortiRj45(g, px, py, ctx, 'port' + (r * cuRow + i + 1), { lit: i < 5, s: scale }));
+        rows[1].forEach((px, i) => rvFortiSfp(g, px, y + (r ? 16 : 3), ctx, 'port' + (cu + r * sfRow + i + 1), { lit: i < 4, s: scale }));
+        rows[2].forEach((px, i) => rvFortiQsfp(g, px, y + (r ? 32 : 4), ctx, 'port' + (cu + sf + r * qsRow + i + 1), { s: scale }));
+      });
       const mx = x + w - 250;
       el('rect', { x: mx, y: y + 12, width: 60, height: 22, rx: 1, fill: '#1A2E24', stroke: '#0E1512', 'stroke-width': 0.5 }, g);
       el('rect', { x: mx + 3, y: y + 15, width: 54, height: 3, fill: '#5DCAA5', opacity: 0.5 }, g);

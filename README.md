@@ -103,6 +103,13 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 - Dragging snaps to nearby corners of any other cable (auto-routed or manually routed), with a small on-screen readout of the current position — a soft magnet only, never blocks the drag
 - Manual routes are always orthogonal — every segment is purely horizontal or vertical, an automatic right-angle corner is inserted between any two points that aren't aligned, so a cable can never render as a diagonal line
 
+**FortiGate port artwork**
+- Copper (RJ45) and fiber (SFP/SFP+/SFP28) ports now render with a clearly different tone — dark gray with a gold pin for copper, dark navy with a blue accent for fiber — instead of looking identical
+- QSFP ports (on 2U models, and the 1000F's QSFP+ uplinks) render visibly larger than SFP, in the same fiber tone
+- 1U models split their copper ports into two rows (top/bottom) instead of one long strip, matching real hardware and roughly halving the device's apparent width
+- Port counts per model now match vendor datasheets (previously approximate placeholders) — e.g. the 3500F is fiber-heavy (2 copper + 32 SFP28 + 6 QSFP28) while the 1000F carries 2 QSFP+ uplinks alongside its RJ45/SFP28 ports
+- A dense layout (e.g. the 2600F's 18 copper + 16 SFP + 4 QSFP in 2U) scales down proportionally if needed so ports never overlap or run into the LCD/management panel
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
