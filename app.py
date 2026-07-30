@@ -385,6 +385,8 @@ def update_cable(cable_id):
     cable.medium = payload.get("medium", cable.medium)
     cable.label = payload.get("label", cable.label)
     cable.color = payload.get("color", cable.color)
+    if "waypoints" in payload:
+        cable.waypoints = payload["waypoints"]
     db.session.commit()
     return jsonify(cable.to_dict())
 
@@ -945,6 +947,17 @@ def lldp_history_delete(history_id):
     return "", 204
 
 
+def _ensure_db_columns():
+    # create_all() only adds missing TABLES, never columns on a table that already exists — an
+    # existing dev/user DB predating a model change (e.g. Cable.waypoints) needs an explicit
+    # ALTER TABLE or the new column is silently missing and every read/write 500s.
+    with db.engine.connect() as conn:
+        existing = {row[1] for row in conn.exec_driver_sql("PRAGMA table_info(cable)")}
+        if "waypoints" not in existing:
+            conn.exec_driver_sql("ALTER TABLE cable ADD COLUMN waypoints JSON")
+            conn.commit()
+
+
 def _ensure_db():
     first_run = not os.path.exists(DB_PATH)
     with app.app_context():
@@ -953,6 +966,7 @@ def _ensure_db():
             seed()
         else:
             db.create_all()  # safety net if a newer build adds a column/table
+            _ensure_db_columns()
 
 
 if __name__ == "__main__":
@@ -975,4 +989,5 @@ if __name__ == "__main__":
         # what's missing, it never touches existing tables/rows.
         with app.app_context():
             db.create_all()
+            _ensure_db_columns()
         app.run(host="127.0.0.1", debug=True, use_reloader=False, threaded=True)

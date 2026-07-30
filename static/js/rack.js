@@ -410,20 +410,42 @@ function drawDevice(rootG, device, y) {
   attachTooltip(g, device, type);
 }
 
+// Shared with rvHit's per-port hover handlers below: the device tooltip's own text stays put,
+// a port's name gets appended on top of it while the cursor is over that specific port — most
+// useful while a cable end is following the cursor, so you can see exactly what it'll land on.
+let tooltipBaseHTML = "";
+let tooltipPortName = null;
+
+function renderTooltip() {
+  const tip = document.getElementById("rv-tooltip");
+  if (!tip) return;
+  tip.innerHTML = tooltipBaseHTML + (tooltipPortName ? `<br><strong>Port: ${tooltipPortName}</strong>` : "");
+}
+
+function setTooltipPort(portName) {
+  tooltipPortName = portName;
+  renderTooltip();
+}
+
 function attachTooltip(deviceGroup, device, type) {
   const tip = document.getElementById("rv-tooltip");
   if (!tip) return;
   deviceGroup.addEventListener("mouseenter", () => {
     const uTop = device.position_u + type.u_height - 1;
-    tip.innerHTML = `<strong>${device.name}</strong><br>${type.vendor} ${type.model}<br>`
+    tooltipBaseHTML = `<strong>${device.name}</strong><br>${type.vendor} ${type.model}<br>`
       + `U${device.position_u}–U${uTop} · ${type.u_height}U`;
+    tooltipPortName = null;
+    renderTooltip();
     tip.style.display = "block";
   });
   deviceGroup.addEventListener("mousemove", ev => {
     tip.style.left = (ev.clientX + 14) + "px";
     tip.style.top = (ev.clientY + 14) + "px";
   });
-  deviceGroup.addEventListener("mouseleave", () => { tip.style.display = "none"; });
+  deviceGroup.addEventListener("mouseleave", () => {
+    tip.style.display = "none";
+    tooltipPortName = null;
+  });
 }
 
 function applyHighlightVisuals() {

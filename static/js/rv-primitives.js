@@ -23,6 +23,11 @@ function rvHit(parent, x, y, w, h, ctx, portName) {
   if (ctx && ctx.onPortContextMenu && portName) {
     r.addEventListener('contextmenu', ev => { ev.preventDefault(); ev.stopPropagation(); ctx.onPortContextMenu(portName, ev); });
   }
+  if (portName && typeof setTooltipPort === 'function') {
+    // mouseenter/mouseleave don't bubble, so no stopPropagation needed here.
+    r.addEventListener('mouseenter', () => setTooltipPort(portName));
+    r.addEventListener('mouseleave', () => setTooltipPort(null));
+  }
   return r;
 }
 

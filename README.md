@@ -89,6 +89,20 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 - After the first click, the cable end follows the cursor to the second port instead of giving no feedback
 - Step-by-step hints, dimmed invalid targets, ESC to cancel, and a confirmation toast on success
 
+**Cable routing rewrite**
+- Cables now enter/exit every port vertically (from above for the top row, from below for the bottom row) instead of cutting across the row
+- Fixed a routing bug where a cable to a dense multi-row switch could sweep straight across every other port on the way to its target
+- Fixed a routing bug where rack units stacked with zero U of gap between them (the common case) could cause a cable to sweep across the neighboring device
+- Parallel cables get more breathing room in the side lanes so they no longer visually overlap
+- Fiber/LC connector artwork always renders horizontal, even though the cable itself still enters the port vertically
+
+**Manual cable routing**
+- Grab any point along a selected cable and drag to override its auto-routed path with your own bend point
+- Existing bend points can be dragged again to fine-tune, or right-clicked to remove just that one
+- "Reset routing" in the cable's right-click menu discards the manual override and returns to the auto-routed path
+- Dragging snaps to nearby corners of any other cable (auto-routed or manually routed), with a small on-screen readout of the current position — a soft magnet only, never blocks the drag
+- Manual routes are always orthogonal — every segment is purely horizontal or vertical, an automatic right-angle corner is inserted between any two points that aren't aligned, so a cable can never render as a diagonal line
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

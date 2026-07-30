@@ -93,6 +93,7 @@ class Cable(db.Model):
     medium = db.Column(db.String, nullable=False)
     label = db.Column(db.String, nullable=True)
     color = db.Column(db.String, nullable=True)
+    waypoints = db.Column(db.JSON, nullable=True)
 
     def to_dict(self):
         return {
@@ -104,6 +105,7 @@ class Cable(db.Model):
             "medium": self.medium,
             "label": self.label,
             "color": self.color,
+            "waypoints": self.waypoints,
         }
 
 

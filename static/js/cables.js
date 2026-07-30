@@ -34,29 +34,35 @@ function clearCablableHighlight() {
 
 // The cable end "sticks" to the cursor between the two clicks, instead of nothing visibly
 // happening after the first click (RACKVIEW_KABLO_EKLEME.md).
+//
+// This lives in its own layer appended directly to the <svg> root (a sibling of the main
+// content group, not inside #cable-layer) specifically so refreshCabling() rebuilding
+// #cable-layer on every click can never rip it out from under itself.
 function startFollowLine(sourcePt) {
   stopFollowLine();
   const svgEl = document.getElementById("rack-svg");
-  const rootG = svgEl && svgEl.firstChild;
-  const layer = document.getElementById("cable-layer") || rootG;
-  if (!svgEl || !layer) return;
+  if (!svgEl) return;
+  const layer = el("g", { id: "follow-line-layer" });
+  svgEl.appendChild(layer);
   const line = el("path", {
-    stroke: "#1D9E75", fill: "none", "stroke-width": 2,
+    stroke: "#1D9E75", fill: "none", "stroke-width": 2.5,
     "stroke-dasharray": "4 3", "stroke-linecap": "round", "pointer-events": "none",
   });
+  // Seed a visible (zero-length) line immediately so it isn't blank until the first mousemove.
+  line.setAttribute("d", `M ${sourcePt.x},${sourcePt.y} L ${sourcePt.x},${sourcePt.y}`);
   layer.appendChild(line);
   const onMove = ev => {
     const p = clientToSvg(svgEl, ev.clientX, ev.clientY);
     line.setAttribute("d", `M ${sourcePt.x},${sourcePt.y} Q ${(sourcePt.x + p.x) / 2},${sourcePt.y - 20} ${p.x},${p.y}`);
   };
   document.addEventListener("mousemove", onMove);
-  followLine = { line, onMove };
+  followLine = { line, layer, onMove };
 }
 
 function stopFollowLine() {
   if (!followLine) return;
   document.removeEventListener("mousemove", followLine.onMove);
-  if (followLine.line && followLine.line.remove) followLine.line.remove();
+  if (followLine.layer && followLine.layer.remove) followLine.layer.remove();
   followLine = null;
 }
 
@@ -115,6 +121,18 @@ function showCableContextMenu(ev, aDev, aPort, bDev, bPort, cableId) {
 
   menu.appendChild(makeOption(aDev, aPort));
   menu.appendChild(makeOption(bDev, bPort));
+
+  const cable = cableId != null ? (currentCables || []).find(c => c.id === cableId) : null;
+  if (cable && Array.isArray(cable.waypoints) && cable.waypoints.length > 0) {
+    const reset = document.createElement("button");
+    reset.textContent = "Reset routing (auto)";
+    reset.onclick = () => {
+      hideCableContextMenu();
+      persistCableWaypoints(cableId, []);
+      refreshCabling();
+    };
+    menu.appendChild(reset);
+  }
 
   if (cableId != null) {
     const del = document.createElement("button");
@@ -245,11 +263,14 @@ window.showDeviceContextMenu = showDeviceContextMenu;
 
 const TOP_Y = Y0 - 23;
 
-// Each port exits toward whichever margin (left/right) it's physically closer to, and plugs into
-// its port horizontally (a real jack inserts sideways, not straight down into the socket).
-const LEAD = 9;         // short horizontal lead-in/out right at the port, matches the plug's own axis
+// Each port exits toward whichever margin (left/right) it's physically closer to. The cable
+// leaves/enters a port straight up or down (matching whichever row-clearing strip it's using —
+// top strip means it descends into the port from above, bottom strip means it rises into the
+// port from below), never sideways into it: RACKVIEW_KABLO_YOLU.md.
 const LANE_GAP = 6;     // distance from the rail to the first lane
-const LANE_STEP = 6;    // spacing between parallel lanes on the same side
+// Widest cable stroke is 6px (power); lanes need to clear half-width + half-width of two
+// adjacent cables plus a visible gap, or parallel cables visually touch/overlap in a busy rack.
+const LANE_STEP = 12;   // spacing between parallel lanes on the same side
 const TRACK_GAP = 46;   // extra separation between the fiber sub-range and the copper sub-range
 const STRIP_OFFSET = 7; // how far below a port's mouth the horizontal strip runs
 
@@ -271,21 +292,30 @@ const TRACK_STRIP_BIAS = [14, 4];
 
 function stripYFor(port, rec, laneIndex, track) {
   if (rec && rec.belowEmpty && rec.bounds) {
-    return rec.bounds.y + rec.bounds.h + U / 2 + (laneIndex % 3) * 3;
+    return rec.bounds.y + rec.bounds.h + U / 2 + (laneIndex % 3) * 8;
   }
-  return port.y + STRIP_OFFSET + (laneIndex % 4) * 2.5 + (TRACK_STRIP_BIAS[track] || 0);
-}
-
-// Exiting a port: horizontal lead-out first, then drop/rise onto the strip (matches the plug's own axis).
-function exitStub(pt, side, stripY) {
-  const leadX = side === "left" ? pt.x - LEAD : pt.x + LEAD;
-  return `L ${leadX},${pt.y} L ${leadX},${stripY}`;
-}
-
-// Entering a port: rise/drop off the strip first, then a final horizontal approach straight into the port.
-function entryStub(pt, side, stripY) {
-  const leadX = side === "left" ? pt.x - LEAD : pt.x + LEAD;
-  return `L ${leadX},${stripY} L ${leadX},${pt.y} L ${pt.x},${pt.y}`;
+  const fan = (laneIndex % 4) * 8 + (TRACK_STRIP_BIAS[track] || 0);
+  if (rec && rec.bounds) {
+    // Dodging a small fixed offset off the PORT's own y isn't enough on a device with several
+    // port rows (e.g. a 48-port switch, two rows) — that offset can land right in the gap
+    // between rows and still skim across every port on the way to the lane. Clear the device's
+    // *whole* bounding box instead — above or below it, whichever side the port is closer to —
+    // so the sweep can never cross a sibling port no matter how many rows the stencil has.
+    const distTop = Math.abs(port.y - rec.bounds.y);
+    const distBottom = Math.abs(rec.bounds.y + rec.bounds.h - port.y);
+    const useTop = distTop <= distBottom;
+    const raw = useTop
+      ? rec.bounds.y - STRIP_OFFSET - fan
+      : rec.bounds.y + rec.bounds.h + STRIP_OFFSET + fan;
+    // Rack units are routinely stacked with zero U of gap (RACK-01 has none between most devices).
+    // With no gap, overshooting past this device's own box means the strip lands inside whatever
+    // device sits flush above/below, and the long haul out to the side lane sweeps straight across
+    // its ports. Never leave this device's own footprint — clamp to its own top/bottom edge.
+    return useTop
+      ? Math.max(raw, rec.bounds.y)
+      : Math.min(raw, rec.bounds.y + rec.bounds.h);
+  }
+  return port.y + STRIP_OFFSET + fan;
 }
 
 function computeCablePath(a, b, aRec, bRec, idxA, idxB, track) {
@@ -295,20 +325,162 @@ function computeCablePath(a, b, aRec, bRec, idxA, idxB, track) {
   const stripB = stripYFor(b, bRec, idxB, track);
   const laneA = laneXFor(sideA, idxA, track);
 
+  // Straight up/down at the port's own x — this can never cross a sibling port on the same row,
+  // no matter how densely packed the row is, since every other port sits at a different x.
+  const exit = `L ${a.x},${stripA}`;
+  const entry = `L ${b.x},${stripB} L ${b.x},${b.y}`;
+
   if (sideA === sideB) {
     // Same margin: both ends share one lane column.
-    return `M ${a.x},${a.y} ${exitStub(a, sideA, stripA)} `
-         + `L ${laneA},${stripA} L ${laneA},${stripB} `
-         + `${entryStub(b, sideB, stripB)}`;
+    return `M ${a.x},${a.y} ${exit} L ${laneA},${stripA} L ${laneA},${stripB} ${entry}`;
   }
 
   // Opposite margins: bridge the two side lanes via the channel above the rack.
   const laneB = laneXFor(sideB, idxB, track);
   const r = 8;
-  return `M ${a.x},${a.y} ${exitStub(a, sideA, stripA)} `
+  return `M ${a.x},${a.y} ${exit} `
        + `L ${laneA},${stripA} L ${laneA},${TOP_Y + r} Q ${laneA},${TOP_Y} ${laneA + (sideA === "left" ? r : -r)},${TOP_Y} `
        + `L ${laneB - (sideB === "left" ? r : -r)},${TOP_Y} Q ${laneB},${TOP_Y} ${laneB},${TOP_Y + r} `
-       + `L ${laneB},${stripB} ${entryStub(b, sideB, stripB)}`;
+       + `L ${laneB},${stripB} ${entry}`;
+}
+
+// The user can grab any point along a selected cable and drag it to override the auto-routed
+// path with their own bend points (stored as [{x,y}, ...] in SVG coordinates on the cable record).
+// The whole point is letting the user route it by hand when the auto result doesn't look right —
+// but a cable is still a cable, never a diagonal wire: every segment stays purely horizontal or
+// vertical, like an orthogonal connector in a diagramming tool. The user only places anchor
+// points; a right-angle corner is inserted automatically between any two that aren't aligned.
+// The first and last segments (into/out of the ports themselves) always exit/enter vertically —
+// matching the boot artwork and the auto-router's own vertical entry rule — everything in
+// between picks whichever axis has the larger distance to travel first.
+//
+// Corners are computed at render time only, never stored — the DB keeps just the user's actual
+// anchor picks (`rawSeg` below tags each rendered point with which raw anchor pair it came from,
+// so a click anywhere on the bent path can still be mapped back to "insert after anchor N").
+function orthogonalizeWithTags(points) {
+  const out = [{ p: points[0], rawSeg: -1 }];
+  for (let i = 0; i < points.length - 1; i++) {
+    const p1 = points[i], p2 = points[i + 1];
+    if (p1.x === p2.x || p1.y === p2.y) { out.push({ p: p2, rawSeg: i }); continue; }
+    let corner;
+    if (i === 0) corner = { x: p1.x, y: p2.y };
+    else if (i === points.length - 2) corner = { x: p2.x, y: p1.y };
+    else {
+      const dx = Math.abs(p2.x - p1.x), dy = Math.abs(p2.y - p1.y);
+      corner = dx >= dy ? { x: p2.x, y: p1.y } : { x: p1.x, y: p2.y };
+    }
+    out.push({ p: corner, rawSeg: i }, { p: p2, rawSeg: i });
+  }
+  return out;
+}
+
+function manualPathFor(a, b, waypoints) {
+  const tagged = orthogonalizeWithTags([a, ...waypoints, b]);
+  return tagged.map((e, i) => `${i === 0 ? "M" : "L"} ${e.p.x},${e.p.y}`).join(" ");
+}
+
+function distToSegment(p, a, b) {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const len2 = dx * dx + dy * dy;
+  let t = len2 ? ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2 : 0;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+}
+
+// Picks which RAW anchor pair the user grabbed, working against the actual rendered (orthogonal,
+// corners included) path rather than straight lines between raw anchors — so the insert point
+// lands wherever the user visually clicked, even though that click landed on an auto-inserted
+// corner segment rather than a straight line between two of their own points.
+function nearestRawSegment(a, b, waypoints, p) {
+  const tagged = orthogonalizeWithTags([a, ...waypoints, b]);
+  let best = 0, bestDist = Infinity;
+  for (let j = 0; j < tagged.length - 1; j++) {
+    const d = distToSegment(p, tagged[j].p, tagged[j + 1].p);
+    if (d < bestDist) { bestDist = d; best = tagged[j + 1].rawSeg; }
+  }
+  return best;
+}
+
+const SNAP_THRESHOLD = 6; // fallback SVG-unit radius when a screen CTM isn't available
+const SNAP_THRESHOLD_PX = 14; // desired on-screen catch radius — converted to SVG units per-drag via the CTM
+
+// The rack SVG is scaled to fit the viewport and can be zoomed independently, so a fixed SVG-unit
+// snap radius shrinks on screen as you zoom out and never seems to "catch". Convert the desired
+// on-screen radius into SVG units using the live screen-to-SVG scale instead.
+function svgSnapThreshold(svgEl) {
+  const ctm = svgEl && svgEl.getScreenCTM && svgEl.getScreenCTM();
+  return ctm && ctm.a ? SNAP_THRESHOLD_PX / ctm.a : SNAP_THRESHOLD;
+}
+
+// Every corner of every currently-drawn cable path (auto-routed lane/strip bends as well as
+// manual waypoints) — repopulated each drawCables() pass — so a dragged point can snap to any
+// cable already on the rack, not just ones that happen to have manual waypoints of their own.
+let renderedCableCorners = [];
+
+function extractPathCorners(d) {
+  const pts = [];
+  const re = /(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/g;
+  let m;
+  while ((m = re.exec(d))) pts.push({ x: parseFloat(m[1]), y: parseFloat(m[2]) });
+  return pts;
+}
+
+// Gathers the x/y of every other cable's rendered corners so a dragged point can snap into
+// visual alignment with cables that are already routed the way the user wants — purely a
+// convenience, never blocks the drag (the point still follows the cursor past the threshold).
+function collectSnapCandidates(excludeCableId) {
+  const xs = [];
+  const ys = [];
+  renderedCableCorners.forEach(entry => {
+    if (entry.cableId === excludeCableId) return;
+    entry.points.forEach(p => { xs.push(p.x); ys.push(p.y); });
+  });
+  return { xs, ys };
+}
+
+// threshold is in SVG units, not screen px — the rack SVG is scaled to fit the viewport and can
+// be zoomed, so a fixed SVG-unit radius shrinks on screen as you zoom out, making it feel like it
+// never catches. Callers should convert their desired on-screen px radius via svgSnapThreshold().
+function snapPoint(p, candidates, threshold) {
+  const t = threshold != null ? threshold : SNAP_THRESHOLD;
+  let x = p.x, y = p.y, snappedX = false, snappedY = false;
+  for (const cx of candidates.xs) {
+    if (Math.abs(p.x - cx) <= t) { x = cx; snappedX = true; break; }
+  }
+  for (const cy of candidates.ys) {
+    if (Math.abs(p.y - cy) <= t) { y = cy; snappedY = true; break; }
+  }
+  return { x, y, snappedX, snappedY };
+}
+
+// Small floating readout that follows the cursor during a manual-routing drag — purely
+// informational (current position, or a note when a snap kicked in), never modal, never in the
+// way of the actual drag. Created fresh per drag and torn down on mouseup.
+function createDragIndicator() {
+  const el = document.createElement("div");
+  el.style.cssText = "position:fixed;z-index:4000;pointer-events:none;background:#2C2C2A;"
+    + "color:#E6E4DC;padding:4px 8px;border-radius:5px;font-size:10px;font-family:monospace;"
+    + "opacity:0.9;white-space:nowrap;";
+  document.body.appendChild(el);
+  return {
+    update(clientX, clientY, p, snapped) {
+      el.textContent = snapped ? `x:${Math.round(p.x)} y:${Math.round(p.y)} ⤾ snap` : `x:${Math.round(p.x)} y:${Math.round(p.y)}`;
+      el.style.left = (clientX + 14) + "px";
+      el.style.top = (clientY + 14) + "px";
+    },
+    remove() { el.remove(); },
+  };
+}
+
+function persistCableWaypoints(cableId, waypoints) {
+  const stored = waypoints.length ? waypoints : null;
+  const cable = (currentCables || []).find(x => x.id === cableId);
+  if (cable) cable.waypoints = stored;
+  fetch(`/api/cables/${cableId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ waypoints: stored }),
+  }).catch(() => {});
 }
 
 function drawCableStrand(g, d, style) {
@@ -334,6 +506,7 @@ function drawCableStrand(g, d, style) {
   g.appendChild(shadow);
   g.appendChild(main);
   g.appendChild(accent);
+  return { shadow, main, accent };
 }
 
 function drawRjBoot(g, x, y, w, h, style, grooveAxis) {
@@ -367,12 +540,20 @@ function drawIecBoot(g, x, y, w, h, style) {
 }
 
 function drawBoot(g, pt, style) {
-  // Every cable now plugs into its port horizontally, matching a real jack's insertion axis.
+  // Every cable now plugs into its port vertically (top-row ports from above, bottom-row from
+  // below) — RACKVIEW_KABLO_YOLU.md.
   const w = 15, h = style.width + 6;
-  const x = pt.x - w / 2, y = pt.y - h / 2;
-  if (style.connector === "lc") drawLcBoot(g, x, y, w, h, style, "x");
-  else if (style.connector === "iec") drawIecBoot(g, x, y, w, h, style);
-  else drawRjBoot(g, x, y, w, h, style, "x");
+  if (style.connector === "lc") {
+    // The LC housing itself is a small flat clip — real duplex LC modules never sit rotated
+    // 90° on their side no matter which direction the fiber approaches from, so its boot always
+    // renders horizontal even though the cable still enters the port vertically.
+    const x = pt.x - w / 2, y = pt.y - h / 2;
+    drawLcBoot(g, x, y, w, h, style, "x");
+    return;
+  }
+  const x = pt.x - h / 2, y = pt.y - w / 2;
+  if (style.connector === "iec") drawIecBoot(g, x, y, h, w, style);
+  else drawRjBoot(g, x, y, h, w, style, "y");
 }
 
 function activeCablesFor(cablesList) {
@@ -400,6 +581,7 @@ function selectCable(id) {
 function drawCables(g, cablesList) {
   const active = activeCablesFor(cablesList);
   const leftIdx = [0, 0], rightIdx = [0, 0];
+  renderedCableCorners = [];
   active.forEach(c => {
     const aRec = registry[c.a_device_id];
     const bRec = registry[c.b_device_id];
@@ -413,7 +595,11 @@ function drawCables(g, cablesList) {
     const sideB = nearSide(b.x);
     const idxA = sideA === "left" ? leftIdx[track]++ : rightIdx[track]++;
     const idxB = sideA === sideB ? idxA : (sideB === "left" ? leftIdx[track]++ : rightIdx[track]++);
-    const d = computeCablePath(a, b, aRec, bRec, idxA, idxB, track);
+    const hasManualRoute = Array.isArray(c.waypoints) && c.waypoints.length > 0;
+    const d = hasManualRoute
+      ? manualPathFor(a, b, c.waypoints)
+      : computeCablePath(a, b, aRec, bRec, idxA, idxB, track);
+    renderedCableCorners.push({ cableId: c.id, points: extractPathCorners(d) });
 
     const isSelected = c.id === selectedCableId;
     const distance = Math.abs(a.y - b.y);
@@ -427,25 +613,37 @@ function drawCables(g, cablesList) {
     const cg = el("g", { opacity: cableOpacity });
     g.appendChild(cg);
 
+    let glow = null;
     if (isSelected) {
-      cg.appendChild(el("path", {
+      glow = el("path", {
         d, stroke: "#FFFFFF", "stroke-width": style.width + 6,
         fill: "none", "stroke-linecap": "round", "stroke-linejoin": "round", "stroke-opacity": "0.9",
-      }));
+      });
+      cg.appendChild(glow);
       cg.appendChild(el("circle", { cx: a.x, cy: a.y, r: 8, fill: "none", stroke: "#FFFFFF", "stroke-width": 2.2 }));
       cg.appendChild(el("circle", { cx: b.x, cy: b.y, r: 8, fill: "none", stroke: "#FFFFFF", "stroke-width": 2.2 }));
     }
 
-    drawCableStrand(cg, d, style);
+    const strandEls = drawCableStrand(cg, d, style);
     drawBoot(cg, a, style);
     drawBoot(cg, b, style);
 
     const hit = el("path", {
       d, stroke: "transparent", "stroke-width": style.width + 14, fill: "none",
-      "stroke-linecap": "round", "stroke-linejoin": "round", "pointer-events": "stroke", cursor: "pointer",
+      "stroke-linecap": "round", "stroke-linejoin": "round", "pointer-events": "stroke",
+      cursor: isSelected ? "grab" : "pointer",
     });
+
+    // Live-updates every rendered stroke of this one cable during a drag, instead of a full
+    // refreshCabling() per mousemove — refreshCabling() tears down and rebuilds #cable-layer for
+    // every cable in the rack, which is fine on click but visibly janky at drag-move frequency.
+    const pathEls = [glow, strandEls.shadow, strandEls.main, strandEls.accent, hit].filter(Boolean);
+    const setPathD = newD => pathEls.forEach(p => p.setAttribute("d", newD));
+
+    let suppressClick = false;
     hit.addEventListener("click", ev => {
       ev.stopPropagation();
+      if (suppressClick) { suppressClick = false; return; }
       selectCable(c.id);
     });
     hit.addEventListener("contextmenu", ev => {
@@ -475,7 +673,99 @@ function drawCables(g, cablesList) {
       const tip = document.getElementById("rv-tooltip");
       if (tip) tip.style.display = "none";
     });
+
+    // Grab anywhere along an already-selected cable and drag to bend it there — the user's manual
+    // override for when the auto-routed path doesn't look right to them.
+    if (isSelected) {
+      hit.addEventListener("mousedown", ev => {
+        if (ev.button !== 0) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        const svgEl = document.getElementById("rack-svg");
+        const startClient = { x: ev.clientX, y: ev.clientY };
+        let dragging = false;
+        let working = (c.waypoints || []).slice();
+        let insertAt = -1;
+        let indicator = null;
+        const candidates = collectSnapCandidates(c.id);
+        const threshold = svgSnapThreshold(svgEl);
+
+        const onMove = mev => {
+          if (!dragging) {
+            const moved = Math.hypot(mev.clientX - startClient.x, mev.clientY - startClient.y);
+            if (moved < 4) return;
+            dragging = true;
+            suppressClick = true;
+            const startPt = clientToSvg(svgEl, startClient.x, startClient.y);
+            insertAt = nearestRawSegment(a, b, working, startPt);
+            working.splice(insertAt, 0, startPt);
+            indicator = createDragIndicator();
+          }
+          const snapped = snapPoint(clientToSvg(svgEl, mev.clientX, mev.clientY), candidates, threshold);
+          working[insertAt] = { x: snapped.x, y: snapped.y };
+          setPathD(manualPathFor(a, b, working));
+          indicator.update(mev.clientX, mev.clientY, snapped, snapped.snappedX || snapped.snappedY);
+        };
+        const onUp = () => {
+          document.removeEventListener("mousemove", onMove);
+          document.removeEventListener("mouseup", onUp);
+          if (indicator) indicator.remove();
+          if (dragging) {
+            persistCableWaypoints(c.id, working);
+            refreshCabling();
+          }
+        };
+        document.addEventListener("mousemove", onMove);
+        document.addEventListener("mouseup", onUp);
+      });
+    }
+
     cg.appendChild(hit);
+
+    if (isSelected && Array.isArray(c.waypoints)) {
+      c.waypoints.forEach((wp, wi) => {
+        const handle = el("circle", {
+          cx: wp.x, cy: wp.y, r: 5, fill: "#FFFFFF", stroke: style.stroke, "stroke-width": 2, cursor: "move",
+        });
+        handle.addEventListener("mousedown", ev => {
+          if (ev.button !== 0) return;
+          ev.preventDefault();
+          ev.stopPropagation();
+          const svgEl = document.getElementById("rack-svg");
+          const working = c.waypoints.slice();
+          const candidates = collectSnapCandidates(c.id);
+          const threshold = svgSnapThreshold(svgEl);
+          const indicator = createDragIndicator();
+          const onMove = mev => {
+            const snapped = snapPoint(clientToSvg(svgEl, mev.clientX, mev.clientY), candidates, threshold);
+            working[wi] = { x: snapped.x, y: snapped.y };
+            handle.setAttribute("cx", snapped.x);
+            handle.setAttribute("cy", snapped.y);
+            setPathD(manualPathFor(a, b, working));
+            indicator.update(mev.clientX, mev.clientY, snapped, snapped.snappedX || snapped.snappedY);
+          };
+          const onUp = () => {
+            document.removeEventListener("mousemove", onMove);
+            document.removeEventListener("mouseup", onUp);
+            indicator.remove();
+            persistCableWaypoints(c.id, working);
+            refreshCabling();
+          };
+          document.addEventListener("mousemove", onMove);
+          document.addEventListener("mouseup", onUp);
+        });
+        // Right-click a bend point to remove just that one, without resetting the whole route.
+        handle.addEventListener("contextmenu", ev => {
+          ev.preventDefault();
+          ev.stopPropagation();
+          const working = c.waypoints.slice();
+          working.splice(wi, 1);
+          persistCableWaypoints(c.id, working);
+          refreshCabling();
+        });
+        cg.appendChild(handle);
+      });
+    }
   });
 }
 
@@ -639,12 +929,14 @@ function handleCreateCableClick(deviceId, portName) {
   }
   if (!pendingCablePort) {
     pendingCablePort = { deviceId, portName };
+    highlightCablableDevices(deviceId);
+    showCablingHint("Select target port · ESC to cancel");
+    // refreshCabling() tears down and rebuilds #cable-layer — the follow-line has to be
+    // attached AFTER that, or it gets removed as part of the layer it was just added to.
+    refreshCabling();
     const rec = registry[deviceId];
     const pt = rec && rec.ports[portName];
     if (pt) startFollowLine(pt);
-    highlightCablableDevices(deviceId);
-    showCablingHint("Select target port · ESC to cancel");
-    refreshCabling();
     return;
   }
   if (pendingCablePort.deviceId === deviceId && pendingCablePort.portName === portName) {
