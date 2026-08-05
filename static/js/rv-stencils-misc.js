@@ -449,7 +449,497 @@ function fortiRowLayout(startX, availWidth, segments) {
   return { rows, scale };
 }
 
+// Tiny printed numbering above/below each port — the real hardware silkscreens a number right
+// next to every port, and without it the ports are an unreadable wall of identical boxes.
+function fortiTinyLabel(g, cx, y, text) {
+  const t = el('text', { x: cx, y, 'font-size': 3, 'font-family': 'monospace', fill: '#B8B6AE', 'text-anchor': 'middle' }, g);
+  t.textContent = text;
+}
+
+// Draws a group of RJ45/SFP ports in the real FortiGate convention: `cols` columns of 2 rows,
+// odd numbers on top (1, 3, 5, 7...), even numbers directly below (2, 4, 6, 8...) — not left-to-
+// right sequential. `startNum` is the first port number in the group (its odd/top port). Each
+// port's real number is printed above (top row) or below (bottom row) it, like the real unit.
+function fortiPortGroup(g, ctx, startX, topY, botY, cols, spacing, startNum, drawFn, namePrefix, litFrac, s) {
+  for (let c = 0; c < cols; c++) {
+    const px = startX + c * spacing;
+    const topNum = startNum + c * 2, botNum = topNum + 1;
+    drawFn(g, px, topY, ctx, namePrefix + topNum, { lit: c < cols * (litFrac || 0), s });
+    drawFn(g, px, botY, ctx, namePrefix + botNum, { lit: c < cols * (litFrac || 0), s });
+    fortiTinyLabel(g, px + 5.5, topY - 1.2, String(topNum));
+    fortiTinyLabel(g, px + 5.5, botY + 9.5 * (s || 1) + 3.4, String(botNum));
+  }
+}
+
+// Two ports stacked in one column (HA/MGMT, MGMT1/MGMT2, HA1/HA2, the 90G's shared-media pairs...)
+// — the single most common sub-unit across every FortiGate front panel.
+function fortiStackedPair(g, ctx, x, topY, botY, topName, botName, drawFn, s, topLabel, botLabel, litTop, litBot) {
+  drawFn(g, x, topY, ctx, topName, { lit: litTop, s });
+  drawFn(g, x, botY, ctx, botName, { lit: litBot, s });
+  fortiTinyLabel(g, x + 5.5, topY - 1.2, topLabel);
+  fortiTinyLabel(g, x + 5.5, botY + 9.5 * (s || 1) + 3.4, botLabel);
+}
+
+// A single row of QSFP slots (the 2U models' 100GE uplinks) — no top/bottom split, they're big
+// enough to sit in one row on the real unit.
+function fortiQsfpRow(g, ctx, startX, y, count, startNum, spacing, s) {
+  for (let i = 0; i < count; i++) {
+    const px = startX + i * spacing;
+    rvFortiQsfp(g, px, y, ctx, 'port' + (startNum + i), { s });
+    fortiTinyLabel(g, px + 9 * (s || 1), y - 1.2, String(startNum + i));
+  }
+}
+
 const RV_STENCILS_NETWORK = {
+
+  // A one-off, hand-matched replica of the real FortiGate 200G front panel (RACKVIEW_FORTIGATE_PORTLAR.md
+  // follow-up: exact port positions instead of the generic parametric firewall-1u skeleton), built
+  // from Fortinet's official FortiGate 200G Series datasheet interface diagram. Port names match
+  // FortiOS's own interface naming (port1..port20, x1..x8, ha, mgmt) so cabling docs read the same
+  // as the CLI. Only this one model uses this stencil — every other FortiGate stays on the
+  // parametric firewall-1u/2u skeleton.
+  'fortigate-200g': {
+    uHeight: 1, category: 'firewall',
+    front(g, ctx) {
+      const { x, y, w, h } = ctx;
+      const c = rvChassis(g, x, y, w, 1, { dark: true });
+      const S = 0.85; // every port drawn slightly smaller so there's room for a printed number above/below, like the real unit
+      const boxH = 9.5 * S;
+      const topY = y + 3.2, botY = y + 15;
+
+      // Status LEDs (STATUS/ALARM/HA/POWER) + power button, left of CONSOLE — cosmetic, no ports.
+      const ledX = c.innerX + 3;
+      ['STATUS', 'ALARM', 'HA', 'POWER'].forEach((label, i) =>
+        el('rect', { x: ledX, y: y + 4 + i * 5, width: 3, height: 3, rx: 0.5, fill: '#2A2927' }, g));
+      el('circle', { cx: c.innerX + 15, cy: y + h / 2, r: 5, fill: '#3A3937', stroke: '#1E1D1C', 'stroke-width': 0.6 }, g);
+
+      // CONSOLE (RJ45) over USB — a single column, matching the real panel's leftmost port pair.
+      const consoleX = c.innerX + 32;
+      rvFortiRj45(g, consoleX, topY, ctx, 'console', { lit: false, s: S });
+      rvUsb(g, consoleX + 1, botY, ctx, 'usb');
+      fortiTinyLabel(g, consoleX + 5, topY - 1.2, 'CON');
+      fortiTinyLabel(g, consoleX + 5, botY + 7 + 3.4, 'USB');
+
+      // HA over MGMT — its own column, right of CONSOLE/USB, before the switch port banks.
+      const haX = c.innerX + 56;
+      rvFortiRj45(g, haX, topY, ctx, 'ha', { lit: true, s: S });
+      rvFortiRj45(g, haX, botY, ctx, 'mgmt', { lit: true, s: S });
+      fortiTinyLabel(g, haX + 5, topY - 1.2, 'HA');
+      fortiTinyLabel(g, haX + 5, botY + boxH + 3.4, 'MGMT');
+
+      // 8x GE RJ45 (port1-port8): 4 columns x 2 rows, odd top / even bottom.
+      fortiPortGroup(g, ctx, c.innerX + 84, topY, botY, 4, 14, 1, rvFortiRj45, 'port', 0.4, S);
+
+      // 8x 5GE RJ45 (port9-port16). The real unit brackets these with a "5G" heading above the
+      // numbers, but a 1U-tall render has no clean room for a second text line above the port
+      // numbers without the two overlapping — the port numbers (9-16) already identify the group
+      // unambiguously, so the speed heading is dropped rather than rendered illegibly.
+      fortiPortGroup(g, ctx, c.innerX + 165, topY, botY, 4, 14, 9, rvFortiRj45, 'port', 0.4, S);
+
+      // 8x 10GE SFP+ FortiLink slots (x1-x8): 4 columns x 2 rows. x1/x2 carry a small link glyph
+      // on the real unit marking them as the default FortiLink trunk pair.
+      const sfpPlusX = c.innerX + 250;
+      for (let cIdx = 0; cIdx < 4; cIdx++) {
+        const px = sfpPlusX + cIdx * 17;
+        const topNum = cIdx * 2 + 1, botNum = topNum + 1;
+        rvFortiSfp(g, px, topY, ctx, 'x' + topNum, { lit: cIdx < 2, s: S });
+        rvFortiSfp(g, px, botY, ctx, 'x' + botNum, { lit: cIdx < 2, s: S });
+        fortiTinyLabel(g, px + 5.5, topY - 1.2, 'X' + topNum);
+        fortiTinyLabel(g, px + 5.5, botY + boxH + 3.4, 'X' + botNum);
+      }
+      el('circle', { cx: sfpPlusX + 15.5, cy: y + h / 2, r: 1.3, fill: 'none', stroke: '#3D9BE8', 'stroke-width': 0.6 }, g);
+
+      // 4x GE SFP (port17-port20): 2 columns x 2 rows.
+      fortiPortGroup(g, ctx, c.innerX + 345, topY, botY, 2, 17, 17, rvFortiSfp, 'port', 0.5, S);
+    },
+    rear(g, ctx) { RV_STENCILS_SWITCH['switch-1u-rear'].rear(g, ctx); }
+  },
+
+  // Hand-matched replicas of the rest of the FortiGate family's real front panels, from each
+  // model's official Fortinet datasheet interface diagram — same approach and reasoning as
+  // 'fortigate-200g' above. Each is model-specific and touches nothing else.
+
+  'fortigate-90g': {
+    uHeight: 1, category: 'firewall',
+    front(g, ctx) {
+      const { x, y, w, h } = ctx;
+      const c = rvChassis(g, x, y, w, 1, { dark: true });
+      const S = 0.85, topY = y + 3.2, botY = y + 15, boxH = 9.5 * S;
+
+      const ledX = c.innerX + 3;
+      ['STATUS', 'ALARM', 'HA', 'POWER'].forEach((label, i) =>
+        el('rect', { x: ledX, y: y + 4 + i * 5, width: 3, height: 3, rx: 0.5, fill: '#2A2927' }, g));
+
+      const consoleX = c.innerX + 18;
+      rvFortiRj45(g, consoleX, topY, ctx, 'console', { lit: false, s: S });
+      rvUsb(g, consoleX + 1, botY, ctx, 'usb');
+      fortiTinyLabel(g, consoleX + 5, topY - 1.2, 'CON');
+      fortiTinyLabel(g, consoleX + 5, botY + 7 + 3.4, 'USB');
+
+      // Shared-media pair: SFP+1/SFP+2 and WAN1/WAN2 are the SAME 2 logical ports with two
+      // connector choices each (use the RJ45 jack or the SFP+ cage, not both) — the real unit
+      // prints both connector pairs side by side under a single "shared" bracket.
+      const sfpX = c.innerX + 40;
+      fortiStackedPair(g, ctx, sfpX, topY, botY, 'sfp+1', 'sfp+2', rvFortiSfp, S, 'SFP+1', 'SFP+2', false, false);
+      const wanX = c.innerX + 58;
+      fortiStackedPair(g, ctx, wanX, topY, botY, 'wan1', 'wan2', rvFortiRj45, S, 'WAN1', 'WAN2', true, true);
+
+      // 8x GE RJ45 — the real unit numbers the first 6 (1,3,5 / 2,4,6) then silkscreens the last
+      // column "A"/"B" instead of 7/8.
+      const rjX = c.innerX + 84;
+      [1, 3, 5].forEach((n, ci) => {
+        const px = rjX + ci * 14;
+        rvFortiRj45(g, px, topY, ctx, 'port' + n, { lit: true, s: S });
+        rvFortiRj45(g, px, botY, ctx, 'port' + (n + 1), { lit: true, s: S });
+        fortiTinyLabel(g, px + 5, topY - 1.2, String(n));
+        fortiTinyLabel(g, px + 5, botY + boxH + 3.4, String(n + 1));
+      });
+      const abX = rjX + 3 * 14;
+      rvFortiRj45(g, abX, topY, ctx, 'porta', { lit: false, s: S });
+      rvFortiRj45(g, abX, botY, ctx, 'portb', { lit: false, s: S });
+      fortiTinyLabel(g, abX + 5, topY - 1.2, 'A');
+      fortiTinyLabel(g, abX + 5, botY + boxH + 3.4, 'B');
+    },
+    rear(g, ctx) { RV_STENCILS_SWITCH['switch-1u-rear'].rear(g, ctx); }
+  },
+
+  'fortigate-120g': {
+    uHeight: 1, category: 'firewall',
+    front(g, ctx) {
+      const { x, y, w, h } = ctx;
+      const c = rvChassis(g, x, y, w, 1, { dark: true });
+      const S = 0.85, topY = y + 3.2, botY = y + 15, boxH = 9.5 * S;
+
+      const ledX = c.innerX + 3;
+      ['STATUS', 'ALARM', 'HA', 'POWER'].forEach((label, i) =>
+        el('rect', { x: ledX, y: y + 4 + i * 5, width: 3, height: 3, rx: 0.5, fill: '#2A2927' }, g));
+
+      const consoleX = c.innerX + 18;
+      rvFortiRj45(g, consoleX, topY, ctx, 'console', { lit: false, s: S });
+      fortiTinyLabel(g, consoleX + 5, topY - 1.2, 'CON');
+
+      const haX = c.innerX + 36;
+      fortiStackedPair(g, ctx, haX, topY, botY, 'ha', 'mgmt', rvFortiRj45, S, 'HA', 'MGMT', true, true);
+
+      fortiPortGroup(g, ctx, c.innerX + 58, topY, botY, 4, 14, 1, rvFortiRj45, 'port', 0.4, S);
+      fortiPortGroup(g, ctx, c.innerX + 124, topY, botY, 4, 14, 9, rvFortiRj45, 'port', 0.4, S);
+
+      const sfpPlusX = c.innerX + 190;
+      for (let i = 0; i < 2; i++) {
+        const px = sfpPlusX + i * 17;
+        rvFortiSfp(g, px, topY, ctx, 'x' + (i * 2 + 1), { lit: true, s: S });
+        rvFortiSfp(g, px, botY, ctx, 'x' + (i * 2 + 2), { lit: true, s: S });
+        fortiTinyLabel(g, px + 5.5, topY - 1.2, 'X' + (i * 2 + 1));
+        fortiTinyLabel(g, px + 5.5, botY + boxH + 3.4, 'X' + (i * 2 + 2));
+      }
+      el('circle', { cx: sfpPlusX + 8.5, cy: y + h / 2, r: 1.3, fill: 'none', stroke: '#3D9BE8', 'stroke-width': 0.6 }, g);
+
+      fortiPortGroup(g, ctx, c.innerX + 230, topY, botY, 4, 15, 17, rvFortiSfp, 'port', 0.5, S);
+    },
+    rear(g, ctx) { RV_STENCILS_SWITCH['switch-1u-rear'].rear(g, ctx); }
+  },
+
+  'fortigate-400f': {
+    uHeight: 1, category: 'firewall',
+    front(g, ctx) {
+      const { x, y, w, h } = ctx;
+      const c = rvChassis(g, x, y, w, 1, { dark: true });
+      const S = 0.85, topY = y + 3.2, botY = y + 15, boxH = 9.5 * S;
+
+      const usbX = c.innerX + 12;
+      rvUsb(g, usbX, topY, ctx, 'usb');
+      fortiTinyLabel(g, usbX + 5, topY - 1.2, 'USB');
+      const consoleX = c.innerX + 30;
+      rvFortiRj45(g, consoleX, topY, ctx, 'console', { lit: false, s: S });
+      fortiTinyLabel(g, consoleX + 5, topY - 1.2, 'CON');
+
+      const haX = c.innerX + 52;
+      fortiStackedPair(g, ctx, haX, topY, botY, 'ha', 'mgmt', rvFortiRj45, S, 'HA', 'MGMT', true, true);
+
+      fortiPortGroup(g, ctx, c.innerX + 76, topY, botY, 4, 14, 1, rvFortiRj45, 'port', 0.4, S);
+      fortiPortGroup(g, ctx, c.innerX + 142, topY, botY, 4, 14, 9, rvFortiRj45, 'port', 0.4, S);
+
+      // 4x 10GE SFP+ FortiLink (X1-X4), then 4x SFP+ Ultra Low Latency (X5-X8).
+      const sfpPlusX = c.innerX + 208;
+      for (let i = 0; i < 2; i++) {
+        const px = sfpPlusX + i * 17;
+        rvFortiSfp(g, px, topY, ctx, 'x' + (i * 2 + 1), { lit: true, s: S });
+        rvFortiSfp(g, px, botY, ctx, 'x' + (i * 2 + 2), { lit: true, s: S });
+        fortiTinyLabel(g, px + 5.5, topY - 1.2, 'X' + (i * 2 + 1));
+        fortiTinyLabel(g, px + 5.5, botY + boxH + 3.4, 'X' + (i * 2 + 2));
+      }
+      el('circle', { cx: sfpPlusX + 8.5, cy: y + h / 2, r: 1.3, fill: 'none', stroke: '#3D9BE8', 'stroke-width': 0.6 }, g);
+
+      const ullX = c.innerX + 249;
+      for (let i = 0; i < 2; i++) {
+        const px = ullX + i * 17;
+        rvFortiSfp(g, px, topY, ctx, 'x' + (i * 2 + 5), { lit: false, s: S });
+        rvFortiSfp(g, px, botY, ctx, 'x' + (i * 2 + 6), { lit: false, s: S });
+        fortiTinyLabel(g, px + 5.5, topY - 1.2, 'X' + (i * 2 + 5));
+        fortiTinyLabel(g, px + 5.5, botY + boxH + 3.4, 'X' + (i * 2 + 6));
+      }
+
+      fortiPortGroup(g, ctx, c.innerX + 290, topY, botY, 4, 15, 17, rvFortiSfp, 'port', 0.5, S);
+    },
+    rear(g, ctx) { RV_STENCILS_SWITCH['switch-1u-rear'].rear(g, ctx); }
+  },
+
+  'fortigate-600f': {
+    uHeight: 1, category: 'firewall',
+    front(g, ctx) {
+      const { x, y, w, h } = ctx;
+      const c = rvChassis(g, x, y, w, 1, { dark: true });
+      const S = 0.85, topY = y + 3.2, botY = y + 15, boxH = 9.5 * S;
+
+      rvUsb(g, c.innerX + 8, topY, ctx, 'usb1');
+      rvUsb(g, c.innerX + 20, topY, ctx, 'usb2');
+      fortiTinyLabel(g, c.innerX + 13, topY - 1.2, 'USB');
+      const consoleX = c.innerX + 46;
+      rvFortiRj45(g, consoleX, topY, ctx, 'console', { lit: false, s: S });
+      fortiTinyLabel(g, consoleX + 5, topY - 1.2, 'CON');
+
+      const haX = c.innerX + 64;
+      fortiStackedPair(g, ctx, haX, topY, botY, 'ha', 'mgmt', rvFortiRj45, S, 'HA', 'MGMT', true, true);
+
+      fortiPortGroup(g, ctx, c.innerX + 88, topY, botY, 4, 14, 1, rvFortiRj45, 'port', 0.4, S);
+      fortiPortGroup(g, ctx, c.innerX + 154, topY, botY, 4, 14, 9, rvFortiRj45, 'port', 0.4, S);
+      fortiPortGroup(g, ctx, c.innerX + 220, topY, botY, 4, 15, 17, rvFortiSfp, 'port', 0.5, S);
+
+      const sfpPlusX = c.innerX + 289;
+      for (let i = 0; i < 2; i++) {
+        const px = sfpPlusX + i * 17;
+        rvFortiSfp(g, px, topY, ctx, 'x' + (i * 2 + 1), { lit: true, s: S });
+        rvFortiSfp(g, px, botY, ctx, 'x' + (i * 2 + 2), { lit: true, s: S });
+        fortiTinyLabel(g, px + 5.5, topY - 1.2, 'X' + (i * 2 + 1));
+        fortiTinyLabel(g, px + 5.5, botY + boxH + 3.4, 'X' + (i * 2 + 2));
+      }
+      el('circle', { cx: sfpPlusX + 8.5, cy: y + h / 2, r: 1.3, fill: 'none', stroke: '#3D9BE8', 'stroke-width': 0.6 }, g);
+
+      const ullX = c.innerX + 330;
+      for (let i = 0; i < 2; i++) {
+        const px = ullX + i * 17;
+        rvFortiSfp(g, px, topY, ctx, 'x' + (i * 2 + 5), { lit: false, s: S });
+        rvFortiSfp(g, px, botY, ctx, 'x' + (i * 2 + 6), { lit: false, s: S });
+        fortiTinyLabel(g, px + 5.5, topY - 1.2, 'X' + (i * 2 + 5));
+        fortiTinyLabel(g, px + 5.5, botY + boxH + 3.4, 'X' + (i * 2 + 6));
+      }
+    },
+    rear(g, ctx) { RV_STENCILS_SWITCH['switch-1u-rear'].rear(g, ctx); }
+  },
+
+  // 900G's front panel groups (RJ45 -> SFP -> SFP+ -> SFP28 ULL) match the 600F exactly, only
+  // the HA port's own speed differs (2.5GE vs GE) — invisible at this drawing scale.
+  'fortigate-900g': {
+    uHeight: 1, category: 'firewall',
+    front(g, ctx) { RV_STENCILS_NETWORK['fortigate-600f'].front(g, ctx); },
+    rear(g, ctx) { RV_STENCILS_SWITCH['switch-1u-rear'].rear(g, ctx); }
+  },
+
+  // 1000F is a 2U chassis (the generic catalog previously had it at 1U — corrected here).
+  'fortigate-1000f': {
+    uHeight: 2, category: 'firewall',
+    front(g, ctx) {
+      const { x, y, w, h } = ctx;
+      const c = rvChassis(g, x, y, w, 2, { dark: true });
+      const S = 1, topY = y + 5, botY = y + 30, boxH = 9.5 * S;
+
+      rvUsb(g, c.innerX + 6, topY, ctx, 'usb1');
+      rvUsb(g, c.innerX + 18, topY, ctx, 'usb2');
+      fortiTinyLabel(g, c.innerX + 11, topY - 1.5, 'USB');
+      const consoleX = c.innerX + 42;
+      rvFortiRj45(g, consoleX, topY, ctx, 'console', { lit: false, s: S });
+      fortiTinyLabel(g, consoleX + 6, topY - 1.5, 'CON');
+
+      const haX = c.innerX + 62;
+      fortiStackedPair(g, ctx, haX, topY, botY, 'ha', 'mgmt', rvFortiRj45, S, 'HA', 'MGMT', true, true);
+
+      // 8x RJ45 (port1-8)
+      fortiPortGroup(g, ctx, c.innerX + 86, topY, botY, 4, 16, 1, rvFortiRj45, 'port', 0.4, S);
+
+      // 16x SFP+ (port9-24)
+      fortiPortGroup(g, ctx, c.innerX + 160, topY, botY, 8, 17, 9, rvFortiSfp, 'port', 0.4, S);
+
+      // 8x SFP28 (port25-32)
+      fortiPortGroup(g, ctx, c.innerX + 310, topY, botY, 4, 18, 25, rvFortiSfp, 'port', 0.5, S);
+
+      // 2x QSFP28 (port33-34), single row, vertically centered on the port band.
+      fortiQsfpRow(g, ctx, c.innerX + 400, (topY + botY) / 2, 2, 33, 24, S);
+    },
+    rear(g, ctx) { RV_STENCILS_SWITCH['switch-1u-rear'].rear(g, ctx); }
+  },
+
+  'fortigate-1800f': {
+    uHeight: 2, category: 'firewall',
+    front(g, ctx) {
+      const { x, y, w, h } = ctx;
+      const c = rvChassis(g, x, y, w, 2, { dark: true });
+      const S = 1, topY = y + 5, botY = y + 30, boxH = 9.5 * S;
+
+      const consoleX = c.innerX + 10;
+      rvFortiRj45(g, consoleX, topY, ctx, 'console', { lit: false, s: S });
+      fortiTinyLabel(g, consoleX + 6, topY - 1.5, 'CON');
+      rvUsb(g, consoleX + 1, botY, ctx, 'usb');
+      fortiTinyLabel(g, consoleX + 6, botY + 7 + 3.6, 'USB');
+
+      const mgmtX = c.innerX + 32;
+      fortiStackedPair(g, ctx, mgmtX, topY, botY, 'mgmt1', 'mgmt2', rvFortiRj45, S, 'MGMT1', 'MGMT2', true, true);
+      const haX = c.innerX + 52;
+      fortiStackedPair(g, ctx, haX, topY, botY, 'ha1', 'ha2', rvFortiSfp, S, 'HA1', 'HA2', false, false);
+
+      // 16x GE RJ45 (port1-16): two 4-column blocks.
+      fortiPortGroup(g, ctx, c.innerX + 78, topY, botY, 4, 16, 1, rvFortiRj45, 'port', 0.4, S);
+      fortiPortGroup(g, ctx, c.innerX + 152, topY, botY, 4, 16, 9, rvFortiRj45, 'port', 0.4, S);
+
+      // 8x GE SFP (port17-24)
+      fortiPortGroup(g, ctx, c.innerX + 226, topY, botY, 4, 17, 17, rvFortiSfp, 'port', 0.5, S);
+
+      // 12x 25GE SFP28 (port25-36)
+      fortiPortGroup(g, ctx, c.innerX + 300, topY, botY, 6, 18, 25, rvFortiSfp, 'port', 0.5, S);
+
+      // 4x 100GE QSFP28 (port37-40), single row.
+      fortiQsfpRow(g, ctx, c.innerX + 420, (topY + botY) / 2, 4, 37, 24, S);
+    },
+    rear(g, ctx) { RV_STENCILS_SWITCH['switch-1u-rear'].rear(g, ctx); }
+  },
+
+  'fortigate-2600f': {
+    uHeight: 2, category: 'firewall',
+    front(g, ctx) {
+      const { x, y, w, h } = ctx;
+      const c = rvChassis(g, x, y, w, 2, { dark: true });
+      const S = 1, topY = y + 5, botY = y + 30, boxH = 9.5 * S;
+
+      const consoleX = c.innerX + 10;
+      rvFortiRj45(g, consoleX, topY, ctx, 'console', { lit: false, s: S });
+      fortiTinyLabel(g, consoleX + 6, topY - 1.5, 'CON');
+      rvUsb(g, consoleX + 1, botY, ctx, 'usb');
+      fortiTinyLabel(g, consoleX + 6, botY + 7 + 3.6, 'USB');
+
+      const mgmtX = c.innerX + 32;
+      fortiStackedPair(g, ctx, mgmtX, topY, botY, 'mgmt1', 'mgmt2', rvFortiRj45, S, 'MGMT1', 'MGMT2', true, true);
+      const haX = c.innerX + 52;
+      fortiStackedPair(g, ctx, haX, topY, botY, 'ha1', 'ha2', rvFortiSfp, S, 'HA1', 'HA2', false, false);
+
+      // 16x 10GE/GE RJ45 (port1-16): two 4-column blocks.
+      fortiPortGroup(g, ctx, c.innerX + 78, topY, botY, 4, 16, 1, rvFortiRj45, 'port', 0.4, S);
+      fortiPortGroup(g, ctx, c.innerX + 152, topY, botY, 4, 16, 9, rvFortiRj45, 'port', 0.4, S);
+
+      // 16x 25GE SFP28 (port17-32)
+      fortiPortGroup(g, ctx, c.innerX + 226, topY, botY, 8, 18, 17, rvFortiSfp, 'port', 0.5, S);
+
+      // 4x 100GE QSFP28 (port33-36), single row.
+      fortiQsfpRow(g, ctx, c.innerX + 380, (topY + botY) / 2, 4, 33, 24, S);
+    },
+    rear(g, ctx) { RV_STENCILS_SWITCH['switch-1u-rear'].rear(g, ctx); }
+  },
+
+  'fortigate-3500f': {
+    uHeight: 2, category: 'firewall',
+    front(g, ctx) {
+      const { x, y, w, h } = ctx;
+      const c = rvChassis(g, x, y, w, 2, { dark: true });
+      const S = 1, topY = y + 5, botY = y + 30, boxH = 9.5 * S;
+
+      const consoleX = c.innerX + 10;
+      rvFortiRj45(g, consoleX, topY, ctx, 'console', { lit: false, s: S });
+      fortiTinyLabel(g, consoleX + 6, topY - 1.5, 'CON');
+      rvUsb(g, consoleX + 1, botY, ctx, 'usb');
+      fortiTinyLabel(g, consoleX + 6, botY + 7 + 3.6, 'USB');
+
+      const mgmtX = c.innerX + 32;
+      fortiStackedPair(g, ctx, mgmtX, topY, botY, 'mgmt1', 'mgmt2', rvFortiRj45, S, 'MGMT1', 'MGMT2', true, true);
+      const haX = c.innerX + 52;
+      fortiStackedPair(g, ctx, haX, topY, botY, 'ha1', 'ha2', rvFortiSfp, S, 'HA1', 'HA2', false, false);
+
+      // 30x 25GE SFP28/SFP+ (port1-30): 15 columns x 2 rows — the widest single bank in the family.
+      fortiPortGroup(g, ctx, c.innerX + 78, topY, botY, 15, 17, 1, rvFortiSfp, 'port', 0.4, S);
+
+      // 6x 100GE QSFP28 (port31-36), single row.
+      fortiQsfpRow(g, ctx, c.innerX + 342, (topY + botY) / 2, 6, 31, 24, S);
+    },
+    rear(g, ctx) { RV_STENCILS_SWITCH['switch-1u-rear'].rear(g, ctx); }
+  },
+
+  // Hand-matched replicas of Palo Alto's real front panels (Strata PA-1400/PA-3400 series
+  // datasheets), same approach as the FortiGate ones above — reuses the same rvFortiRj45/
+  // rvFortiSfp/rvFortiQsfp artwork (copper vs fiber tone) for a consistent visual language.
+
+  // PA-1410 and PA-1420 share one physical layout — the datasheet's own numbered diagram (1-22)
+  // is identical for both; only internal port speed capability differs, invisible at this scale.
+  'palo-pa1400': {
+    uHeight: 1, category: 'firewall',
+    front(g, ctx) {
+      const { x, y, w, h } = ctx;
+      const c = rvChassis(g, x, y, w, 1, { dark: true });
+      const S = 0.85, topY = y + 3.2, botY = y + 15, boxH = 9.5 * S;
+
+      // 12x copper (port1-12): two blocks, 4 cols then 2 cols.
+      fortiPortGroup(g, ctx, c.innerX + 8, topY, botY, 4, 14, 1, rvFortiRj45, 'port', 0.4, S);
+      fortiPortGroup(g, ctx, c.innerX + 74, topY, botY, 2, 14, 9, rvFortiRj45, 'port', 0.4, S);
+
+      // 10x SFP/SFP+ (port13-22): 5 columns x 2 rows.
+      fortiPortGroup(g, ctx, c.innerX + 112, topY, botY, 5, 15, 13, rvFortiSfp, 'port', 0.4, S);
+
+      // HSCI HA link: a single 10G SFP+ (ha) plus a redundant RJ45 pair (ha-1a/ha-1b).
+      const haSfpX = c.innerX + 200;
+      rvFortiSfp(g, haSfpX, topY, ctx, 'ha', { lit: false, s: S });
+      fortiTinyLabel(g, haSfpX + 5.5, topY - 1.2, 'HA');
+      const haRjX = c.innerX + 218;
+      fortiStackedPair(g, ctx, haRjX, topY, botY, 'ha-1a', 'ha-1b', rvFortiRj45, S, '1-A', '1-B', true, true);
+
+      // MGMT over CONSOLE — stacked, matching the real panel's dual-RJ45 housing.
+      const mgmtX = c.innerX + 240;
+      fortiStackedPair(g, ctx, mgmtX, topY, botY, 'mgmt', 'console', rvFortiRj45, S, 'MGMT', 'CON', true, false);
+
+      // The datasheet lists a USB-A port and a separate Micro-USB console port.
+      rvUsb(g, c.innerX + 262, topY, ctx, 'usb');
+      fortiTinyLabel(g, c.innerX + 267, topY - 1.2, 'USB');
+      rvUsb(g, c.innerX + 262, botY, ctx, 'usb-micro');
+      fortiTinyLabel(g, c.innerX + 267, botY + 7 + 3.6, 'USB-C');
+    },
+    rear(g, ctx) { RV_STENCILS_SWITCH['switch-1u-rear'].rear(g, ctx); }
+  },
+
+  // PA-3410/PA-3420 share one layout (no QSFP); PA-3440 is the same plus 2x QSFP28.
+  'palo-pa3400': {
+    uHeight: 1, category: 'firewall',
+    front(g, ctx) {
+      const { x, y, w, h } = ctx;
+      const c = rvChassis(g, x, y, w, 1, { dark: true });
+      const S = 0.85, topY = y + 3.2, botY = y + 15, boxH = 9.5 * S;
+
+      // 12x copper (port1-12): two blocks, 4 cols then 2 cols.
+      fortiPortGroup(g, ctx, c.innerX + 8, topY, botY, 4, 14, 1, rvFortiRj45, 'port', 0.4, S);
+      fortiPortGroup(g, ctx, c.innerX + 74, topY, botY, 2, 14, 9, rvFortiRj45, 'port', 0.4, S);
+
+      // 10x SFP/SFP+ (port13-22): 5 columns x 2 rows.
+      fortiPortGroup(g, ctx, c.innerX + 112, topY, botY, 5, 15, 13, rvFortiSfp, 'port', 0.4, S);
+
+      // 4x 25GE SFP28 (port23-26): 2 columns x 2 rows.
+      fortiPortGroup(g, ctx, c.innerX + 200, topY, botY, 2, 17, 23, rvFortiSfp, 'port', 0.5, S);
+
+      let mx = c.innerX + 240;
+      if (ctx.qsfp) {
+        fortiQsfpRow(g, ctx, mx, (topY + botY) / 2, 2, 27, 24, S);
+        mx += 54;
+      }
+
+      const haSfpX = mx;
+      rvFortiSfp(g, haSfpX, topY, ctx, 'ha', { lit: false, s: S });
+      fortiTinyLabel(g, haSfpX + 5.5, topY - 1.2, 'HA');
+      const haRjX = mx + 18;
+      fortiStackedPair(g, ctx, haRjX, topY, botY, 'ha-1a', 'ha-1b', rvFortiRj45, S, '1-A', '1-B', true, true);
+
+      const mgmtX = mx + 40;
+      fortiStackedPair(g, ctx, mgmtX, topY, botY, 'mgmt', 'console', rvFortiRj45, S, 'MGMT', 'CON', true, false);
+
+      // The PA-3400 datasheet lists only a single Micro-USB console port (no separate USB-A,
+      // unlike the PA-1400).
+      rvUsb(g, mx + 62, topY, ctx, 'usb-micro');
+      fortiTinyLabel(g, mx + 67, topY - 1.2, 'USB-C');
+    },
+    rear(g, ctx) { RV_STENCILS_SWITCH['switch-1u-rear'].rear(g, ctx); }
+  },
 
   'firewall-1u': {
     uHeight: 1, category: 'firewall',
@@ -457,9 +947,11 @@ const RV_STENCILS_NETWORK = {
       const { x, y, w, h } = ctx;
       const c = rvChassis(g, x, y, w, 1, { dark: true });
       el('rect', { x: x + 16, y: y + 2, width: 3, height: h - 4, rx: 1, fill: '#D64545' }, g);
-      const cu = ctx.copperPorts || 16;
-      const sf = ctx.sfpPorts || 8;
-      const qs = ctx.qsfpPorts || 0;
+      // `?? ` not `||` — a model can legitimately have 0 of a port type (e.g. Check Point 16600
+      // has no SFP), and `0 || 8` would silently fall back to the default instead of drawing none.
+      const cu = ctx.copperPorts != null ? ctx.copperPorts : 16;
+      const sf = ctx.sfpPorts != null ? ctx.sfpPorts : 8;
+      const qs = ctx.qsfpPorts != null ? ctx.qsfpPorts : 0;
       // Real 1U FortiGates stack copper into two rows (top/bottom) rather than one long strip —
       // a single row made the device look far wider than the real hardware: RACKVIEW_FORTIGATE_2SIRA.md.
       const cuTop = Math.ceil(cu / 2), cuBot = cu - cuTop;
@@ -497,9 +989,11 @@ const RV_STENCILS_NETWORK = {
       const { x, y, w, h } = ctx;
       const c = rvChassis(g, x, y, w, 2, { dark: true });
       el('rect', { x: x + 16, y: y + 2, width: 3, height: h - 4, rx: 1, fill: '#D64545' }, g);
-      const cu = ctx.copperPorts || 24;
-      const sf = ctx.sfpPorts || 16;
-      const qs = ctx.qsfpPorts || 8;
+      // `!= null` not `||` — see the matching note in firewall-1u above (a model can legitimately
+      // have 0 of a port type).
+      const cu = ctx.copperPorts != null ? ctx.copperPorts : 24;
+      const sf = ctx.sfpPorts != null ? ctx.sfpPorts : 16;
+      const qs = ctx.qsfpPorts != null ? ctx.qsfpPorts : 8;
       const cuRow = cu / 2, sfRow = sf / 2, qsRow = qs / 2;
       const startX = c.innerX + 4;
       const availW = (x + w - 250 - 10) - startX;

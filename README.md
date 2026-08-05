@@ -108,6 +108,12 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 - QSFP ports (on 2U models, and the 1000F's QSFP+ uplinks) render visibly larger than SFP, in the same fiber tone
 - 1U models split their copper ports into two rows (top/bottom) instead of one long strip, matching real hardware and roughly halving the device's apparent width
 - Port counts per model now match vendor datasheets (previously approximate placeholders) — e.g. the 3500F is fiber-heavy (2 copper + 32 SFP28 + 6 QSFP28) while the 1000F carries 2 QSFP+ uplinks alongside its RJ45/SFP28 ports
+
+**Exact-match firewall front panels**
+- All 10 FortiGate models (90G through 3500F) and the Palo Alto PA-1400/PA-3400 series now render a hand-matched replica of their real front panel — exact port grouping, position, and labeling (e.g. `x1`-`x8`, `ha1`/`ha2`, `mgmt1`/`mgmt2`) taken directly from each vendor's official datasheet, down to details like FortiGate's odd-top/even-bottom port numbering and the 90G's shared copper/SFP+ media ports
+- Corrected the FortiGate 1000F's rack height (it's a 2U chassis, not 1U as previously listed) and its port counts, which were off from the real hardware
+- Port counts for Cisco Firepower/Secure Firewall, Juniper SRX, and Check Point Quantum models were corrected against their datasheets (no dedicated front-panel diagram was available for these, so they stay on the parametric layout for now)
+- Fixed a bug in the parametric firewall templates where a model with legitimately zero of a port type (e.g. Check Point 16600 has no SFP ports) would silently fall back to a default count instead of drawing none
 - A dense layout (e.g. the 2600F's 18 copper + 16 SFP + 4 QSFP in 2U) scales down proportionally if needed so ports never overlap or run into the LCD/management panel
 
 ## License

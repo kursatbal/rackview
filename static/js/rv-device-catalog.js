@@ -171,40 +171,54 @@ const RV_CATALOG = [
   // Port counts per RACKVIEW_FORTIGATE_PORTLAR.md (vendor datasheet figures). sfpPorts folds
   // together SFP/SFP+/SFP28 since they're visually identical (rvFortiSfp doesn't distinguish
   // speed) — only the physically-larger QSFP gets its own count.
-  { model: 'FortiGate 200G',         vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 18, sfpPorts: 12 } },
-  { model: 'FortiGate 400F',         vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 18, sfpPorts: 16 } },
-  { model: 'FortiGate 600F',         vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 16, sfpPorts: 16 } },
-  { model: 'FortiGate 900G',         vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 16, sfpPorts: 20 } },
-  { model: 'FortiGate 1000F',        vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 18, sfpPorts: 16, qsfpPorts: 2 } },
-  { model: 'FortiGate 1800F',        vendor: 'Fortinet', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 18, sfpPorts: 22, qsfpPorts: 4 } },
-  { model: 'FortiGate 2600F',        vendor: 'Fortinet', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 18, sfpPorts: 16, qsfpPorts: 4 } },
-  { model: 'FortiGate 3500F',        vendor: 'Fortinet', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 2,  sfpPorts: 32, qsfpPorts: 6 } },
-  { model: 'FortiGate 90G',          vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 8,  sfpPorts: 2 } },
-  { model: 'FortiGate 120G',         vendor: 'Fortinet', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 10, sfpPorts: 4 } },
-  { model: 'PA-3410',                vendor: 'Palo Alto', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 12, sfpPorts: 12 } },
-  { model: 'PA-3420',                vendor: 'Palo Alto', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 12, sfpPorts: 12 } },
-  { model: 'PA-3440',                vendor: 'Palo Alto', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 12, sfpPorts: 12 } },
+  // Every FortiGate model now uses a hand-matched replica of its real front panel (exact port
+  // positions/names/counts from Fortinet's own datasheet) instead of the parametric skeleton —
+  // see the 'fortigate-*' stencils. 1000F's u was corrected 1->2 (it's actually a 2U chassis).
+  { model: 'FortiGate 200G',         vendor: 'Fortinet', stencil: 'fortigate-200g',  u: 1, opts: {} },
+  { model: 'FortiGate 400F',         vendor: 'Fortinet', stencil: 'fortigate-400f',  u: 1, opts: {} },
+  { model: 'FortiGate 600F',         vendor: 'Fortinet', stencil: 'fortigate-600f',  u: 1, opts: {} },
+  { model: 'FortiGate 900G',         vendor: 'Fortinet', stencil: 'fortigate-900g',  u: 1, opts: {} },
+  { model: 'FortiGate 1000F',        vendor: 'Fortinet', stencil: 'fortigate-1000f', u: 2, opts: {} },
+  { model: 'FortiGate 1800F',        vendor: 'Fortinet', stencil: 'fortigate-1800f', u: 2, opts: {} },
+  { model: 'FortiGate 2600F',        vendor: 'Fortinet', stencil: 'fortigate-2600f', u: 2, opts: {} },
+  { model: 'FortiGate 3500F',        vendor: 'Fortinet', stencil: 'fortigate-3500f', u: 2, opts: {} },
+  { model: 'FortiGate 90G',          vendor: 'Fortinet', stencil: 'fortigate-90g',   u: 1, opts: {} },
+  { model: 'FortiGate 120G',         vendor: 'Fortinet', stencil: 'fortigate-120g',  u: 1, opts: {} },
+  // Hand-matched to Palo Alto's real PA-3400 Series datasheet front-panel photo.
+  { model: 'PA-3410',                vendor: 'Palo Alto', stencil: 'palo-pa3400', u: 1, opts: {} },
+  { model: 'PA-3420',                vendor: 'Palo Alto', stencil: 'palo-pa3400', u: 1, opts: {} },
+  { model: 'PA-3440',                vendor: 'Palo Alto', stencil: 'palo-pa3400', u: 1, opts: { qsfp: true } },
   { model: 'PA-5410',                vendor: 'Palo Alto', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 16, sfpPorts: 16, qsfpPorts: 4 } },
   { model: 'PA-5420',                vendor: 'Palo Alto', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 16, sfpPorts: 16, qsfpPorts: 8 } },
   { model: 'PA-5430',                vendor: 'Palo Alto', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 16, sfpPorts: 16, qsfpPorts: 8 } },
   { model: 'PA-5440',                vendor: 'Palo Alto', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 16, sfpPorts: 24, qsfpPorts: 8 } },
-  { model: 'PA-1410',                vendor: 'Palo Alto', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 16, sfpPorts: 8 } },
-  { model: 'PA-1420',                vendor: 'Palo Alto', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 16, sfpPorts: 8 } },
+  // Hand-matched to Palo Alto's real PA-1400 Series datasheet front-panel photo.
+  { model: 'PA-1410',                vendor: 'Palo Alto', stencil: 'palo-pa1400', u: 1, opts: {} },
+  { model: 'PA-1420',                vendor: 'Palo Alto', stencil: 'palo-pa1400', u: 1, opts: {} },
+  // Port counts corrected against Cisco's own datasheets (base-chassis interfaces; optional
+  // network-module slots aren't counted since they're not always populated). Still on the
+  // generic parametric skeleton — these datasheets are text spec tables, not a numbered front-
+  // panel diagram like Fortinet/Palo Alto's, so no dedicated exact-position stencil yet.
   { model: 'Firepower 1140',         vendor: 'Cisco', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 8, sfpPorts: 4 } },
-  { model: 'Firepower 2130',         vendor: 'Cisco', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 12, sfpPorts: 12 } },
-  { model: 'Firepower 2140',         vendor: 'Cisco', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 12, sfpPorts: 12 } },
-  { model: 'Secure Firewall 3120',   vendor: 'Cisco', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 8, sfpPorts: 16 } },
-  { model: 'Secure Firewall 3140',   vendor: 'Cisco', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 8, sfpPorts: 16 } },
-  { model: 'Firepower 4115',         vendor: 'Cisco', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 8, sfpPorts: 16, qsfpPorts: 8 } },
-  { model: 'Firepower 4125',         vendor: 'Cisco', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 8, sfpPorts: 16, qsfpPorts: 8 } },
+  { model: 'Firepower 2130',         vendor: 'Cisco', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 12, sfpPorts: 4 } },
+  { model: 'Firepower 2140',         vendor: 'Cisco', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 12, sfpPorts: 4 } },
+  { model: 'Secure Firewall 3120',   vendor: 'Cisco', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 8, sfpPorts: 8 } },
+  { model: 'Secure Firewall 3140',   vendor: 'Cisco', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 8, sfpPorts: 8 } },
+  { model: 'Firepower 4115',         vendor: 'Cisco', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 0, sfpPorts: 8 } },
+  { model: 'Firepower 4125',         vendor: 'Cisco', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 0, sfpPorts: 8 } },
   { model: 'Firepower 9300',         vendor: 'Cisco', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 8, sfpPorts: 16, qsfpPorts: 12 } },
-  { model: 'SRX1500',                vendor: 'Juniper', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 16, sfpPorts: 8 } },
-  { model: 'SRX4100',                vendor: 'Juniper', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 8, sfpPorts: 8 } },
-  { model: 'SRX4200',                vendor: 'Juniper', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 8, sfpPorts: 8 } },
+  // Port counts corrected against Juniper's own datasheets (onboard ports; PIM expansion slots
+  // not counted since they're optional/not always populated).
+  { model: 'SRX1500',                vendor: 'Juniper', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 13, sfpPorts: 9 } },
+  { model: 'SRX4100',                vendor: 'Juniper', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 2,  sfpPorts: 10 } },
+  { model: 'SRX4200',                vendor: 'Juniper', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 2,  sfpPorts: 10 } },
   { model: 'SonicWall NSa 4700',     vendor: 'SonicWall', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 16, sfpPorts: 8 } },
   { model: 'SonicWall NSa 6700',     vendor: 'SonicWall', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 16, sfpPorts: 12 } },
-  { model: 'Check Point 6600',       vendor: 'Check Point', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 12, sfpPorts: 8 } },
-  { model: 'Check Point 16600',      vendor: 'Check Point', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 16, sfpPorts: 16, qsfpPorts: 4 } },
+  // Port counts corrected against Check Point's own datasheets. 6600 matches the "Plus"
+  // configuration (10x copper + 4x SFP+); 16600 is the Maestro Hyperscale orchestrator SKU
+  // (2x 1GbE copper + 2x 100GbE QSFP28 — much sparser than a typical 2U firewall).
+  { model: 'Check Point 6600',       vendor: 'Check Point', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 10, sfpPorts: 4 } },
+  { model: 'Check Point 16600',      vendor: 'Check Point', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 2,  sfpPorts: 0, qsfpPorts: 2 } },
 
   // ===================== ROUTER =====================
   { model: 'ISR 4321',               vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigPorts: 2, tenGigPorts: 0, nimSlots: 2 } },
