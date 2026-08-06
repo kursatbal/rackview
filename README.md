@@ -73,9 +73,10 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 - A new, separate **LLDP Auto-Cabling** page is the one that actually creates/updates/removes cables from LLDP output, with a per-link review step before anything is applied
 - Neighbors whose reported hostname doesn't match any device in the rack (typo, FQDN vs. short name, case) can now be resolved by hand from a dropdown of existing devices, or via a "Create device →" shortcut that jumps into edit mode with the neighbor's name pre-filled for the add-device prompt
 
-**SAN switch category**
+**SAN switch category & Brocade datasheet accuracy**
 - Storage-fabric switches (Cisco MDS, Brocade) now have their own **SAN Switch** category instead of being lumped in with Ethernet switches, with a matching color and a filter chip in the catalog
-- Added the Brocade 300B, which was missing from the catalog
+- The Brocade 300 (previously catalogued under an invented model name with a guessed port layout) now has a dedicated, datasheet-accurate panel: 24 FC SFP+ ports in three groups of 8, with console/mgmt/USB and the power inlet on the port side and only fans on the non-port side — a real deviation from the generic switch template that the other SAN switches use
+- Corrected the Brocade G620: 48 SFP+ ports plus 4 QSFP Q-Flex uplinks (previously recorded with 0 uplinks), and its dual PSUs have integrated cooling fans rather than a separate fan tray
 
 **Router port fidelity**
 - Port counts, NIM/module slot counts, and chassis heights corrected against real datasheets for the Cisco ISR 4000, ASR 1000, and Catalyst 8200/8300/8500 series, and the Juniper MX204/MX10003
