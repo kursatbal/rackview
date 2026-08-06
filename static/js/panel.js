@@ -135,6 +135,7 @@ function buildGeneralTab(device) {
   };
   maybeRow("Serial", "serial", device.serial);
   maybeRow("Mgmt IP", "mgmt_ip", device.mgmt_ip);
+  if (device.mgmt_ip) wrap.appendChild(buildIpConflictWarning(device));
   maybeRow("Role label", "role_label", device.role_label);
   maybeRow("Owner team", "owner_team", device.owner_team);
   maybeRow("Warranty end", "warranty_end", device.warranty_end);
@@ -451,6 +452,20 @@ function buildLldpNoteRow(port, note) {
   const when = note.seenAt ? new Date(note.seenAt).toLocaleString() : "";
   row.appendChild(h("div", { class: "rt" }, [when ? `Seen via LLDP · ${when}` : "Seen via LLDP"]));
   return row;
+}
+
+function buildIpConflictWarning(device) {
+  // Purely a static check against RackView's own recorded mgmt_ip values (see /api/devices/<id>/
+  // ip-conflicts) — never polls any real device, so this is safe to fetch on every panel render.
+  const holder = h("div", {});
+  fetch(`/api/devices/${device.id}/ip-conflicts`).then(r => r.json()).then(others => {
+    if (!others || !others.length) return;
+    const names = others.map(o => `${o.name} (${o.rack_name})`).join(", ");
+    holder.appendChild(h("div", { class: "ip-conflict-warning" }, [
+      `⚠ ${device.mgmt_ip} is also recorded on: ${names}`,
+    ]));
+  }).catch(() => {});
+  return holder;
 }
 
 function buildArpSection(device) {

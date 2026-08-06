@@ -69,6 +69,9 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 
 ## Changelog
 
+**Mgmt IP conflict warning**
+- A device's General tab now flags it if its management IP is also recorded on another device in the same customer's racks — a static check against RackView's own data, nothing is polled live
+
 **SAN Switch Mapping**
 - New page: select a SAN switch that's already placed in a rack, enter its IP and SSH login, and pull its live port list and active zoning over SSH (Brocade FOS `switchshow`/`zoneshow`, or Cisco MDS `show interface brief`/`show flogi database`/`show zoneset active`) — read-only commands only, nothing on the switch is ever changed
 - The username and password are used for that one pull and never written to disk; only the IP/vendor/port and the switch's own reported state are kept, so the last pull is still there to view next time without re-entering credentials

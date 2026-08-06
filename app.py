@@ -347,6 +347,25 @@ def update_device(device_id):
     return jsonify(device.to_dict())
 
 
+@app.route("/api/devices/<int:device_id>/ip-conflicts")
+def device_ip_conflicts(device_id):
+    # Purely a static check against what's already recorded in RackView — no live polling of any
+    # device. Scoped to the same customer, since different customers legitimately reuse the same
+    # private ranges across their own separate racks.
+    device = Device.query.get_or_404(device_id)
+    if not device.mgmt_ip:
+        return jsonify([])
+    others = Device.query.filter(
+        Device.rack_id.in_(_customer_rack_ids(device)),
+        Device.id != device.id,
+        Device.mgmt_ip == device.mgmt_ip,
+    ).all()
+    return jsonify([
+        {"id": d.id, "name": d.name, "rack_id": d.rack_id, "rack_name": d.rack.name}
+        for d in others
+    ])
+
+
 @app.route("/api/devices/<int:device_id>", methods=["DELETE"])
 def delete_device(device_id):
     device = Device.query.get_or_404(device_id)

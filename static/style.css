@@ -593,6 +593,15 @@ body {
   white-space: nowrap;
 }
 
+.ip-conflict-warning {
+  font-size: 10.5px;
+  color: #A32D2D;
+  background: #FCE8E6;
+  border-radius: 4px;
+  padding: 4px 7px;
+  margin: 2px 0 4px;
+}
+
 .conn-group-title {
   display: flex;
   align-items: center;
