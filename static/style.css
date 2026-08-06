@@ -1592,6 +1592,14 @@ body {
   margin-bottom: 4px;
 }
 
+.san-pdest {
+  color: #7ee787;
+  font-weight: 600;
+  font-size: 10.5px;
+  word-break: break-word;
+  margin-top: 2px;
+}
+
 .san-pwwn {
   color: #8b949e;
   font-family: monospace;
