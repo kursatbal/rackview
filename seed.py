@@ -129,7 +129,7 @@ RV_DEVICE_CATALOG = [
     ('Aruba', 'Aruba 2930F 48G', 1, 'switch', 'switch-1u-rj45'),
     ('Broadcom', 'Brocade G620', 1, 'san-switch', 'switch-1u-sfp'),
     ('Broadcom', 'Brocade G610', 1, 'san-switch', 'switch-1u-sfp'),
-    ('Brocade', 'Brocade 300B', 1, 'san-switch', 'switch-1u-sfp'),
+    ('Brocade', 'Brocade 300', 1, 'san-switch', 'brocade-300'),
     ('Pure Storage', 'FlashArray//X R4', 3, 'storage', 'pure-flasharray'),
     ('Pure Storage', 'FlashArray//X R5', 3, 'storage', 'pure-flasharray'),
     ('Pure Storage', 'FlashArray//C R4', 3, 'storage', 'pure-flasharray'),

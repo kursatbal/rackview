@@ -132,9 +132,9 @@ const RV_CATALOG = [
   { model: 'Aruba CX 6200F 48G',     vendor: 'Aruba', stencil: 'switch-1u-rj45', u: 1, opts: { ports: 48, uplinks: 4, portPrefix: '1/1/' } },
   { model: 'Aruba CX 8325-48Y8C',    vendor: 'Aruba', stencil: 'switch-1u-sfp',  u: 1, opts: { ports: 48, uplinks: 8, portPrefix: '1/1/' } },
   { model: 'Aruba 2930F 48G',        vendor: 'Aruba', stencil: 'switch-1u-rj45', u: 1, opts: { ports: 48, uplinks: 4, portPrefix: '1/' } },
-  { model: 'Brocade G620',           vendor: 'Broadcom', stencil: 'switch-1u-sfp', u: 1, opts: { ports: 48, uplinks: 0, portPrefix: 'FC ' } },
+  { model: 'Brocade G620',           vendor: 'Broadcom', stencil: 'switch-1u-sfp', u: 1, opts: { ports: 48, uplinks: 4, fans: 0, portPrefix: 'FC ' } },
   { model: 'Brocade G610',           vendor: 'Broadcom', stencil: 'switch-1u-sfp', u: 1, opts: { ports: 24, uplinks: 0, portPrefix: 'FC ' } },
-  { model: 'Brocade 300B',           vendor: 'Brocade',  stencil: 'switch-1u-sfp', u: 1, opts: { ports: 24, uplinks: 0, portPrefix: 'FC ' } },
+  { model: 'Brocade 300',            vendor: 'Brocade',  stencil: 'brocade-300',   u: 1, opts: {} },
 
   // ===================== STORAGE =====================
   { model: 'FlashArray//X R4',       vendor: 'Pure Storage', stencil: 'pure-flasharray', u: 3, opts: { bays: 28 } },

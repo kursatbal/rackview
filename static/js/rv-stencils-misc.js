@@ -114,6 +114,45 @@ const RV_STENCILS_SWITCH = {
     rear(g, ctx) { RV_STENCILS_SWITCH['switch-1u-rear'].rear(g, ctx); }
   },
 
+  // Brocade 300: unlike most 1U switches, everything (FC ports, console/mgmt/USB, and the power
+  // inlet) lives on the single port-side panel — the non-port side only has fans, no PSU. Modeled
+  // from the vendor product guide's own port-side photo rather than the shared switch-1u-sfp split.
+  'brocade-300': {
+    uHeight: 1, category: 'switch',
+    front(g, ctx) {
+      const { x, y, w, h } = ctx;
+      const c = rvChassis(g, x, y, w, 1, { dark: true });
+      let mx = c.innerX + 4;
+      el('circle', { cx: mx, cy: y + 4, r: 0.9, fill: 'url(#rvLedAmber)', filter: 'url(#rvGlow)' }, g);
+      el('circle', { cx: mx, cy: y + 9, r: 0.9, fill: 'url(#rvLedGreen)', filter: 'url(#rvGlow)' }, g);
+      mx += 5;
+      mx += rvRj45(g, mx, y + 3, ctx, 'Console', { dark: true, lit: false }) + 3;
+      mx += rvRj45(g, mx, y + 3, ctx, 'mgmt0', { dark: true, lit: true }) + 3;
+      mx += rvUsb(g, mx, y + 4, ctx, 'USB') + 8;
+
+      const groups = 3, perGroup = 8, cols = 4;
+      const portsW = c.innerX + c.innerW - 26 - mx;
+      const step = portsW / (groups * cols);
+      let portNum = 1;
+      for (let gi = 0; gi < groups; gi++) {
+        for (let i = 0; i < perGroup; i++) {
+          const col = Math.floor(i / 2), row = i % 2;
+          rvSfp(g, mx + gi * (cols * step + 6) + col * step, y + (row ? h / 2 + 1 : 3), ctx,
+            (ctx.portPrefix || 'FC ') + portNum, { lit: portNum <= 8 });
+          portNum++;
+        }
+      }
+      rvIec(g, x + w - 20, y + h / 2 - 5, ctx, 'Power');
+    },
+    rear(g, ctx) {
+      const { x, y, w, h } = ctx;
+      rvChassis(g, x, y, w, 1, { dark: true });
+      const n = 3, gap = 40;
+      const startX = x + w / 2 - ((n - 1) * gap) / 2;
+      for (let k = 0; k < n; k++) rvFan(g, startX + k * gap, y + h / 2, 15, ctx, 'Fan ' + (k + 1));
+    }
+  },
+
   'switch-1u-rear': {
     uHeight: 1, category: 'switch',
     front() {},
@@ -123,9 +162,10 @@ const RV_STENCILS_SWITCH = {
       const psuW = 150;
       rvPsu(g, c.innerX + 2, y + 4, psuW, h - 8, ctx, 'PSU 1', { dark: true });
       rvPsu(g, c.innerX + 8 + psuW, y + 4, psuW, h - 8, ctx, 'PSU 2', { dark: true });
+      const fanCount = ctx.fans != null ? ctx.fans : 4;
       let fx = c.innerX + 20 + psuW * 2;
-      for (let k = 0; k < (ctx.fans || 4); k++) rvFan(g, fx + k * 46, y + h / 2, 17, ctx, 'Fan ' + (k + 1));
-      const conx = fx + (ctx.fans || 4) * 46 + 10;
+      for (let k = 0; k < fanCount; k++) rvFan(g, fx + k * 46, y + h / 2, 17, ctx, 'Fan ' + (k + 1));
+      const conx = fx + fanCount * 46 + 10;
       rvRj45(g, conx, y + 9, ctx, 'Console', { dark: true, lit: false });
       el('rect', { x: conx + 18, y: y + 10, width: 11, height: 8, rx: 0.7, fill: '#2A2927' }, g);
       rvLabel(g, conx, y + h - 3, 'CONSOLE  USB', true);
