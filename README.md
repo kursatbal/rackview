@@ -24,6 +24,7 @@ Tracking what's plugged into what in a data center usually means a spreadsheet, 
 - **Impact analysis** — "what breaks if this device goes down," including redundancy loss, across the whole customer's infrastructure
 - **LLDP Discovery** — paste switch LLDP output; it's saved as an informational note on each port (surfaced in the device panel) without ever touching cabling
 - **LLDP Auto-Cabling** — a separate tool that matches LLDP neighbors against existing cabling and creates/updates/removes cables, with a review step per link and a picker/shortcut for neighbors that aren't in the rack yet
+- **SAN Switch Mapping** — pick a SAN switch already placed in a rack, enter its IP and login, and pull live port/zoning info over SSH (Brocade FOS or Cisco MDS); the username/password are used once and never saved
 - **Multi-rack / floor view** — customer-isolated racks, a hall-level view, inter-rack cabling
 - **Excel export** — download a rack's or a device's cabling as `.xlsx`
 
@@ -67,6 +68,11 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 - Export: openpyxl
 
 ## Changelog
+
+**SAN Switch Mapping**
+- New page: select a SAN switch that's already placed in a rack, enter its IP and SSH login, and pull its live port list and active zoning over SSH (Brocade FOS `switchshow`/`zoneshow`, or Cisco MDS `show interface brief`/`show flogi database`/`show zoneset active`) — read-only commands only, nothing on the switch is ever changed
+- The username and password are used for that one pull and never written to disk; only the IP/vendor/port and the switch's own reported state are kept, so the last pull is still there to view next time without re-entering credentials
+- Each pull is timestamped and kept as a snapshot, similar to LLDP Discovery's history
 
 **LLDP Discovery / Auto-Cabling split**
 - LLDP Discovery no longer touches cabling at all — it only saves what LLDP reports on each port as an informational note, shown in the device panel next to any ports without a recorded cable

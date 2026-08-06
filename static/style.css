@@ -1422,3 +1422,243 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== SAN Switch Mapping — a dark, self-contained theme (unlike the rest of the app) since
+   this page mirrors a sibling tool's fabric/zoning report look, not RackView's own light UI. */
+.san-page {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  height: calc(100vh - 42px);
+  box-sizing: border-box;
+  background: #0d1117;
+  color: #e6edf3;
+}
+
+.san-input-col {
+  width: 340px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.san-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.san-field-row {
+  display: flex;
+  gap: 8px;
+}
+
+.san-field-narrow {
+  flex: 0 0 70px;
+}
+
+.san-field label {
+  font-size: 11px;
+  color: #8b949e;
+  font-weight: bold;
+}
+
+.san-field input, .san-field select {
+  font-family: monospace;
+  font-size: 12px;
+  padding: 6px 8px;
+  border: 1px solid #30363d;
+  background: #161b22;
+  color: #e6edf3;
+}
+
+.san-hint {
+  font-size: 10.5px;
+  color: #8b949e;
+  line-height: 1.4;
+}
+
+#btn-san-collect {
+  font-family: monospace;
+  font-size: 12px;
+  padding: 8px 12px;
+  border: 1px solid #58a6ff;
+  background: #1c3a5e;
+  color: #e6edf3;
+  cursor: pointer;
+}
+
+#btn-san-collect:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.san-error {
+  color: #f85149;
+  font-size: 11px;
+  min-height: 14px;
+}
+
+.san-results-col {
+  flex: 1;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+.san-empty {
+  color: #8b949e;
+  font-size: 12px;
+  padding: 12px 0;
+}
+
+.san-block {
+  margin-bottom: 30px;
+}
+
+.san-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.san-head b {
+  font-size: 15px;
+}
+
+.san-sub {
+  color: #8b949e;
+  font-size: 11px;
+}
+
+.san-pill {
+  display: inline-block;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  padding: 1px 8px;
+  font-size: 10.5px;
+  color: #c9d1d9;
+  background: #161b22;
+}
+
+.san-pill-ip {
+  color: #58a6ff;
+  border-color: #1c3a5e;
+}
+
+.san-h4 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #8b949e;
+  margin: 14px 0 6px;
+}
+
+.san-portgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.san-portcard {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 9px 11px;
+  font-size: 11px;
+}
+
+.san-portcard.off {
+  opacity: 0.55;
+}
+
+.san-pn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.san-pmeta {
+  color: #8b949e;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.san-pwwn {
+  color: #8b949e;
+  font-family: monospace;
+  font-size: 9px;
+  word-break: break-all;
+  margin-top: 2px;
+}
+
+.san-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.san-dot-ok { background: #3fb950; }
+.san-dot-warn { background: #d29922; }
+.san-dot-unknown { background: #484f58; }
+
+.san-zonegrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 8px;
+}
+
+.san-zonecard {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: 0.15s;
+}
+
+.san-zonecard:hover {
+  border-color: #58a6ff;
+}
+
+.san-zn {
+  font-weight: 600;
+  font-size: 12px;
+  word-break: break-word;
+}
+
+.san-zc {
+  color: #8b949e;
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.san-zmembers {
+  display: none;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #30363d;
+  font-family: monospace;
+  font-size: 10px;
+  color: #8b949e;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.san-zonecard.expanded {
+  border-color: #58a6ff;
+}
+
+.san-zonecard.expanded .san-zmembers {
+  display: flex;
+}

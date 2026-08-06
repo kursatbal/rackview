@@ -8,7 +8,8 @@ from flask import Flask, jsonify, request, send_from_directory, Response
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
-from models import db, DeviceType, Rack, Device, Cable, ArpEntry, LldpDiscovery
+from models import db, DeviceType, Rack, Device, Cable, ArpEntry, LldpDiscovery, SanSnapshot
+from san import collect_one as san_collect_one
 
 
 def _data_dir():
@@ -1015,6 +1016,60 @@ def lldp_history_delete(history_id):
     db.session.delete(row)
     db.session.commit()
     return "", 204
+
+
+@app.route("/api/san/devices")
+def san_devices():
+    devices = Device.query.join(Device.device_type).filter(DeviceType.category == "san-switch").all()
+    return jsonify([
+        {"id": d.id, "name": d.name, "rack_id": d.rack_id, "rack_name": d.rack.name,
+         "vendor": d.device_type.vendor, "model": d.device_type.model,
+         "san_config": (d.metadata_json or {}).get("san_config")}
+        for d in devices
+    ])
+
+
+@app.route("/api/san/collect", methods=["POST"])
+def san_collect():
+    payload = request.get_json()
+    device_id = payload.get("device_id")
+    ip = (payload.get("ip") or "").strip()
+    vendor = (payload.get("vendor") or "").strip().lower()
+    port = payload.get("port")
+    username = payload.get("username")
+    password = payload.get("password")
+
+    device = Device.query.get_or_404(device_id)
+    if not ip or vendor not in ("brocade", "cisco"):
+        return jsonify({"error": "ip and vendor (brocade/cisco) are required"}), 400
+
+    fabric, error = san_collect_one(vendor, ip, username, password, port)
+    if error:
+        return jsonify({"error": error}), 502
+
+    fabric["ip"] = ip
+    fabric["device_id"] = device_id
+
+    # Only the connection endpoint is kept — username/password are never written to disk.
+    merged = dict(device.metadata_json or {})
+    merged["san_config"] = {"ip": ip, "vendor": vendor, "port": port}
+    device.metadata_json = merged
+
+    snapshot = SanSnapshot(
+        timestamp=datetime.now(timezone.utc), device_id=device_id,
+        ip=ip, vendor=vendor, fabric=fabric,
+    )
+    db.session.add(snapshot)
+    db.session.commit()
+
+    return jsonify(snapshot.to_dict())
+
+
+@app.route("/api/san/snapshot/<int:device_id>")
+def san_snapshot(device_id):
+    Device.query.get_or_404(device_id)
+    row = SanSnapshot.query.filter_by(device_id=device_id).order_by(SanSnapshot.timestamp.desc()).first()
+    return jsonify(row.to_dict() if row else None)
 
 
 def _ensure_db_columns():
