@@ -5,7 +5,7 @@ let catalogSearch = "";
 let draggingTypeId = null;
 
 const CATEGORY_LABELS = {
-  switch: "Switch", server: "Server", storage: "Storage", firewall: "Firewall", router: "Router",
+  switch: "Switch", "san-switch": "SAN Switch", server: "Server", storage: "Storage", firewall: "Firewall", router: "Router",
   pdu: "PDU", panel: "Panel", "patch-panel": "Patch Panel", passthrough: "Passthrough",
 };
 
@@ -44,7 +44,7 @@ function renderCatalog() {
   root.appendChild(search);
 
   const catRow = h("div", { class: "catalog-chips" });
-  ["all", "switch", "server", "storage", "firewall", "router", "pdu", "patch-panel", "panel", "passthrough"].forEach(cat => {
+  ["all", "switch", "san-switch", "server", "storage", "firewall", "router", "pdu", "patch-panel", "panel", "passthrough"].forEach(cat => {
     const btn = h("button", { class: "chip" + (catalogCategory === cat ? " active" : "") }, [cat === "all" ? "All" : CATEGORY_LABELS[cat]]);
     btn.onclick = () => { catalogCategory = cat; catalogVendor = "all"; renderCatalog(); };
     catRow.appendChild(btn);
@@ -119,7 +119,11 @@ function showDropGhost(svgEl, positionU, uHeight, valid) {
 
 async function placeDevice(deviceTypeId, positionU) {
   const type = deviceTypes.find(t => t.id === deviceTypeId);
-  const defaultName = `${type.vendor}-${type.model}`.replace(/\s+/g, "-").toUpperCase();
+  let defaultName = `${type.vendor}-${type.model}`.replace(/\s+/g, "-").toUpperCase();
+  try {
+    const suggested = sessionStorage.getItem("rackview_lldp_suggest_name");
+    if (suggested) { defaultName = suggested; sessionStorage.removeItem("rackview_lldp_suggest_name"); }
+  } catch (e) { /* sessionStorage unavailable — falls back to the vendor-model default */ }
   const name = window.prompt("Device name:", defaultName);
   if (!name) return;
   const res = await fetch("/api/devices", {

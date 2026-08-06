@@ -1,8 +1,11 @@
+const LLDP_MODE = window.LLDP_MODE === "autocable" ? "autocable" : "discovery";
+
 let lldpSwitches = [];
 let lldpResults = [];
 let lldpFilter = "all";
 let lldpHistory = [];
 let currentHistoryId = null;
+let lldpCandidateDevices = [];
 
 function h(tag, attrs, children) {
   const e = document.createElement(tag);
@@ -95,12 +98,21 @@ function buildResultRow(item, index) {
     ]));
   }
 
+  if (LLDP_MODE === "discovery") {
+    return buildDiscoveryRowTail(row, item);
+  }
+
   if (!item.device_known && (item.status === "new" || item.status === "conflict")) {
-    row.appendChild(h("div", { class: "lc-note warn" }, [`Device '${item.remoteSystem}' not found in rack — create it before applying.`]));
+    if (item.resolved_device_id) {
+      const picked = lldpCandidateDevices.find(d => d.id === item.resolved_device_id);
+      row.appendChild(h("div", { class: "lc-note ok" }, [`Will cable to: ${picked ? picked.name : "#" + item.resolved_device_id}`]));
+    } else {
+      row.appendChild(buildUnknownDevicePicker(item));
+    }
   }
 
   const actionable = item.status !== "matched" && item.resolution !== "done"
-    && (item.status === "removed" || item.device_known);
+    && (item.status === "removed" || item.device_known || item.resolved_device_id);
 
   if (actionable) {
     const actions = h("div", { class: "la" });
@@ -147,10 +159,88 @@ function buildResultRow(item, index) {
   return row;
 }
 
+// Neighbor hostname didn't exactly match any Device.name — offer to pick the right device by hand
+// (typo/FQDN/case mismatch) instead of just refusing to cable it, or to jump over and create it.
+function buildUnknownDevicePicker(item) {
+  const wrap = h("div", { class: "lc-note warn lldp-unknown" });
+  wrap.appendChild(h("div", {}, [`'${item.remoteSystem || "?"}' not found in rack.`]));
+
+  const row = h("div", { class: "la" });
+  const sel = h("select", { class: "lldp-device-select" });
+  sel.appendChild(h("option", { value: "" }, ["— pick existing device —"]));
+  lldpCandidateDevices.forEach(d => {
+    sel.appendChild(h("option", { value: d.id }, [`${d.name} (${d.rack_name} · ${d.vendor} ${d.model})`]));
+  });
+  sel.onchange = () => {
+    item.resolved_device_id = sel.value ? Number(sel.value) : null;
+    renderLldpResults();
+  };
+  row.appendChild(sel);
+
+  const createBtn = h("button", { class: "bs" }, ["Create device →"]);
+  createBtn.onclick = () => goToCreateDevice(item);
+  row.appendChild(createBtn);
+  wrap.appendChild(row);
+  return wrap;
+}
+
+function goToCreateDevice(item) {
+  const switchId = Number(document.getElementById("lldp-switch-select").value);
+  const sw = lldpSwitches.find(d => d.id === switchId);
+  if (!sw) return;
+  try {
+    sessionStorage.setItem("rackview_lldp_suggest_name", item.remoteSystem || "");
+  } catch (e) { /* sessionStorage unavailable — the add-device prompt just won't be prefilled */ }
+  window.location.href = `index.html?rack=${sw.rack_id}&edit=1`;
+}
+
+// Discovery mode never touches the Cable table — it only writes an informational note onto the
+// switch's own port (surfaced in the device panel), so there's no medium picker and no device-known
+// gate: unlike auto-cabling, a note doesn't need the neighbor to already exist as a Device.
+function buildDiscoveryRowTail(row, item) {
+  if (item.noted && item.resolution !== "cleared") {
+    row.appendChild(h("div", { class: "lc-note ok" }, ["Saved as port info."]));
+    const clearBtn = h("button", { class: "bs" }, ["Clear info"]);
+    clearBtn.onclick = () => annotateLldpRecord(item, "clear");
+    const actions = h("div", { class: "la" });
+    actions.appendChild(clearBtn);
+    row.appendChild(actions);
+    return row;
+  }
+
+  if (item.status === "removed") {
+    row.appendChild(h("div", { class: "lc-note" }, ["Not seen in this scan — no info to save."]));
+    return row;
+  }
+
+  if (item.resolution === "done") {
+    row.appendChild(h("div", { class: "lc-note ok" }, ["Saved as port info."]));
+  } else if (item.resolution === "ignored") {
+    row.appendChild(h("div", { class: "lc-note" }, ["Ignored."]));
+  } else {
+    const actions = h("div", { class: "la" });
+    const saveBtn = h("button", { class: "ba" }, ["Save info"]);
+    saveBtn.onclick = () => annotateLldpRecord(item, "save");
+    actions.appendChild(saveBtn);
+    const ignoreBtn = h("button", { class: "bs" }, ["Ignore"]);
+    ignoreBtn.onclick = () => { item.resolution = "ignored"; renderLldpResults(); };
+    actions.appendChild(ignoreBtn);
+    row.appendChild(actions);
+  }
+
+  return row;
+}
+
 function pendingChanges() {
+  if (LLDP_MODE === "discovery") {
+    return lldpResults.filter(r =>
+      r.status !== "matched" && r.status !== "removed" && !r.noted
+      && r.resolution !== "done" && r.resolution !== "ignored"
+    );
+  }
   return lldpResults.filter(r =>
     r.status !== "matched" && r.resolution !== "done" && r.resolution !== "ignored"
-    && (r.status === "removed" || r.device_known)
+    && (r.status === "removed" || r.device_known || r.resolved_device_id)
   );
 }
 
@@ -203,7 +293,8 @@ function renderLldpResults() {
 
   const pending = pendingChanges();
   const applyBtn = document.getElementById("btn-apply-all");
-  applyBtn.textContent = pending.length ? `Apply all changes (${pending.length})` : "Apply all changes";
+  const applyLabel = LLDP_MODE === "discovery" ? "Save all info" : "Apply all changes";
+  applyBtn.textContent = pending.length ? `${applyLabel} (${pending.length})` : applyLabel;
   applyBtn.disabled = pending.length === 0;
 
   const viewBtn = document.getElementById("btn-view-on-rack");
@@ -220,6 +311,7 @@ async function applyLldpRecord(item, action, medium) {
       switch_id: switchId,
       records: [{
         localPort: item.localPort, remoteSystem: item.remoteSystem, remotePort: item.remotePort,
+        remote_device_id: item.resolved_device_id || item.remote_device_id || null,
         medium, action,
       }],
     }),
@@ -234,13 +326,54 @@ async function applyLldpRecord(item, action, medium) {
   renderLldpResults();
 }
 
+async function annotateLldpRecord(item, action) {
+  const switchId = Number(document.getElementById("lldp-switch-select").value);
+  const res = await fetch("/api/lldp/annotate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      switch_id: switchId,
+      records: [{
+        localPort: item.localPort, remoteSystem: item.remoteSystem, remotePort: item.remotePort,
+        remoteChassisId: item.remoteChassisId, action,
+      }],
+    }),
+  });
+  const data = await res.json();
+  item.noted = action === "save" ? data.saved.includes(item.localPort) : false;
+  item.resolution = action === "save" ? "done" : "cleared";
+  if (action === "save") await markHistoryApplied();
+  renderLldpResults();
+}
+
 async function applyAllChanges() {
   const switchId = Number(document.getElementById("lldp-switch-select").value);
   const pending = pendingChanges();
   if (!pending.length) return;
 
+  if (LLDP_MODE === "discovery") {
+    const records = pending.map(item => ({
+      localPort: item.localPort, remoteSystem: item.remoteSystem, remotePort: item.remotePort,
+      remoteChassisId: item.remoteChassisId, action: "save",
+    }));
+    const res = await fetch("/api/lldp/annotate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ switch_id: switchId, records }),
+    });
+    const data = await res.json();
+    const savedPorts = new Set(data.saved || []);
+    pending.forEach(item => {
+      if (savedPorts.has(item.localPort)) { item.noted = true; item.resolution = "done"; }
+    });
+    await markHistoryApplied();
+    renderLldpResults();
+    return;
+  }
+
   const records = pending.map(item => ({
     localPort: item.localPort, remoteSystem: item.remoteSystem, remotePort: item.remotePort,
+    remote_device_id: item.resolved_device_id || item.remote_device_id || null,
     medium: guessMedium(item.remotePort),
     action: item.status === "new" ? "create" : item.status === "conflict" ? "update" : "remove",
   }));
@@ -289,11 +422,15 @@ async function parseAndMatch() {
   const matchRes = await fetch("/api/lldp/match", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ neighbors: parseRes.neighbors, switch_id: switchId, raw_lldp: text }),
+    body: JSON.stringify({ neighbors: parseRes.neighbors, switch_id: switchId, raw_lldp: text, mode: LLDP_MODE }),
   }).then(r => r.json());
 
   lldpResults = matchRes.results || [];
   currentHistoryId = matchRes.history_id || null;
+  if (LLDP_MODE === "autocable" && lldpResults.some(r => !r.device_known)) {
+    lldpCandidateDevices = await fetchWithTimeout(`/api/lldp/candidate-devices?switch_id=${switchId}`)
+      .then(r => r.json()).catch(() => []);
+  }
   await loadHistory();
   lldpFilter = "all";
   document.querySelectorAll("#lldp-filter-chips .chip").forEach(c => c.classList.toggle("active", c.dataset.filter === "all"));

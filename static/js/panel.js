@@ -432,7 +432,25 @@ function buildConnectionsTab(device, rack, cables) {
   });
   if (!any && !panelEditMode) wrap.appendChild(h("div", { class: "tab-empty" }, ["No connections."]));
   if (panelEditMode) wrap.appendChild(buildAddConnectionRow(device, rack));
+
+  const cabledPorts = new Set();
+  myCables.forEach(c => cabledPorts.add(c.a_device_id === device.id ? c.a_port : c.b_port));
+  const lldpNotes = Object.entries((device.metadata_json || {}).lldp_ports || {})
+    .filter(([port]) => !cabledPorts.has(port));
+  if (lldpNotes.length) {
+    wrap.appendChild(sectionTitle("LLDP info (no cable recorded here)"));
+    lldpNotes.forEach(([port, note]) => wrap.appendChild(buildLldpNoteRow(port, note)));
+  }
   return wrap;
+}
+
+function buildLldpNoteRow(port, note) {
+  const row = h("div", { class: "row lldp-note-row" });
+  row.appendChild(h("div", { class: "rl" }, [h("b", {}, [port]), h("span", {}, ["no cable recorded"])]));
+  row.appendChild(h("div", { class: "rr" }, [h("b", {}, [note.remoteSystem || "?"]), h("span", {}, [note.remotePort || "?"])]));
+  const when = note.seenAt ? new Date(note.seenAt).toLocaleString() : "";
+  row.appendChild(h("div", { class: "rt" }, [when ? `Seen via LLDP · ${when}` : "Seen via LLDP"]));
+  return row;
 }
 
 function buildArpSection(device) {

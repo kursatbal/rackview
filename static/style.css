@@ -663,6 +663,11 @@ body {
   line-height: 1.5;
 }
 
+.lldp-note-row {
+  background: transparent;
+  border: 1px dashed #B4B2A9;
+}
+
 .row-del {
   position: absolute;
   top: 4px;
@@ -919,6 +924,14 @@ body {
   font-size: 11px;
   color: #5F5E5A;
   margin-top: 2px;
+}
+
+.lldp-mode-hint {
+  padding: 6px 16px;
+  font-size: 12px;
+  color: #5F5E5A;
+  background: #F1EFE8;
+  border-bottom: 1px solid #D3D1C7;
 }
 
 .lldp-page {
@@ -1209,11 +1222,15 @@ body {
   margin-top: 6px;
 }
 
-.lldp-medium-select {
+.lldp-medium-select, .lldp-device-select {
   font-family: monospace;
   font-size: 11px;
   padding: 3px 5px;
   border: 1px solid #888780;
+}
+
+.lldp-device-select {
+  max-width: 220px;
 }
 
 .lr .ba, .lr .bs {

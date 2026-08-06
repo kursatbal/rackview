@@ -68,6 +68,18 @@ async function main() {
     }
   } catch (e) { /* sessionStorage/JSON issue — just skip the overlay */ }
 
+  // Coming from LLDP Auto-Cabling's "Create device →" shortcut — jump straight into edit mode with
+  // the catalog panel open, and hint at the name the neighbor was reported under so the user can
+  // reuse it verbatim when they drop a device type onto the rack and get asked to name it.
+  if (new URLSearchParams(location.search).get("edit") === "1") {
+    if (!editMode) document.getElementById("btn-edit").click();
+    let suggestedName = null;
+    try { suggestedName = sessionStorage.getItem("rackview_lldp_suggest_name"); } catch (e) { /* unavailable */ }
+    if (suggestedName && typeof showToast === "function") {
+      showToast("Add the neighbor device", `Drag the matching device type onto the rack, then name it "${suggestedName}" when prompted.`);
+    }
+  }
+
   document.getElementById("btn-front").onclick = () => {
     setFace("front");
     setActiveFaceButton("front");

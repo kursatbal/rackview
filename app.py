@@ -762,11 +762,7 @@ def lldp_match():
     switch_id = payload.get("switch_id")
     switch = Device.query.get_or_404(switch_id)
 
-    customer = switch.rack.customer
-    if customer:
-        customer_rack_ids = [r.id for r in Rack.query.filter_by(customer=customer).all()]
-    else:
-        customer_rack_ids = [switch.rack_id]
+    customer_rack_ids = _customer_rack_ids(switch)
     devices_by_name = {d.name.lower(): d for d in Device.query.filter(Device.rack_id.in_(customer_rack_ids)).all()}
     cables = Cable.query.filter(
         db.or_(Cable.a_device_id == switch_id, Cable.b_device_id == switch_id)
@@ -828,10 +824,18 @@ def lldp_match():
             "remote_device_id": other_device.id if other_device else None,
         })
 
+    saved_notes = ((switch.metadata_json or {}).get("lldp_ports")) or {}
+    for r in results:
+        note = saved_notes.get(r["localPort"])
+        r["noted"] = bool(
+            note and note.get("remoteSystem") == r.get("remoteSystem") and note.get("remotePort") == r.get("remotePort")
+        )
+
     summary = {
         "changed": sum(1 for r in results if r["status"] == "conflict"),
         "added": sum(1 for r in results if r["status"] == "new"),
         "removed": sum(1 for r in results if r["status"] == "removed"),
+        "mode": payload.get("mode") or "discovery",
     }
     discovery = LldpDiscovery(
         timestamp=datetime.now(timezone.utc),
@@ -845,6 +849,27 @@ def lldp_match():
     return jsonify({"switch_id": switch_id, "results": results, "history_id": discovery.id})
 
 
+def _customer_rack_ids(switch):
+    customer = switch.rack.customer
+    if customer:
+        return [r.id for r in Rack.query.filter_by(customer=customer).all()]
+    return [switch.rack_id]
+
+
+@app.route("/api/lldp/candidate-devices")
+def lldp_candidate_devices():
+    # Feeds the "pick an existing device" dropdown for LLDP neighbors whose reported hostname
+    # didn't exactly match any Device.name (typo, FQDN vs short name, case, etc).
+    switch_id = request.args.get("switch_id", type=int)
+    switch = Device.query.get_or_404(switch_id)
+    devices = Device.query.filter(Device.rack_id.in_(_customer_rack_ids(switch))).order_by(Device.name).all()
+    return jsonify([
+        {"id": d.id, "name": d.name, "rack_id": d.rack_id, "rack_name": d.rack.name,
+         "vendor": d.device_type.vendor, "model": d.device_type.model}
+        for d in devices if d.id != switch_id
+    ])
+
+
 @app.route("/api/lldp/apply", methods=["POST"])
 def lldp_apply():
     payload = request.get_json()
@@ -853,11 +878,7 @@ def lldp_apply():
     created, skipped = [], []
 
     switch = Device.query.get_or_404(switch_id)
-    customer = switch.rack.customer
-    if customer:
-        customer_rack_ids = [r.id for r in Rack.query.filter_by(customer=customer).all()]
-    else:
-        customer_rack_ids = [switch.rack_id]
+    customer_rack_ids = _customer_rack_ids(switch)
 
     for r in records:
         local_port = r.get("localPort")
@@ -881,10 +902,18 @@ def lldp_apply():
                 skipped.append({"localPort": local_port, "reason": "no cable on this port to remove"})
             continue
 
-        remote_device = Device.query.filter(
-            db.func.lower(Device.name) == remote_system.lower(),
-            Device.rack_id.in_(customer_rack_ids),
-        ).first()
+        # An explicit remote_device_id (from the "pick an existing device" dropdown) always wins
+        # over the hostname lookup — the user has already resolved the ambiguity by hand.
+        remote_device_id = r.get("remote_device_id")
+        if remote_device_id:
+            remote_device = Device.query.filter(
+                Device.id == remote_device_id, Device.rack_id.in_(customer_rack_ids),
+            ).first()
+        else:
+            remote_device = Device.query.filter(
+                db.func.lower(Device.name) == remote_system.lower(),
+                Device.rack_id.in_(customer_rack_ids),
+            ).first()
         if not remote_device:
             skipped.append({"localPort": local_port, "reason": f"unknown device '{remote_system}'"})
             continue
@@ -916,6 +945,47 @@ def lldp_apply():
 
     db.session.commit()
     return jsonify({"created": created, "skipped": skipped})
+
+
+@app.route("/api/lldp/annotate", methods=["POST"])
+def lldp_annotate():
+    # Discovery-mode write path: records what LLDP saw on each of the switch's own ports as an
+    # informational note (surfaced in the device panel), without touching the Cable table at all —
+    # kept deliberately separate from lldp_apply(), which is the auto-cabling write path.
+    payload = request.get_json()
+    switch_id = payload.get("switch_id")
+    records = payload.get("records", [])
+    switch = Device.query.get_or_404(switch_id)
+
+    notes = dict((switch.metadata_json or {}).get("lldp_ports") or {})
+    saved, cleared = [], []
+    now = datetime.now(timezone.utc).isoformat()
+
+    for r in records:
+        local_port = r.get("localPort")
+        action = r.get("action", "save")
+        if action == "clear":
+            if local_port in notes:
+                del notes[local_port]
+                cleared.append(local_port)
+            continue
+        remote_system = (r.get("remoteSystem") or "").strip()
+        if not remote_system:
+            continue
+        notes[local_port] = {
+            "remoteSystem": remote_system,
+            "remotePort": r.get("remotePort"),
+            "remoteChassisId": r.get("remoteChassisId"),
+            "seenAt": now,
+        }
+        saved.append(local_port)
+
+    merged = dict(switch.metadata_json or {})
+    merged["lldp_ports"] = notes
+    switch.metadata_json = merged
+    db.session.commit()
+
+    return jsonify({"saved": saved, "cleared": cleared, "lldp_ports": notes})
 
 
 @app.route("/api/lldp/history")

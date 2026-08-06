@@ -16,13 +16,14 @@ Tracking what's plugged into what in a data center usually means a spreadsheet, 
 
 ## Features
 
-- **Realistic rack elevations** — 220+ real device models (Dell, HPE, Cisco, Arista, …), front/rear views, drag-and-drop placement, and empty U's auto-collapse so long gaps don't eat the screen
+- **Realistic rack elevations** — 220+ real device models (Dell, HPE, Cisco, Arista, Juniper, Fortinet, Palo Alto, Brocade, …) across switch, SAN switch, router, firewall, server, and storage categories, front/rear views, drag-and-drop placement, and empty U's auto-collapse so long gaps don't eat the screen
 - **Smart cabling** — automatic front/rear port matching, medium-aware color/dash styles (fiber, DAC, Cat6a, power, SAS), routes that never cross over other ports
 - **Configurable server rear panels** — pick FC/NIC port counts and speeds, LOM, and iDRAC per device instead of a fixed template; warns before deleting cables on ports you remove
 - **Right-click actions** — jump to a cable's other end or delete it, show only one device's cabling, delete a device, rename a port/device/group label, drag labels out of the way
 - **Search** (Ctrl+K) — find devices by IP, MAC, serial, port, or VLAN across every rack
 - **Impact analysis** — "what breaks if this device goes down," including redundancy loss, across the whole customer's infrastructure
-- **LLDP discovery & change detection** — paste switch LLDP output, match it against existing cabling; changed/new/removed/matched links are called out and can be marked on the rack itself
+- **LLDP Discovery** — paste switch LLDP output; it's saved as an informational note on each port (surfaced in the device panel) without ever touching cabling
+- **LLDP Auto-Cabling** — a separate tool that matches LLDP neighbors against existing cabling and creates/updates/removes cables, with a review step per link and a picker/shortcut for neighbors that aren't in the rack yet
 - **Multi-rack / floor view** — customer-isolated racks, a hall-level view, inter-rack cabling
 - **Excel export** — download a rack's or a device's cabling as `.xlsx`
 
@@ -66,6 +67,26 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 - Export: openpyxl
 
 ## Changelog
+
+**LLDP Discovery / Auto-Cabling split**
+- LLDP Discovery no longer touches cabling at all — it only saves what LLDP reports on each port as an informational note, shown in the device panel next to any ports without a recorded cable
+- A new, separate **LLDP Auto-Cabling** page is the one that actually creates/updates/removes cables from LLDP output, with a per-link review step before anything is applied
+- Neighbors whose reported hostname doesn't match any device in the rack (typo, FQDN vs. short name, case) can now be resolved by hand from a dropdown of existing devices, or via a "Create device →" shortcut that jumps into edit mode with the neighbor's name pre-filled for the add-device prompt
+
+**SAN switch category**
+- Storage-fabric switches (Cisco MDS, Brocade) now have their own **SAN Switch** category instead of being lumped in with Ethernet switches, with a matching color and a filter chip in the catalog
+- Added the Brocade 300B, which was missing from the catalog
+
+**Router port fidelity**
+- Port counts, NIM/module slot counts, and chassis heights corrected against real datasheets for the Cisco ISR 4000, ASR 1000, and Catalyst 8200/8300/8500 series, and the Juniper MX204/MX10003
+- Fixed a template bug where a router's onboard "gig" ports always rendered as SFP even on models that are wired for RJ45 (several ISR/Catalyst models), and one where a legitimately-zero NIM slot count silently fell back to a nonzero default
+- Fixed a rendering bug where an odd NIM slot count (e.g. 5) produced a fractional slot label instead of a clean grid
+- Fixed the 2U router template ignoring the model's actual configured gig/10-gig port counts and always drawing 4+4 regardless of the real config
+
+**Switch family port fidelity**
+- Corrected chassis specs against Cisco/Arista datasheets: Nexus 9508 (6→8 power supplies), Nexus 9516 (20→21 rack units, 8→10 power supplies), Arista 7508R3 (6→8 power supplies)
+- Corrected Dell PowerSwitch S5248F-ON's uplink count (4→6, matching its real 4×100GbE + 2×100GbE QSFP28-DD config)
+- Verified against datasheets and left unchanged where already correct: the Nexus 9300 EX/FX family, Nexus 9504, Catalyst 9200/9300/9500/9400/9600 series, Cisco MDS 9148T, Dell PowerSwitch S5200/Z9432F/Z9664F, and Arista 7050X3/7280R3/7504R3
 
 **UX & readability**
 - Contrast pass on faint text (rail U-numbers, device labels, secondary text) to meet WCAG AA

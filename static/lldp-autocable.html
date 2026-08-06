@@ -2,17 +2,17 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>RackView — LLDP Discovery</title>
+  <title>RackView — LLDP Auto-Cabling</title>
   <link rel="stylesheet" href="style.css" onerror="this.onerror=null;this.href='style.css?retry='+Date.now()">
 </head>
 <body>
   <header class="toolbar">
-    <span class="title">RackView — LLDP Discovery</span>
+    <span class="title">RackView — LLDP Auto-Cabling</span>
     <div class="spacer"></div>
-    <a class="btn-link" href="lldp-autocable.html">LLDP Auto-Cabling →</a>
+    <a class="btn-link" href="lldp.html">← LLDP Discovery</a>
     <a class="btn-link" href="index.html">Back to rack</a>
   </header>
-  <div class="lldp-mode-hint">Informational only — saves what LLDP sees as a note on each port. Does not create or edit cables.</div>
+  <div class="lldp-mode-hint">Creates, updates, and removes real cable connections based on LLDP. Review each row before applying.</div>
 
   <main class="lldp-page">
     <div class="lldp-input-col">
@@ -68,7 +68,7 @@
     </div>
   </main>
 
-  <script>window.LLDP_MODE = "discovery";</script>
+  <script>window.LLDP_MODE = "autocable";</script>
   <script src="js/lldp.js"></script>
 </body>
 </html>
