@@ -1018,6 +1018,46 @@ def lldp_history_delete(history_id):
     return "", 204
 
 
+def _port_number(name):
+    m = re.search(r"(\d+)\s*$", str(name or ""))
+    return int(m.group(1)) if m else None
+
+
+def _attach_cable_destinations(device, ports):
+    # RackView already knows the physical cabling for this switch (if it's been cabled in the
+    # app) — cross-reference by port number so each port card can show where the cable actually
+    # goes, without needing any external host/WWN inventory. Vendor CLI port numbering is 0-based
+    # (Brocade "0".."23") while every port stencil in this app numbers from 1 ("FC 1".."FC 24"),
+    # so only the +1 offset is tried — NOT also a direct/exact match, since trying both would let
+    # two different real switch ports (e.g. "0" and "1") both resolve to the same RackView port
+    # ("FC 1"), producing a false duplicate destination on the wrong port.
+    cables = Cable.query.filter(
+        db.or_(Cable.a_device_id == device.id, Cable.b_device_id == device.id)
+    ).all()
+    by_number = {}
+    for c in cables:
+        mine_port = c.a_port if c.a_device_id == device.id else c.b_port
+        other_id = c.b_device_id if c.a_device_id == device.id else c.a_device_id
+        other_port = c.b_port if c.a_device_id == device.id else c.a_port
+        n = _port_number(mine_port)
+        if n is None:
+            continue
+        other = Device.query.get(other_id)
+        by_number[n] = {
+            "name": other.name if other else "?",
+            "port": other_port,
+            "rack_name": other.rack.name if other else None,
+        }
+    for p in ports:
+        n = _port_number(p.get("port"))
+        if n is None:
+            continue
+        match = by_number.get(n + 1)
+        if match:
+            p["connected_device"] = match
+    return ports
+
+
 @app.route("/api/san/devices")
 def san_devices():
     devices = Device.query.join(Device.device_type).filter(DeviceType.category == "san-switch").all()
@@ -1049,6 +1089,7 @@ def san_collect():
 
     fabric["ip"] = ip
     fabric["device_id"] = device_id
+    fabric["ports"] = _attach_cable_destinations(device, fabric.get("ports") or [])
 
     # Only the connection endpoint is kept — username/password are never written to disk.
     merged = dict(device.metadata_json or {})

@@ -77,6 +77,11 @@ function buildPortCard(p) {
   card.appendChild(h("div", { class: "san-pmeta" }, [
     h("span", {}, [p.status || "-"]), h("span", {}, [p.speed ? p.speed + " Gb" : ""]),
   ]));
+  if (p.connected_device) {
+    card.appendChild(h("div", { class: "san-pdest" }, [
+      `→ ${p.connected_device.name}${p.connected_device.port ? " · " + p.connected_device.port : ""}`,
+    ]));
+  }
   if (p.connected_wwn) card.appendChild(h("div", { class: "san-pwwn" }, [p.connected_wwn]));
   return card;
 }
