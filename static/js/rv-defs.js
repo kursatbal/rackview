@@ -71,6 +71,7 @@ const RV_COLORS = {
 
 const RV_ROLE_COLORS = {
   switch:      '#2E5E8E',
+  'san-switch': '#534AB7', // same purple as the SAS/FC cable medium — ties the two together visually
   server:      '#1D7A5E',
   storage:     '#8E5A1F',
   firewall:    '#A83232',

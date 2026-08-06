@@ -122,7 +122,7 @@ const RV_CATALOG = [
   { model: 'Nexus 92348GC-FX3',      vendor: 'Cisco', stencil: 'switch-1u-rj45', u: 1, opts: { ports: 48, uplinks: 6, portPrefix: 'Eth1/' } },
   { model: 'Nexus 9336C-FX2',        vendor: 'Cisco', stencil: 'switch-1u-sfp',  u: 1, opts: { ports: 36, uplinks: 0, portPrefix: 'Eth1/' } },
   { model: 'MDS 9148T',              vendor: 'Cisco', stencil: 'switch-1u-sfp',  u: 1, opts: { ports: 48, uplinks: 0, portPrefix: 'fc1/' } },
-  { model: 'PowerSwitch S5248F-ON',  vendor: 'Dell',  stencil: 'switch-1u-sfp',  u: 1, opts: { ports: 48, uplinks: 4, portPrefix: 'Te1/0/' } },
+  { model: 'PowerSwitch S5248F-ON',  vendor: 'Dell',  stencil: 'switch-1u-sfp',  u: 1, opts: { ports: 48, uplinks: 6, portPrefix: 'Te1/0/' } },
   { model: 'PowerSwitch S5224F-ON',  vendor: 'Dell',  stencil: 'switch-1u-sfp',  u: 1, opts: { ports: 24, uplinks: 4, portPrefix: 'Te1/0/' } },
   { model: 'PowerSwitch S4148F-ON',  vendor: 'Dell',  stencil: 'switch-1u-sfp',  u: 1, opts: { ports: 48, uplinks: 6, portPrefix: 'Te1/0/' } },
   { model: 'PowerSwitch S4148T-ON',  vendor: 'Dell',  stencil: 'switch-1u-rj45', u: 1, opts: { ports: 48, uplinks: 6, portPrefix: 'Te1/0/' } },
@@ -134,6 +134,7 @@ const RV_CATALOG = [
   { model: 'Aruba 2930F 48G',        vendor: 'Aruba', stencil: 'switch-1u-rj45', u: 1, opts: { ports: 48, uplinks: 4, portPrefix: '1/' } },
   { model: 'Brocade G620',           vendor: 'Broadcom', stencil: 'switch-1u-sfp', u: 1, opts: { ports: 48, uplinks: 0, portPrefix: 'FC ' } },
   { model: 'Brocade G610',           vendor: 'Broadcom', stencil: 'switch-1u-sfp', u: 1, opts: { ports: 24, uplinks: 0, portPrefix: 'FC ' } },
+  { model: 'Brocade 300B',           vendor: 'Brocade',  stencil: 'switch-1u-sfp', u: 1, opts: { ports: 24, uplinks: 0, portPrefix: 'FC ' } },
 
   // ===================== STORAGE =====================
   { model: 'FlashArray//X R4',       vendor: 'Pure Storage', stencil: 'pure-flasharray', u: 3, opts: { bays: 28 } },
@@ -221,20 +222,38 @@ const RV_CATALOG = [
   { model: 'Check Point 16600',      vendor: 'Check Point', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 2,  sfpPorts: 0, qsfpPorts: 2 } },
 
   // ===================== ROUTER =====================
-  { model: 'ISR 4321',               vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigPorts: 2, tenGigPorts: 0, nimSlots: 2 } },
-  { model: 'ISR 4331',               vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigPorts: 3, tenGigPorts: 0, nimSlots: 2 } },
-  { model: 'ISR 4351',               vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigPorts: 3, tenGigPorts: 0, nimSlots: 3 } },
-  { model: 'ISR 4431',               vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigPorts: 4, tenGigPorts: 0, nimSlots: 3 } },
-  { model: 'ISR 4451-X',             vendor: 'Cisco', stencil: 'router-2u', u: 2, opts: { gigPorts: 4, tenGigPorts: 0, nimSlots: 6 } },
+  // Port counts and chassis heights verified against Cisco/Juniper's own datasheets and product
+  // photos. ASR 1000/Catalyst 8500/Juniper MX genuinely use SFP cages for their onboard ports
+  // (confirmed from real product photos) — that part of the generic template was already right.
+  // The ISR 4000 and Catalyst 8200/8300 families, though, have RJ45 copper onboard ports per
+  // Cisco's own datasheet (e.g. "two RJ45 and two SFP" for the 8200L); `gigIsCopper` switches the
+  // template to draw those as copper instead of the generic SFP cage.
+  { model: 'ISR 4321',               vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigIsCopper: true, gigPorts: 2, tenGigPorts: 1, nimSlots: 2 } },
+  { model: 'ISR 4331',               vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigIsCopper: true, gigPorts: 2, tenGigPorts: 2, nimSlots: 2 } },
+  { model: 'ISR 4351',               vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigIsCopper: true, gigPorts: 3, tenGigPorts: 3, nimSlots: 3 } },
+  { model: 'ISR 4431',               vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigIsCopper: true, gigPorts: 4, tenGigPorts: 4, nimSlots: 3 } },
+  // Datasheet: 4 onboard RJ45 + 4 SFP, 3 NIM slots (was 4 SFP-only ports and 6 NIM slots — double
+  // the real NIM count, and the router-2u template wasn't even reading opts.gigPorts before now).
+  { model: 'ISR 4451-X',             vendor: 'Cisco', stencil: 'router-2u', u: 2, opts: { gigIsCopper: true, gigPorts: 4, tenGigPorts: 4, nimSlots: 3 } },
   { model: 'ASR 1001-X',             vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigPorts: 6, tenGigPorts: 2, nimSlots: 1 } },
   { model: 'ASR 1001-HX',            vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigPorts: 8, tenGigPorts: 4, nimSlots: 1 } },
   { model: 'ASR 1002-HX',            vendor: 'Cisco', stencil: 'router-2u', u: 2, opts: { gigPorts: 8, tenGigPorts: 8, nimSlots: 4 } },
-  { model: 'Catalyst 8200L',         vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigPorts: 4, tenGigPorts: 0, nimSlots: 1 } },
-  { model: 'Catalyst 8300-1N1S',     vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigPorts: 4, tenGigPorts: 2, nimSlots: 2 } },
-  { model: 'Catalyst 8300-2N2S',     vendor: 'Cisco', stencil: 'router-2u', u: 2, opts: { gigPorts: 4, tenGigPorts: 2, nimSlots: 4 } },
-  { model: 'Catalyst 8500-12X',      vendor: 'Cisco', stencil: 'router-2u', u: 2, opts: { gigPorts: 0, tenGigPorts: 12, nimSlots: 2 } },
-  { model: 'MX204',                  vendor: 'Juniper', stencil: 'router-1u', u: 1, opts: { gigPorts: 8, tenGigPorts: 4, nimSlots: 1 } },
-  { model: 'MX10003',                vendor: 'Juniper', stencil: 'router-2u', u: 2, opts: { gigPorts: 0, tenGigPorts: 12, nimSlots: 2 } },
+  // Datasheet: "four built-in Ethernet WAN ports — two SFP and two RJ45" (was 4 SFP-only ports).
+  { model: 'Catalyst 8200L',         vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigIsCopper: true, gigPorts: 2, tenGigPorts: 2, nimSlots: 1 } },
+  // Datasheet: 1 SM + 1 NIM + 1 PIM = 3 total expansion slots (was 2).
+  { model: 'Catalyst 8300-1N1S',     vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigIsCopper: true, gigPorts: 4, tenGigPorts: 2, nimSlots: 3 } },
+  // Datasheet: 2 SM + 2 NIM + 1 PIM = 5 total expansion slots (was 4).
+  { model: 'Catalyst 8300-2N2S',     vendor: 'Cisco', stencil: 'router-2u', u: 2, opts: { gigIsCopper: true, gigPorts: 4, tenGigPorts: 2, nimSlots: 5 } },
+  // Datasheet explicitly calls the C8500-12X a "compact 1RU" fixed-port platform with no
+  // expansion slots — was rendered as a 2U chassis with 2 NIM slots, neither of which is real.
+  { model: 'Catalyst 8500-12X',      vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigPorts: 0, tenGigPorts: 12, nimSlots: 0 } },
+  // Datasheet: fixed-configuration 1U router (no NIM slots) with 8x10GE SFP+ plus 4 rate-
+  // selectable QSFP28/QSFP+ ports (40/100GE) — both buckets folded into tenGigPorts since the
+  // generic router template has no separate QSFP visual.
+  { model: 'MX204',                  vendor: 'Juniper', stencil: 'router-1u', u: 1, opts: { gigPorts: 0, tenGigPorts: 12, nimSlots: 0 } },
+  // Datasheet: MX10003 is a 3RU chassis (was rendered as 2U); the 2-slot MPC chassis is otherwise
+  // a reasonable match for nimSlots:2.
+  { model: 'MX10003',                vendor: 'Juniper', stencil: 'router-2u', u: 3, opts: { gigPorts: 0, tenGigPorts: 12, nimSlots: 2 } },
   { model: 'ACX7100-32C',            vendor: 'Juniper', stencil: 'spine-switch', u: 1, opts: { uHeight: 1, ports: 32, portPrefix: 'et-0/0/' } },
 
   // ===================== SPINE / BACKBONE =====================
@@ -255,15 +274,15 @@ const RV_CATALOG = [
   // ===================== MODULAR CHASSIS =====================
   { model: 'Nexus 9504',             vendor: 'Cisco', stencil: 'modular-chassis', u: 7,  opts: { uHeight: 7,  supervisors: 2, lineCardSlots: 4,  fabricModules: 6, psuCount: 4,
       cards: [ {model:'N9K-X9736C-FX', ports:36, type:'qsfp'}, {model:'N9K-X9736C-FX', ports:36, type:'qsfp'}, {model:'N9K-X9788TC-FX', ports:48, type:'sfp'}, null ] } },
-  { model: 'Nexus 9508',             vendor: 'Cisco', stencil: 'modular-chassis', u: 13, opts: { uHeight: 13, supervisors: 2, lineCardSlots: 8,  fabricModules: 6, psuCount: 6,
+  { model: 'Nexus 9508',             vendor: 'Cisco', stencil: 'modular-chassis', u: 13, opts: { uHeight: 13, supervisors: 2, lineCardSlots: 8,  fabricModules: 6, psuCount: 8,
       cards: [ {model:'N9K-X9736C-FX', ports:36, type:'qsfp'}, {model:'N9K-X9736C-FX', ports:36, type:'qsfp'}, {model:'N9K-X9788TC-FX', ports:48, type:'sfp'}, {model:'N9K-X9788TC-FX', ports:48, type:'sfp'}, null, null, null, null ] } },
-  { model: 'Nexus 9516',             vendor: 'Cisco', stencil: 'modular-chassis', u: 20, opts: { uHeight: 20, supervisors: 2, lineCardSlots: 16, fabricModules: 6, psuCount: 8, cards: [] } },
+  { model: 'Nexus 9516',             vendor: 'Cisco', stencil: 'modular-chassis', u: 21, opts: { uHeight: 21, supervisors: 2, lineCardSlots: 16, fabricModules: 6, psuCount: 10, cards: [] } },
   { model: 'Catalyst 9606R',         vendor: 'Cisco', stencil: 'modular-chassis', u: 6,  opts: { uHeight: 6,  supervisors: 2, lineCardSlots: 4,  fabricModules: 4, psuCount: 4, cards: [] } },
   { model: 'Catalyst 9410R',         vendor: 'Cisco', stencil: 'modular-chassis', u: 13, opts: { uHeight: 13, supervisors: 2, lineCardSlots: 8,  fabricModules: 4, psuCount: 8, cards: [] } },
   { model: 'MX480',                  vendor: 'Juniper', stencil: 'modular-chassis', u: 8, opts: { uHeight: 8, supervisors: 2, lineCardSlots: 6, fabricModules: 4, psuCount: 4, cards: [] } },
   { model: 'MX960',                  vendor: 'Juniper', stencil: 'modular-chassis', u: 16, opts: { uHeight: 16, supervisors: 2, lineCardSlots: 11, fabricModules: 6, psuCount: 4, cards: [] } },
   { model: 'Arista 7504R3',          vendor: 'Arista', stencil: 'modular-chassis', u: 7,  opts: { uHeight: 7,  supervisors: 2, lineCardSlots: 4, fabricModules: 6, psuCount: 4, cards: [] } },
-  { model: 'Arista 7508R3',          vendor: 'Arista', stencil: 'modular-chassis', u: 13, opts: { uHeight: 13, supervisors: 2, lineCardSlots: 8, fabricModules: 6, psuCount: 6, cards: [] } }
+  { model: 'Arista 7508R3',          vendor: 'Arista', stencil: 'modular-chassis', u: 13, opts: { uHeight: 13, supervisors: 2, lineCardSlots: 8, fabricModules: 6, psuCount: 8, cards: [] } }
 ];
 
 function rvFindDevice(model) {

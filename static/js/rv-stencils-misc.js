@@ -1024,11 +1024,17 @@ const RV_STENCILS_NETWORK = {
       const c = rvChassis(g, x, y, w, 1, { dark: true });
       el('rect', { x: x + 16, y: y + 2, width: 3, height: h - 4, rx: 1, fill: '#3D9BE8' }, g);
       let px = c.innerX + 4;
-      const gp = ctx.gigPorts || 8;
-      for (let i = 0; i < gp; i++) { rvSfp(g, px, y + 10, ctx, 'GigabitEthernet0/0/' + i, { lit: i < gp / 2 }); px += 15; }
-      const tp = ctx.tenGigPorts || 4;
+      // `!= null` not `||` — a model can legitimately have 0 of a port type (e.g. the MX204 has
+      // no plain GE ports, only 10G/QSFP), and `0 || 8` would silently fall back to the default.
+      const gp = ctx.gigPorts != null ? ctx.gigPorts : 8;
+      // Some families' onboard GE ports are RJ45 copper (Cisco's own datasheets show this for the
+      // ISR 4000 and Catalyst 8200/8300), others are SFP (ASR 1000, Catalyst 8500, Juniper MX) —
+      // `gigIsCopper` picks the real connector per model instead of always drawing SFP cages.
+      const gigDraw = ctx.gigIsCopper ? rvRj45 : rvSfp;
+      for (let i = 0; i < gp; i++) { gigDraw(g, px, y + 10, ctx, 'GigabitEthernet0/0/' + i, { dark: true, lit: i < gp / 2 }); px += 15; }
+      const tp = ctx.tenGigPorts != null ? ctx.tenGigPorts : 4;
       for (let i = 0; i < tp; i++) { rvSfp(g, px + 6, y + 10, ctx, 'TenGigabitEthernet0/0/' + i, { lit: i < 2 }); px += 15; }
-      const nims = ctx.nimSlots || 2;
+      const nims = ctx.nimSlots != null ? ctx.nimSlots : 2;
       for (let k = 0; k < nims; k++) {
         const nx = c.innerX + 190 + k * 126;
         el('rect', { x: nx, y: y + 4, width: 120, height: 21, rx: 1, fill: '#484744', stroke: '#232221', 'stroke-width': 0.5 }, g);
@@ -1049,16 +1055,29 @@ const RV_STENCILS_NETWORK = {
     uHeight: 2, category: 'router',
     front(g, ctx) {
       const { x, y, w, h } = ctx;
-      const c = rvChassis(g, x, y, w, 2, { dark: true });
+      // Draw at the device's real U height (dev.u from the catalog, e.g. the MX10003 is 3U) —
+      // was hardcoded to 2, which left a visible gap under any router using this stencil at a
+      // height other than 2U.
+      const c = rvChassis(g, x, y, w, ctx.uHeight || 2, { dark: true });
       el('rect', { x: x + 16, y: y + 2, width: 3, height: h - 4, rx: 1, fill: '#3D9BE8' }, g);
-      for (let i = 0; i < 4; i++) rvRj45(g, c.innerX + 4 + i * 14, y + 6, ctx, 'GigabitEthernet0/0/' + i, { dark: true, lit: i < 2 });
-      for (let i = 0; i < 4; i++) rvSfp(g, c.innerX + 4 + i * 15, y + 32, ctx, 'TenGigabitEthernet0/0/' + i, { lit: i < 2 });
-      const nims = ctx.nimSlots || 6;
-      for (let r = 0; r < 2; r++) for (let cc = 0; cc < nims / 2; cc++) {
+      // Was hardcoded to exactly 4+4 regardless of the model's real port counts (opts.gigPorts /
+      // opts.tenGigPorts were never actually read here) — e.g. the ASR 1002-HX's real 8+8 never
+      // rendered. `!= null` (not `||`) so a model with legitimately 0 of a type draws none.
+      const gp2 = ctx.gigPorts != null ? ctx.gigPorts : 4;
+      const gigDraw2 = ctx.gigIsCopper ? rvRj45 : rvSfp;
+      for (let i = 0; i < gp2; i++) gigDraw2(g, c.innerX + 4 + i * 14, y + 6, ctx, 'GigabitEthernet0/0/' + i, { dark: true, lit: i < gp2 / 2 });
+      const tp2 = ctx.tenGigPorts != null ? ctx.tenGigPorts : 4;
+      for (let i = 0; i < tp2; i++) rvSfp(g, c.innerX + 4 + i * 15, y + 32, ctx, 'TenGigabitEthernet0/0/' + i, { lit: i < tp2 / 2 });
+      // An odd nimSlots count (e.g. 5) used to divide unevenly across the two rows and produce
+      // fractional slot labels like "NIM 1.5" — lay out left-to-right, row by row, instead.
+      const nims = ctx.nimSlots != null ? ctx.nimSlots : 6;
+      const nimCols = Math.max(Math.ceil(nims / 2), 1);
+      for (let idx = 0; idx < nims; idx++) {
+        const r = Math.floor(idx / nimCols), cc = idx % nimCols;
         const nx = c.innerX + 70 + cc * 106, ny = y + 4 + r * 26;
         el('rect', { x: nx, y: ny, width: 102, height: 22, rx: 1, fill: '#484744', stroke: '#232221', 'stroke-width': 0.6 }, g);
-        rvLabel(g, nx + 9, ny + 20, 'NIM ' + (r * nims / 2 + cc), true);
-        rvHit(g, nx, ny, 8, 22, ctx, 'NIM slot ' + (r * nims / 2 + cc));
+        rvLabel(g, nx + 9, ny + 20, 'NIM ' + idx, true);
+        rvHit(g, nx, ny, 8, 22, ctx, 'NIM slot ' + idx);
         if (r === 0) for (let i = 0; i < 4; i++)
           rvRj45(g, nx + 11 + i * 14, ny + 5, ctx, 'NIM' + cc + ' port' + i, { dark: true, lit: false });
       }
