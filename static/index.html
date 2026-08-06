@@ -13,6 +13,7 @@
     <button id="btn-search" title="Search (Ctrl+K)">Search</button>
     <a id="btn-lldp" class="btn-link" href="lldp.html">LLDP Discovery</a>
     <a id="btn-lldp-autocable" class="btn-link" href="lldp-autocable.html">LLDP Auto-Cabling</a>
+    <a id="btn-san" class="btn-link" href="san.html">SAN Switch Mapping</a>
     <button id="btn-front" class="active">Front</button>
     <button id="btn-rear">Rear</button>
     <div class="dropdown">
@@ -71,6 +72,10 @@
         <div class="help-item">
           <h3>📡 LLDP &amp; Export</h3>
           <p><b>LLDP Discovery</b> saves what LLDP sees as an info note on each port — never touches cabling. <b>LLDP Auto-Cabling</b> is the separate tool that actually creates/updates cables from LLDP. <b>Export cables</b> downloads the rack's cabling as an Excel file.</p>
+        </div>
+        <div class="help-item">
+          <h3>🔗 SAN Switch Mapping</h3>
+          <p>Pick a SAN switch already placed in a rack, enter its IP and login, and pull its live port and zoning info over SSH (Brocade FOS or Cisco MDS). The username/password are used once and never saved — only the IP and the switch's own reported state are kept.</p>
         </div>
       </div>
     </div>
