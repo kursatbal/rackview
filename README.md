@@ -73,6 +73,7 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 - New page: select a SAN switch that's already placed in a rack, enter its IP and SSH login, and pull its live port list and active zoning over SSH (Brocade FOS `switchshow`/`zoneshow`, or Cisco MDS `show interface brief`/`show flogi database`/`show zoneset active`) — read-only commands only, nothing on the switch is ever changed
 - The username and password are used for that one pull and never written to disk; only the IP/vendor/port and the switch's own reported state are kept, so the last pull is still there to view next time without re-entering credentials
 - Each pull is timestamped and kept as a snapshot, similar to LLDP Discovery's history
+- Each port also shows where its cable actually goes, cross-referenced against RackView's own cabling for that switch (not an external host inventory) — alongside the raw connected WWN
 
 **LLDP Discovery / Auto-Cabling split**
 - LLDP Discovery no longer touches cabling at all — it only saves what LLDP reports on each port as an informational note, shown in the device panel next to any ports without a recorded cable
