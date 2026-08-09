@@ -76,6 +76,9 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 - There's no login system in RackView, so this tracks *what* changed and *when*, not *who* — in the same spirit as NetBox's change log, scaled to what actually fits a tool with no auth
 - Manual cable-routing drags don't spam the log — only the port/medium/label fields are tracked, not waypoints
 
+**Brocade firmware version fix**
+- Verified SAN Switch Mapping against a real Brocade 300 — port/zone parsing matched exactly, but the firmware version came back empty because that particular FOS release (7.4.2h) doesn't print a "Fabric OS:" line in `switchshow` at all; now falls back to reading it from `version` instead
+
 **Mgmt IP conflict warning**
 - A device's General tab now flags it if its management IP is also recorded on another device in the same customer's racks — a static check against RackView's own data, nothing is polled live
 

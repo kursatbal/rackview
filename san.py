@@ -73,12 +73,15 @@ class BrocadeAdapter(_SSHAdapterBase):
             info, ports = self._parse_switchshow(sw_out)
             zone_out = self._run("zoneshow")
             zones = self._parse_zoneshow(zone_out)
+            # Older FOS releases (confirmed on a real Brocade 300, FOS 7.4.2h) don't print a
+            # "Fabric OS:" line in switchshow at all — the version has to come from `version`.
+            firmware = info.get("firmware") or self._extract_firmware(self._run("version"))
             return {
                 "switch": info.get("name") or self.host,
                 "vendor": "brocade",
                 "wwn": info.get("wwn"),
                 "model": info.get("model"),
-                "firmware": info.get("firmware"),
+                "firmware": firmware,
                 "domain_id": info.get("domain_id"),
                 "fabric_name": info.get("active_cfg"),
                 "ports": ports,
@@ -86,6 +89,13 @@ class BrocadeAdapter(_SSHAdapterBase):
             }
         finally:
             self._close()
+
+    @staticmethod
+    def _extract_firmware(text):
+        for line in text.splitlines():
+            if line.strip().lower().startswith("fabric os:"):
+                return line.split(":", 1)[1].strip()
+        return None
 
     @staticmethod
     def _parse_switchshow(text):
