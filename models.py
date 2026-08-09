@@ -155,6 +155,34 @@ class LldpDiscovery(db.Model):
         return data
 
 
+class ActivityLog(db.Model):
+    # No auth system exists in RackView, so this tracks WHAT changed and WHEN, not WHO — a
+    # before/after record per mutation, in the same spirit as NetBox's change log. entity_name is
+    # a snapshot (not a live join) so a log entry for a deleted device/cable still reads sensibly.
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.DateTime, nullable=False)
+    entity_type = db.Column(db.String, nullable=False)  # "device" | "cable" | "rack"
+    entity_id = db.Column(db.Integer, nullable=False)
+    entity_name = db.Column(db.String, nullable=False)
+    action = db.Column(db.String, nullable=False)  # "created" | "updated" | "deleted"
+    changes = db.Column(db.JSON, nullable=True)  # {field: {"from": ..., "to": ...}}, only for "updated"
+    rack_id = db.Column(db.Integer, nullable=True)
+    rack_name = db.Column(db.String, nullable=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "timestamp": self.timestamp.isoformat(),
+            "entity_type": self.entity_type,
+            "entity_id": self.entity_id,
+            "entity_name": self.entity_name,
+            "action": self.action,
+            "changes": self.changes,
+            "rack_id": self.rack_id,
+            "rack_name": self.rack_name,
+        }
+
+
 class SanSnapshot(db.Model):
     # Username/password are deliberately never persisted — only the connection endpoint (ip/vendor/
     # port, kept on Device.metadata_json.san_config) and the switch's own reported state are saved.

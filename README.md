@@ -25,6 +25,8 @@ Tracking what's plugged into what in a data center usually means a spreadsheet, 
 - **LLDP Discovery** — paste switch LLDP output; it's saved as an informational note on each port (surfaced in the device panel) without ever touching cabling
 - **LLDP Auto-Cabling** — a separate tool that matches LLDP neighbors against existing cabling and creates/updates/removes cables, with a review step per link and a picker/shortcut for neighbors that aren't in the rack yet
 - **SAN Switch Mapping** — pick a SAN switch already placed in a rack, enter its IP and login, and pull live port/zoning info over SSH (Brocade FOS or Cisco MDS); the username/password are used once and never saved
+- **Activity Log** — every device/cable create, update, and delete is timestamped with a before/after diff, filterable by rack
+- **Mgmt IP conflict check** — flags a device whose management IP is already recorded on another device in the same customer's racks
 - **Multi-rack / floor view** — customer-isolated racks, a hall-level view, inter-rack cabling
 - **Excel export** — download a rack's or a device's cabling as `.xlsx`
 
@@ -68,6 +70,11 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 - Export: openpyxl
 
 ## Changelog
+
+**Activity Log**
+- Every device and cable create/update/delete is now recorded with a timestamp and a before/after diff of what changed, filterable by rack or by device/cable
+- There's no login system in RackView, so this tracks *what* changed and *when*, not *who* — in the same spirit as NetBox's change log, scaled to what actually fits a tool with no auth
+- Manual cable-routing drags don't spam the log — only the port/medium/label fields are tracked, not waypoints
 
 **Mgmt IP conflict warning**
 - A device's General tab now flags it if its management IP is also recorded on another device in the same customer's racks — a static check against RackView's own data, nothing is polled live

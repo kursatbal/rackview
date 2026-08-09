@@ -1679,3 +1679,125 @@ body {
 .san-zonecard.expanded .san-zmembers {
   display: flex;
 }
+
+/* ===== Activity Log — light theme, matches the rest of the app (unlike LLDP/SAN's dark pages) */
+.log-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 24px 60px;
+}
+
+.log-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.log-chips {
+  display: flex;
+  gap: 6px;
+}
+
+#log-rack-select {
+  font-family: monospace;
+  font-size: 12px;
+  padding: 6px 8px;
+  border: 1px solid #888780;
+  background: #fff;
+}
+
+.log-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.log-empty {
+  color: #5F5E5A;
+  font-size: 12px;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.log-row {
+  background: #E4E2D8;
+  border-radius: 7px;
+  padding: 9px 12px;
+  border-left: 3px solid #B4B2A9;
+}
+
+.log-row.log-created { border-left-color: #0F6E56; }
+.log-row.log-updated { border-left-color: #B8791A; }
+.log-row.log-deleted { border-left-color: #A32D2D; }
+
+.log-row-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.log-badge {
+  font-family: monospace;
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border-radius: 4px;
+  padding: 2px 6px;
+  flex-shrink: 0;
+}
+
+.log-badge-created { background: #DFF5E6; color: #0F6E56; }
+.log-badge-updated { background: #FBEDD4; color: #B8791A; }
+.log-badge-deleted { background: #FCE8E6; color: #A32D2D; }
+
+.log-entity {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.log-rack-pill {
+  font-size: 10px;
+  color: #5F5E5A;
+  background: #F1EFE8;
+  border: 1px solid #D3D1C7;
+  border-radius: 4px;
+  padding: 1px 6px;
+  flex-shrink: 0;
+}
+
+.log-time {
+  margin-left: auto;
+  font-size: 10.5px;
+  color: #5F5E5A;
+  flex-shrink: 0;
+}
+
+.log-diffs {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed #B4B2A9;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.log-diff-line {
+  font-family: monospace;
+  font-size: 10.5px;
+  color: #5F5E5A;
+}
+
+.log-diff-from {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.log-diff-to {
+  color: #0F6E56;
+  font-weight: 600;
+}

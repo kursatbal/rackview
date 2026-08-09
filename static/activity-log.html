@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RackView — Activity Log</title>
+  <link rel="stylesheet" href="style.css" onerror="this.onerror=null;this.href='style.css?retry='+Date.now()">
+</head>
+<body>
+  <header class="toolbar">
+    <span class="title">RackView — Activity Log</span>
+    <div class="spacer"></div>
+    <a class="btn-link" href="index.html">Back to rack</a>
+  </header>
+
+  <main class="log-page">
+    <div class="log-toolbar">
+      <div class="log-chips" id="log-type-chips">
+        <button class="chip active" data-type="">All</button>
+        <button class="chip" data-type="device">Devices</button>
+        <button class="chip" data-type="cable">Cables</button>
+      </div>
+      <select id="log-rack-select">
+        <option value="">All racks</option>
+      </select>
+    </div>
+    <div id="log-list" class="log-list">
+      <div class="log-empty">Loading…</div>
+    </div>
+  </main>
+
+  <script src="js/activity-log.js"></script>
+</body>
+</html>

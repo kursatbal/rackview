@@ -8,7 +8,7 @@ from flask import Flask, jsonify, request, send_from_directory, Response
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
-from models import db, DeviceType, Rack, Device, Cable, ArpEntry, LldpDiscovery, SanSnapshot
+from models import db, DeviceType, Rack, Device, Cable, ArpEntry, LldpDiscovery, SanSnapshot, ActivityLog
 from san import collect_one as san_collect_one
 
 
@@ -265,6 +265,24 @@ def _check_u_overlap(rack, position_u, u_height, exclude_device_id=None):
     return None, None
 
 
+def _cable_label(cable):
+    a = Device.query.get(cable.a_device_id)
+    b = Device.query.get(cable.b_device_id)
+    a_label = f"{a.name}:{cable.a_port}" if a else f"?:{cable.a_port}"
+    b_label = f"{b.name}:{cable.b_port}" if b else f"?:{cable.b_port}"
+    return f"{a_label} ↔ {b_label}"
+
+
+def _log_activity(entity_type, entity_id, entity_name, action, changes=None, rack_id=None, rack_name=None):
+    # Caller commits — this only adds to the session so it lands in the same transaction as the
+    # change it's describing (a log entry for a change that then fails to commit shouldn't persist).
+    db.session.add(ActivityLog(
+        timestamp=datetime.now(timezone.utc), entity_type=entity_type, entity_id=entity_id,
+        entity_name=entity_name, action=action, changes=changes or None,
+        rack_id=rack_id, rack_name=rack_name,
+    ))
+
+
 @app.route("/api/devices", methods=["POST"])
 def create_device():
     payload = request.get_json()
@@ -286,14 +304,23 @@ def create_device():
         metadata_json=payload.get("metadata_json"),
     )
     db.session.add(device)
+    db.session.flush()
+    _log_activity("device", device.id, device.name, "created", rack_id=rack.id, rack_name=rack.name)
     db.session.commit()
     return jsonify(device.to_dict()), 201
+
+
+_DEVICE_TRACKED_FIELDS = [
+    "position_u", "device_type_id", "name", "serial", "mgmt_ip",
+    "notes", "owner_team", "warranty_end", "role_label",
+]
 
 
 @app.route("/api/devices/<int:device_id>", methods=["PUT"])
 def update_device(device_id):
     device = Device.query.get_or_404(device_id)
     payload = request.get_json()
+    before = {f: getattr(device, f) for f in _DEVICE_TRACKED_FIELDS}
 
     new_position_u = payload.get("position_u", device.position_u)
     new_type_id = payload.get("device_type_id", device.device_type_id)
@@ -343,6 +370,14 @@ def update_device(device_id):
                 merged[k] = v
         device.metadata_json = merged
 
+    changes = {
+        f: {"from": before[f], "to": getattr(device, f)}
+        for f in _DEVICE_TRACKED_FIELDS if before[f] != getattr(device, f)
+    }
+    if changes:
+        _log_activity("device", device.id, device.name, "updated", changes=changes,
+                       rack_id=device.rack_id, rack_name=device.rack.name)
+
     db.session.commit()
     return jsonify(device.to_dict())
 
@@ -369,12 +404,21 @@ def device_ip_conflicts(device_id):
 @app.route("/api/devices/<int:device_id>", methods=["DELETE"])
 def delete_device(device_id):
     device = Device.query.get_or_404(device_id)
-    Cable.query.filter(
+    orphaned_cables = Cable.query.filter(
         db.or_(Cable.a_device_id == device_id, Cable.b_device_id == device_id)
-    ).delete()
+    ).all()
+    for c in orphaned_cables:
+        _log_activity("cable", c.id, _cable_label(c), "deleted",
+                       rack_id=device.rack_id, rack_name=device.rack.name)
+        db.session.delete(c)
+    _log_activity("device", device.id, device.name, "deleted",
+                   rack_id=device.rack_id, rack_name=device.rack.name)
     db.session.delete(device)
     db.session.commit()
     return "", 204
+
+
+_CABLE_TRACKED_FIELDS = ["a_device_id", "a_port", "b_device_id", "b_port", "medium", "label"]
 
 
 @app.route("/api/cables", methods=["POST"])
@@ -390,6 +434,10 @@ def create_cable():
         color=payload.get("color"),
     )
     db.session.add(cable)
+    db.session.flush()
+    a = Device.query.get(cable.a_device_id)
+    _log_activity("cable", cable.id, _cable_label(cable), "created",
+                   rack_id=a.rack_id if a else None, rack_name=a.rack.name if a else None)
     db.session.commit()
     return jsonify(cable.to_dict()), 201
 
@@ -398,6 +446,7 @@ def create_cable():
 def update_cable(cable_id):
     cable = Cable.query.get_or_404(cable_id)
     payload = request.get_json()
+    before = {f: getattr(cable, f) for f in _CABLE_TRACKED_FIELDS}
     cable.a_device_id = payload.get("a_device_id", cable.a_device_id)
     cable.a_port = payload.get("a_port", cable.a_port)
     cable.b_device_id = payload.get("b_device_id", cable.b_device_id)
@@ -407,6 +456,18 @@ def update_cable(cable_id):
     cable.color = payload.get("color", cable.color)
     if "waypoints" in payload:
         cable.waypoints = payload["waypoints"]
+
+    # Manual routing drags send frequent waypoints-only PUTs — excluded from tracked fields above
+    # so dragging a cable's bend point doesn't spam the log with "updated" entries.
+    changes = {
+        f: {"from": before[f], "to": getattr(cable, f)}
+        for f in _CABLE_TRACKED_FIELDS if before[f] != getattr(cable, f)
+    }
+    if changes:
+        a = Device.query.get(cable.a_device_id)
+        _log_activity("cable", cable.id, _cable_label(cable), "updated", changes=changes,
+                       rack_id=a.rack_id if a else None, rack_name=a.rack.name if a else None)
+
     db.session.commit()
     return jsonify(cable.to_dict())
 
@@ -414,6 +475,9 @@ def update_cable(cable_id):
 @app.route("/api/cables/<int:cable_id>", methods=["DELETE"])
 def delete_cable(cable_id):
     cable = Cable.query.get_or_404(cable_id)
+    a = Device.query.get(cable.a_device_id)
+    _log_activity("cable", cable.id, _cable_label(cable), "deleted",
+                   rack_id=a.rack_id if a else None, rack_name=a.rack.name if a else None)
     db.session.delete(cable)
     db.session.commit()
     return "", 204
@@ -1130,6 +1194,19 @@ def san_snapshot(device_id):
     Device.query.get_or_404(device_id)
     row = SanSnapshot.query.filter_by(device_id=device_id).order_by(SanSnapshot.timestamp.desc()).first()
     return jsonify(row.to_dict() if row else None)
+
+
+@app.route("/api/activity-log")
+def activity_log():
+    query = ActivityLog.query
+    rack_id = request.args.get("rack_id", type=int)
+    if rack_id:
+        query = query.filter_by(rack_id=rack_id)
+    entity_type = request.args.get("entity_type")
+    if entity_type:
+        query = query.filter_by(entity_type=entity_type)
+    rows = query.order_by(ActivityLog.timestamp.desc()).limit(200).all()
+    return jsonify([r.to_dict() for r in rows])
 
 
 def _ensure_db_columns():
