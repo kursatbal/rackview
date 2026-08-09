@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RackView — ESXi NIC Verification</title>
+  <link rel="stylesheet" href="style.css" onerror="this.onerror=null;this.href='style.css?retry='+Date.now()">
+</head>
+<body>
+  <header class="toolbar">
+    <span class="title">RackView — ESXi NIC Verification</span>
+    <div class="spacer"></div>
+    <a class="btn-link" href="index.html">Back to rack</a>
+  </header>
+
+  <main class="san-page">
+    <div class="san-input-col">
+      <div class="san-field">
+        <label for="ex-switch-select">Server (from rack)</label>
+        <select id="ex-switch-select"></select>
+      </div>
+      <div class="san-field-row">
+        <div class="san-field">
+          <label for="ex-ip">ESXi IP address</label>
+          <input id="ex-ip" type="text" placeholder="192.168.1.13">
+        </div>
+        <div class="san-field san-field-narrow">
+          <label for="ex-port">HTTPS port</label>
+          <input id="ex-port" type="text" placeholder="443">
+        </div>
+      </div>
+      <div class="san-field-row">
+        <div class="san-field">
+          <label for="ex-user">Username</label>
+          <input id="ex-user" type="text" autocomplete="off" placeholder="root">
+        </div>
+        <div class="san-field">
+          <label for="ex-pass">Password</label>
+          <input id="ex-pass" type="password" autocomplete="off">
+        </div>
+      </div>
+      <div class="san-hint">Uses the vSphere API (HTTPS, not SSH) — works on a stock ESXi host with no services enabled. Confirmed on real ESXi 6.7 hosts. Username/password are used for this pull only — never saved.</div>
+      <button id="btn-ex-collect" class="primary">Pull NIC info</button>
+      <div id="ex-error" class="san-error"></div>
+      <div id="ex-last-pulled" class="san-hint"></div>
+    </div>
+
+    <div class="san-results-col">
+      <div id="ex-body"><div class="san-empty">Select a server and pull its NIC info.</div></div>
+    </div>
+  </main>
+
+  <script src="js/esxi.js"></script>
+</body>
+</html>

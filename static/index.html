@@ -15,6 +15,7 @@
     <a id="btn-lldp-autocable" class="btn-link" href="lldp-autocable.html">LLDP Auto-Cabling</a>
     <a id="btn-san" class="btn-link" href="san.html">SAN Switch Mapping</a>
     <a id="btn-storage" class="btn-link" href="storage.html">Storage Mapping</a>
+    <a id="btn-esxi" class="btn-link" href="esxi.html">ESXi NIC Verification</a>
     <a id="btn-activity-log" class="btn-link" href="activity-log.html">Activity Log</a>
     <button id="btn-front" class="active">Front</button>
     <button id="btn-rear">Rear</button>
@@ -82,6 +83,10 @@
         <div class="help-item">
           <h3>🗄️ Storage Mapping</h3>
           <p>Same idea for storage arrays — pull live FC port status and WWNs from a Dell PowerVault/ME array over SSH. Each port also shows where it's cabled to, cross-referenced against RackView's own cabling. Credentials are used once and never saved.</p>
+        </div>
+        <div class="help-item">
+          <h3>🖥️ ESXi NIC Verification</h3>
+          <p>Pulls physical NIC link status and vSwitch mapping from an ESXi host over the vSphere API (no SSH needed). Matched against the device's <code>vmnic_map</code> to show where each recorded cable actually goes. Credentials are used once and never saved.</p>
         </div>
         <div class="help-item">
           <h3>📜 Activity Log</h3>

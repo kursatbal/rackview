@@ -202,6 +202,25 @@ class StorageSnapshot(db.Model):
         }
 
 
+class EsxiSnapshot(db.Model):
+    # Same non-persistence rule as SanSnapshot/StorageSnapshot: username/password are used for one
+    # pull and never written to disk.
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.DateTime, nullable=False)
+    device_id = db.Column(db.Integer, db.ForeignKey("device.id"), nullable=False)
+    ip = db.Column(db.String, nullable=False)
+    data = db.Column(db.JSON, nullable=False, default=dict)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "timestamp": self.timestamp.isoformat(),
+            "device_id": self.device_id,
+            "ip": self.ip,
+            "data": self.data,
+        }
+
+
 class SanSnapshot(db.Model):
     # Username/password are deliberately never persisted — only the connection endpoint (ip/vendor/
     # port, kept on Device.metadata_json.san_config) and the switch's own reported state are saved.

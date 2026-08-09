@@ -26,6 +26,7 @@ Tracking what's plugged into what in a data center usually means a spreadsheet, 
 - **LLDP Auto-Cabling** — a separate tool that matches LLDP neighbors against existing cabling and creates/updates/removes cables, with a review step per link and a picker/shortcut for neighbors that aren't in the rack yet
 - **SAN Switch Mapping** — pick a SAN switch already placed in a rack, enter its IP and login, and pull live port/zoning info over SSH (Brocade FOS or Cisco MDS); the username/password are used once and never saved
 - **Storage Mapping** — same idea for Dell PowerVault/ME storage arrays: pulls live FC port status and WWNs over SSH, each port cross-referenced against RackView's own cabling
+- **ESXi NIC Verification** — pulls physical NIC link status and vSwitch mapping over the vSphere API (no SSH needed), matched to the device's `vmnic_map` to confirm each recorded cable against reality
 - **Activity Log** — every device/cable create, update, and delete is timestamped with a before/after diff, filterable by rack
 - **Mgmt IP conflict check** — flags a device whose management IP is already recorded on another device in the same customer's racks
 - **Multi-rack / floor view** — customer-isolated racks, a hall-level view, inter-rack cabling
@@ -71,6 +72,11 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 - Export: openpyxl
 
 ## Changelog
+
+**ESXi NIC Verification**
+- New page: pulls physical NIC link status, speed, and vSwitch mapping from an ESXi host — over the vSphere API (HTTPS/443), not SSH, since SSH is disabled by default on ESXi and the real hosts tested against here had it off; the vSphere API needs nothing enabled on the host and returns structured data instead of esxcli text tables
+- Also queries CDP/LLDP neighbor info per NIC where the connected switch port has it enabled — came back empty on the real hosts tested (switch-side CDP/LLDP wasn't on), so this degrades to "no neighbor data" rather than erroring
+- Each NIC is translated from its vmnic name (vmnic0, vmnic1, ...) to the physical port label actually used in cabling via the device's existing `metadata_json.vmnic_map` (already used by LLDP matching), then cross-referenced against RackView's own Cable records — confirmed working against two real ESXi 6.7 hosts, correctly resolving vmnic0/vmnic1 to their real LOM ports and the switches they're actually cabled to
 
 **Storage Mapping**
 - New page, same pattern as SAN Switch Mapping: pick a storage array already placed in a rack, enter its IP and login, and pull its live FC port status/WWNs over SSH — verified against a real Dell ME4024, whose CLI replies with structured XML per command rather than a text table, parsed directly instead of guessing at column widths
