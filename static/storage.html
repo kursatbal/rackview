@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RackView — Storage Array Mapping</title>
+  <link rel="stylesheet" href="style.css" onerror="this.onerror=null;this.href='style.css?retry='+Date.now()">
+</head>
+<body>
+  <header class="toolbar">
+    <span class="title">RackView — Storage Array Mapping</span>
+    <div class="spacer"></div>
+    <a class="btn-link" href="index.html">Back to rack</a>
+  </header>
+
+  <main class="san-page">
+    <div class="san-input-col">
+      <div class="san-field">
+        <label for="st-switch-select">Storage array (from rack)</label>
+        <select id="st-switch-select"></select>
+      </div>
+      <div class="san-field-row">
+        <div class="san-field">
+          <label for="st-ip">IP address</label>
+          <input id="st-ip" type="text" placeholder="192.168.1.12">
+        </div>
+        <div class="san-field san-field-narrow">
+          <label for="st-port">SSH port</label>
+          <input id="st-port" type="text" placeholder="22">
+        </div>
+      </div>
+      <div class="san-field-row">
+        <div class="san-field">
+          <label for="st-user">Username</label>
+          <input id="st-user" type="text" autocomplete="off">
+        </div>
+        <div class="san-field">
+          <label for="st-pass">Password</label>
+          <input id="st-pass" type="password" autocomplete="off">
+        </div>
+      </div>
+      <div class="san-hint">Confirmed against a real Dell PowerVault/ME array (SSH, XML CLI). Username/password are used for this pull only — never saved. The IP and the array's own reported port state are kept so you don't need to re-enter credentials just to view the last pull.</div>
+      <button id="btn-st-collect" class="primary">Pull storage info</button>
+      <div id="st-error" class="san-error"></div>
+      <div id="st-last-pulled" class="san-hint"></div>
+    </div>
+
+    <div class="san-results-col">
+      <div id="st-body"><div class="san-empty">Select a storage array and pull its info.</div></div>
+    </div>
+  </main>
+
+  <script src="js/storage.js"></script>
+</body>
+</html>

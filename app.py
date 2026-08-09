@@ -8,8 +8,9 @@ from flask import Flask, jsonify, request, send_from_directory, Response
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
-from models import db, DeviceType, Rack, Device, Cable, ArpEntry, LldpDiscovery, SanSnapshot, ActivityLog
+from models import db, DeviceType, Rack, Device, Cable, ArpEntry, LldpDiscovery, SanSnapshot, ActivityLog, StorageSnapshot
 from san import collect_one as san_collect_one
+from storage import collect_one as storage_collect_one
 
 
 def _data_dir():
@@ -1193,6 +1194,86 @@ def san_collect():
 def san_snapshot(device_id):
     Device.query.get_or_404(device_id)
     row = SanSnapshot.query.filter_by(device_id=device_id).order_by(SanSnapshot.timestamp.desc()).first()
+    return jsonify(row.to_dict() if row else None)
+
+
+def _attach_storage_cable_destinations(device, ports):
+    # Same purpose as _attach_cable_destinations (SAN) but a different naming scheme: the array's
+    # own port ids ("A0", "B1", ...) are 0-indexed and map straight across — no +1 offset — to the
+    # dell-me5-2u stencil's rear port names ("CtrlA P0", "CtrlB P1", ...), so this matches by exact
+    # constructed name instead of by numeric index.
+    cables = Cable.query.filter(
+        db.or_(Cable.a_device_id == device.id, Cable.b_device_id == device.id)
+    ).all()
+    by_port_name = {}
+    for c in cables:
+        mine_port = c.a_port if c.a_device_id == device.id else c.b_port
+        other_id = c.b_device_id if c.a_device_id == device.id else c.a_device_id
+        other_port = c.b_port if c.a_device_id == device.id else c.a_port
+        other = Device.query.get(other_id)
+        by_port_name[mine_port] = {
+            "name": other.name if other else "?",
+            "port": other_port,
+            "rack_name": other.rack.name if other else None,
+        }
+    for p in ports:
+        controller = p.get("controller")
+        num = re.sub(r"\D", "", p.get("port") or "")
+        if not controller or not num:
+            continue
+        match = by_port_name.get(f"Ctrl{controller} P{num}")
+        if match:
+            p["connected_device"] = match
+    return ports
+
+
+@app.route("/api/storage/devices")
+def storage_devices():
+    devices = Device.query.join(Device.device_type).filter(DeviceType.category == "storage").all()
+    return jsonify([
+        {"id": d.id, "name": d.name, "rack_id": d.rack_id, "rack_name": d.rack.name,
+         "vendor": d.device_type.vendor, "model": d.device_type.model,
+         "storage_config": (d.metadata_json or {}).get("storage_config")}
+        for d in devices
+    ])
+
+
+@app.route("/api/storage/collect", methods=["POST"])
+def storage_collect():
+    payload = request.get_json()
+    device_id = payload.get("device_id")
+    ip = (payload.get("ip") or "").strip()
+    port = payload.get("port")
+    username = payload.get("username")
+    password = payload.get("password")
+
+    device = Device.query.get_or_404(device_id)
+    if not ip:
+        return jsonify({"error": "ip is required"}), 400
+
+    data, error = storage_collect_one(ip, username, password, port)
+    if error:
+        return jsonify({"error": error}), 502
+
+    data["ip"] = ip
+    data["device_id"] = device_id
+    data["ports"] = _attach_storage_cable_destinations(device, data.get("ports") or [])
+
+    merged = dict(device.metadata_json or {})
+    merged["storage_config"] = {"ip": ip, "port": port}
+    device.metadata_json = merged
+
+    snapshot = StorageSnapshot(timestamp=datetime.now(timezone.utc), device_id=device_id, ip=ip, data=data)
+    db.session.add(snapshot)
+    db.session.commit()
+
+    return jsonify(snapshot.to_dict())
+
+
+@app.route("/api/storage/snapshot/<int:device_id>")
+def storage_snapshot(device_id):
+    Device.query.get_or_404(device_id)
+    row = StorageSnapshot.query.filter_by(device_id=device_id).order_by(StorageSnapshot.timestamp.desc()).first()
     return jsonify(row.to_dict() if row else None)
 
 
