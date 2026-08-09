@@ -8,9 +8,10 @@ from flask import Flask, jsonify, request, send_from_directory, Response
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
-from models import db, DeviceType, Rack, Device, Cable, ArpEntry, LldpDiscovery, SanSnapshot, ActivityLog, StorageSnapshot
+from models import db, DeviceType, Rack, Device, Cable, ArpEntry, LldpDiscovery, SanSnapshot, ActivityLog, StorageSnapshot, EsxiSnapshot
 from san import collect_one as san_collect_one
 from storage import collect_one as storage_collect_one
+from esxi import collect_one as esxi_collect_one
 
 
 def _data_dir():
@@ -1274,6 +1275,84 @@ def storage_collect():
 def storage_snapshot(device_id):
     Device.query.get_or_404(device_id)
     row = StorageSnapshot.query.filter_by(device_id=device_id).order_by(StorageSnapshot.timestamp.desc()).first()
+    return jsonify(row.to_dict() if row else None)
+
+
+def _attach_esxi_cable_destinations(device, nics):
+    # vmnic names (vmnic0, vmnic1, ...) aren't the physical port labels rendered on the device —
+    # metadata_json.vmnic_map (already used by LLDP matching, see _port_aliases) is the existing
+    # translation table from vmnic name to the port label a Cable actually references.
+    vmnic_map = (device.metadata_json or {}).get("vmnic_map") or {}
+    cables = Cable.query.filter(
+        db.or_(Cable.a_device_id == device.id, Cable.b_device_id == device.id)
+    ).all()
+    by_port_name = {}
+    for c in cables:
+        mine_port = c.a_port if c.a_device_id == device.id else c.b_port
+        other_id = c.b_device_id if c.a_device_id == device.id else c.a_device_id
+        other_port = c.b_port if c.a_device_id == device.id else c.a_port
+        other = Device.query.get(other_id)
+        by_port_name[mine_port] = {
+            "name": other.name if other else "?",
+            "port": other_port,
+            "rack_name": other.rack.name if other else None,
+        }
+    for n in nics:
+        physical_port = vmnic_map.get(n["name"], n["name"])
+        n["physical_port"] = physical_port
+        match = by_port_name.get(physical_port)
+        if match:
+            n["connected_device"] = match
+    return nics
+
+
+@app.route("/api/esxi/devices")
+def esxi_devices():
+    devices = Device.query.join(Device.device_type).filter(DeviceType.category == "server").all()
+    return jsonify([
+        {"id": d.id, "name": d.name, "rack_id": d.rack_id, "rack_name": d.rack.name,
+         "vendor": d.device_type.vendor, "model": d.device_type.model,
+         "esxi_config": (d.metadata_json or {}).get("esxi_config")}
+        for d in devices
+    ])
+
+
+@app.route("/api/esxi/collect", methods=["POST"])
+def esxi_collect():
+    payload = request.get_json()
+    device_id = payload.get("device_id")
+    ip = (payload.get("ip") or "").strip()
+    port = payload.get("port")
+    username = payload.get("username")
+    password = payload.get("password")
+
+    device = Device.query.get_or_404(device_id)
+    if not ip:
+        return jsonify({"error": "ip is required"}), 400
+
+    data, error = esxi_collect_one(ip, username, password, port)
+    if error:
+        return jsonify({"error": error}), 502
+
+    data["ip"] = ip
+    data["device_id"] = device_id
+    data["nics"] = _attach_esxi_cable_destinations(device, data.get("nics") or [])
+
+    merged = dict(device.metadata_json or {})
+    merged["esxi_config"] = {"ip": ip, "port": port}
+    device.metadata_json = merged
+
+    snapshot = EsxiSnapshot(timestamp=datetime.now(timezone.utc), device_id=device_id, ip=ip, data=data)
+    db.session.add(snapshot)
+    db.session.commit()
+
+    return jsonify(snapshot.to_dict())
+
+
+@app.route("/api/esxi/snapshot/<int:device_id>")
+def esxi_snapshot(device_id):
+    Device.query.get_or_404(device_id)
+    row = EsxiSnapshot.query.filter_by(device_id=device_id).order_by(EsxiSnapshot.timestamp.desc()).first()
     return jsonify(row.to_dict() if row else None)
 
 
