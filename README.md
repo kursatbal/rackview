@@ -25,6 +25,7 @@ Tracking what's plugged into what in a data center usually means a spreadsheet, 
 - **LLDP Discovery** — paste switch LLDP output; it's saved as an informational note on each port (surfaced in the device panel) without ever touching cabling
 - **LLDP Auto-Cabling** — a separate tool that matches LLDP neighbors against existing cabling and creates/updates/removes cables, with a review step per link and a picker/shortcut for neighbors that aren't in the rack yet
 - **SAN Switch Mapping** — pick a SAN switch already placed in a rack, enter its IP and login, and pull live port/zoning info over SSH (Brocade FOS or Cisco MDS); the username/password are used once and never saved
+- **Storage Mapping** — same idea for Dell PowerVault/ME storage arrays: pulls live FC port status and WWNs over SSH, each port cross-referenced against RackView's own cabling
 - **Activity Log** — every device/cable create, update, and delete is timestamped with a before/after diff, filterable by rack
 - **Mgmt IP conflict check** — flags a device whose management IP is already recorded on another device in the same customer's racks
 - **Multi-rack / floor view** — customer-isolated racks, a hall-level view, inter-rack cabling
@@ -70,6 +71,11 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 - Export: openpyxl
 
 ## Changelog
+
+**Storage Mapping**
+- New page, same pattern as SAN Switch Mapping: pick a storage array already placed in a rack, enter its IP and login, and pull its live FC port status/WWNs over SSH — verified against a real Dell ME4024, whose CLI replies with structured XML per command rather than a text table, parsed directly instead of guessing at column widths
+- Each port shows where it's cabled to, cross-referenced against RackView's own cabling for that array (same idea as the SAN switch cross-reference, but a different port-naming scheme: the array's own port ids ("A0", "B1", ...) map straight across with no offset to the rear stencil's port names, unlike the switch side's +1 offset)
+- Credentials are never saved — same rule as SAN Switch Mapping
 
 **Activity Log**
 - Every device and cable create/update/delete is now recorded with a timestamp and a before/after diff of what changed, filterable by rack or by device/cable
