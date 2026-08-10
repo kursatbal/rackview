@@ -282,6 +282,33 @@ function nearSide(x) {
   return x < X0 + W / 2 ? "left" : "right";
 }
 
+// A port's "near side" is decided against the rack's absolute center, independently of where the
+// other end sits — fine for most devices, but a wide multi-port device (e.g. a 24-port SAN switch
+// spanning most of the rack width) routinely has some ports fall on the rack's right half even
+// when the device they're cabled to sits directly below on the left, forcing every one of those
+// cables through the expensive "opposite margins" bridge over the top of the rack even though the
+// two ends are practically stacked. Estimate the cost of forcing both ends through a single side
+// against the natural (possibly bridged) pairing, and prefer whichever is actually shorter.
+function estimateSideCost(ax, ay, bx, by, sideA, sideB) {
+  const horiz = Math.abs(ax - laneXFor(sideA, 0, 0)) + Math.abs(bx - laneXFor(sideB, 0, 0));
+  if (sideA === sideB) return horiz;
+  // Opposite sides bridge via the channel above the rack — that round trip up to TOP_Y and back
+  // down dwarfs everything else unless both ports already sit close to the top of the rack.
+  const bridgeVert = 2 * Math.max(0, Math.min(ay, by) - TOP_Y);
+  return horiz + bridgeVert;
+}
+
+function chooseSides(a, b) {
+  const naturalA = nearSide(a.x), naturalB = nearSide(b.x);
+  if (naturalA === naturalB) return [naturalA, naturalB];
+  const costNatural = estimateSideCost(a.x, a.y, b.x, b.y, naturalA, naturalB);
+  const costLeft = estimateSideCost(a.x, a.y, b.x, b.y, "left", "left");
+  const costRight = estimateSideCost(a.x, a.y, b.x, b.y, "right", "right");
+  if (costLeft <= costNatural && costLeft <= costRight) return ["left", "left"];
+  if (costRight <= costNatural && costRight <= costLeft) return ["right", "right"];
+  return [naturalA, naturalB];
+}
+
 function laneXFor(side, laneIndex, track) {
   const offset = LANE_GAP + laneIndex * LANE_STEP + track * TRACK_GAP;
   return side === "left" ? X0 - offset : X0 + W + offset;
@@ -318,9 +345,7 @@ function stripYFor(port, rec, laneIndex, track) {
   return port.y + STRIP_OFFSET + fan;
 }
 
-function computeCablePath(a, b, aRec, bRec, idxA, idxB, track) {
-  const sideA = nearSide(a.x);
-  const sideB = nearSide(b.x);
+function computeCablePath(a, b, aRec, bRec, idxA, idxB, track, sideA, sideB) {
   const stripA = stripYFor(a, aRec, idxA, track);
   const stripB = stripYFor(b, bRec, idxB, track);
   const laneA = laneXFor(sideA, idxA, track);
@@ -591,14 +616,13 @@ function drawCables(g, cablesList) {
     if (!a || !b) return;
     const style = CABLE_STYLE[c.medium] || CABLE_STYLE.cat6a;
     const track = trackForMedium(c.medium);
-    const sideA = nearSide(a.x);
-    const sideB = nearSide(b.x);
+    const [sideA, sideB] = chooseSides(a, b);
     const idxA = sideA === "left" ? leftIdx[track]++ : rightIdx[track]++;
     const idxB = sideA === sideB ? idxA : (sideB === "left" ? leftIdx[track]++ : rightIdx[track]++);
     const hasManualRoute = Array.isArray(c.waypoints) && c.waypoints.length > 0;
     const d = hasManualRoute
       ? manualPathFor(a, b, c.waypoints)
-      : computeCablePath(a, b, aRec, bRec, idxA, idxB, track);
+      : computeCablePath(a, b, aRec, bRec, idxA, idxB, track, sideA, sideB);
     renderedCableCorners.push({ cableId: c.id, points: extractPathCorners(d) });
 
     const isSelected = c.id === selectedCableId;
