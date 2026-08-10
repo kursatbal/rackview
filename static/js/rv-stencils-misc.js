@@ -133,10 +133,15 @@ const RV_STENCILS_SWITCH = {
       const groups = 3, perGroup = 8, cols = 4;
       const portsW = c.innerX + c.innerW - 26 - mx;
       const step = portsW / (groups * cols);
+      // Row-major, matching the real chassis: the first 4 ports of a group run left-to-right on
+      // the top row, then the next 4 left-to-right on the bottom row — not interleaved by column.
+      // This has to match the real switch's own port numbering order, since cable data elsewhere
+      // (SAN Switch Mapping's cross-reference) assumes RackView's "FC N" and the switch's own
+      // 0-based port index enumerate ports in the same order, just offset by 1.
       let portNum = 1;
       for (let gi = 0; gi < groups; gi++) {
         for (let i = 0; i < perGroup; i++) {
-          const col = Math.floor(i / 2), row = i % 2;
+          const row = Math.floor(i / cols), col = i % cols;
           rvSfp(g, mx + gi * (cols * step + 6) + col * step, y + (row ? h / 2 + 1 : 3), ctx,
             (ctx.portPrefix || 'FC ') + portNum, { lit: portNum <= 8 });
           portNum++;
