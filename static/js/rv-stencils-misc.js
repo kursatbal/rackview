@@ -131,8 +131,13 @@ const RV_STENCILS_SWITCH = {
       mx += rvUsb(g, mx, y + 4, ctx, 'USB') + 8;
 
       const groups = 3, perGroup = 8, cols = 4;
+      // A real Brocade 300 shows 3 visually distinct blocks (mounting screws between them) — the
+      // old fixed "+6" gap was tiny next to the ~60-unit port pitch and barely showed up at all,
+      // rendering as one continuous strip instead. The gap is reserved up front so it stays
+      // proportional to the port pitch regardless of the device's rendered width.
+      const groupGap = 46;
       const portsW = c.innerX + c.innerW - 26 - mx;
-      const step = portsW / (groups * cols);
+      const step = (portsW - (groups - 1) * groupGap) / (groups * cols);
       // Row-major, matching the real chassis: the first 4 ports of a group run left-to-right on
       // the top row, then the next 4 left-to-right on the bottom row — not interleaved by column.
       // This has to match the real switch's own port numbering order, since cable data elsewhere
@@ -142,7 +147,7 @@ const RV_STENCILS_SWITCH = {
       for (let gi = 0; gi < groups; gi++) {
         for (let i = 0; i < perGroup; i++) {
           const row = Math.floor(i / cols), col = i % cols;
-          rvSfp(g, mx + gi * (cols * step + 6) + col * step, y + (row ? h / 2 + 1 : 3), ctx,
+          rvSfp(g, mx + gi * (cols * step + groupGap) + col * step, y + (row ? h / 2 + 1 : 3), ctx,
             (ctx.portPrefix || 'FC ') + portNum, { lit: portNum <= 8 });
           portNum++;
         }
