@@ -38,7 +38,7 @@
           <input id="st-pass" type="password" autocomplete="off">
         </div>
       </div>
-      <div class="san-hint">Confirmed against a real Dell PowerVault/ME array (SSH, XML CLI). Username/password are used for this pull only — never saved. The IP and the array's own reported port state are kept so you don't need to re-enter credentials just to view the last pull.</div>
+      <div class="san-hint">Dell PowerVault/ME and HPE MSA share the same controller CLI, so this works against either (confirmed against a real Dell PowerVault/ME array — SSH, XML CLI; MSA not yet verified against real hardware). Username/password are used for this pull only — never saved. The IP and the array's own reported port state are kept so you don't need to re-enter credentials just to view the last pull.</div>
       <button id="btn-st-collect" class="primary">Pull storage info</button>
       <div id="st-error" class="san-error"></div>
       <div id="st-last-pulled" class="san-hint"></div>

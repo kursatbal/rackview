@@ -25,7 +25,7 @@ Tracking what's plugged into what in a data center usually means a spreadsheet, 
 - **LLDP Discovery** — paste switch LLDP output; it's saved as an informational note on each port (surfaced in the device panel) without ever touching cabling
 - **LLDP Auto-Cabling** — a separate tool that matches LLDP neighbors against existing cabling and creates/updates/removes cables, with a review step per link and a picker/shortcut for neighbors that aren't in the rack yet
 - **SAN Switch Mapping** — pick a SAN switch already placed in a rack, enter its IP and login, and pull live port/zoning info over SSH (Brocade FOS or Cisco MDS); the username/password are used once and never saved
-- **Storage Mapping** — same idea for Dell PowerVault/ME storage arrays: pulls live FC port status and WWNs over SSH, each port cross-referenced against RackView's own cabling
+- **Storage Mapping** — same idea for Dell PowerVault/ME and HPE MSA storage arrays (same underlying controller CLI): pulls live FC port status and WWNs over SSH, each port cross-referenced against RackView's own cabling
 - **ESXi NIC Verification** — pulls physical NIC link status and vSwitch mapping over the vSphere API (no SSH needed), matched to the device's `vmnic_map` to confirm each recorded cable against reality
 - **iDRAC / iLO** — pulls BIOS/BMC firmware version and health (PSUs, fans) from a Dell iDRAC or HPE iLO over Redfish (HTTPS), the out-of-band management controller rather than the hypervisor; credentials used once and never saved
 - **Activity Log** — every device/cable create, update, and delete is timestamped with a before/after diff, filterable by rack
@@ -74,6 +74,11 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 - Export: openpyxl
 
 ## Changelog
+
+**HPE MSA support in Storage Mapping**
+- Added HPE MSA 2050/2060 SAN (SFF and LFF variants) to the device catalog
+- Storage Mapping's collector already spoke the right protocol for this without changes — Dell PowerVault/ME and HPE MSA run the same OEM controller firmware and the same SSH/XML CLI command set, confirmed by cross-checking a sibling project's separate MSA and ME adapters, which turned out to be near-identical
+- Not yet verified against real MSA hardware — only the Dell ME4024 has been tested end-to-end so far
 
 **iDRAC / iLO**
 - New page: pulls BIOS version and BMC (iDRAC/iLO) firmware version, plus health/PSU/fan status, from a Dell or HPE server's out-of-band management controller over Redfish (HTTPS) — separate from ESXi NIC Verification, which pulls the hypervisor side, not the BMC
