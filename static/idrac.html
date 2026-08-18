@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RackView — iDRAC / iLO</title>
+  <link rel="stylesheet" href="style.css" onerror="this.onerror=null;this.href='style.css?retry='+Date.now()">
+</head>
+<body>
+  <header class="toolbar">
+    <span class="title">RackView — iDRAC / iLO</span>
+    <div class="spacer"></div>
+    <a class="btn-link" href="index.html">Back to rack</a>
+  </header>
+
+  <main class="san-page">
+    <div class="san-input-col">
+      <div class="san-field">
+        <label for="bmc-switch-select">Server (from rack)</label>
+        <select id="bmc-switch-select"></select>
+      </div>
+      <div class="san-field-row">
+        <div class="san-field">
+          <label for="bmc-ip">BMC IP address</label>
+          <input id="bmc-ip" type="text" placeholder="192.168.1.20">
+        </div>
+        <div class="san-field">
+          <label for="bmc-vendor">Vendor</label>
+          <select id="bmc-vendor">
+            <option value="dell">Dell iDRAC</option>
+            <option value="hpe">HPE iLO</option>
+          </select>
+        </div>
+        <div class="san-field san-field-narrow">
+          <label for="bmc-port">HTTPS port</label>
+          <input id="bmc-port" type="text" placeholder="443">
+        </div>
+      </div>
+      <div class="san-field-row">
+        <div class="san-field">
+          <label for="bmc-user">Username</label>
+          <input id="bmc-user" type="text" autocomplete="off">
+        </div>
+        <div class="san-field">
+          <label for="bmc-pass">Password</label>
+          <input id="bmc-pass" type="password" autocomplete="off">
+        </div>
+      </div>
+      <div class="san-hint">Redfish over HTTPS — separate from the ESXi NIC Verification pull (that's the hypervisor, this is the out-of-band management controller: BIOS/BMC firmware, health, PSU/fans). Username/password are used for this pull only — never saved.</div>
+      <button id="btn-bmc-collect" class="primary">Pull BMC info</button>
+      <div id="bmc-error" class="san-error"></div>
+      <div id="bmc-last-pulled" class="san-hint"></div>
+    </div>
+
+    <div class="san-results-col">
+      <div id="bmc-body"><div class="san-empty">Select a server and pull its BMC info.</div></div>
+    </div>
+  </main>
+
+  <script src="js/idrac.js"></script>
+</body>
+</html>

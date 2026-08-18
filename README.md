@@ -27,6 +27,7 @@ Tracking what's plugged into what in a data center usually means a spreadsheet, 
 - **SAN Switch Mapping** — pick a SAN switch already placed in a rack, enter its IP and login, and pull live port/zoning info over SSH (Brocade FOS or Cisco MDS); the username/password are used once and never saved
 - **Storage Mapping** — same idea for Dell PowerVault/ME storage arrays: pulls live FC port status and WWNs over SSH, each port cross-referenced against RackView's own cabling
 - **ESXi NIC Verification** — pulls physical NIC link status and vSwitch mapping over the vSphere API (no SSH needed), matched to the device's `vmnic_map` to confirm each recorded cable against reality
+- **iDRAC / iLO** — pulls BIOS/BMC firmware version and health (PSUs, fans) from a Dell iDRAC or HPE iLO over Redfish (HTTPS), the out-of-band management controller rather than the hypervisor; credentials used once and never saved
 - **Activity Log** — every device/cable create, update, and delete is timestamped with a before/after diff, filterable by rack
 - **Mgmt IP conflict check** — flags a device whose management IP is already recorded on another device in the same customer's racks
 - **Devices view** — a flat, sortable/filterable table of every device across every rack, with firmware/version pulled live where available (SAN/Storage/ESXi mapping); click a row to jump to that device in its rack
@@ -73,6 +74,13 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 - Export: openpyxl
 
 ## Changelog
+
+**iDRAC / iLO**
+- New page: pulls BIOS version and BMC (iDRAC/iLO) firmware version, plus health/PSU/fan status, from a Dell or HPE server's out-of-band management controller over Redfish (HTTPS) — separate from ESXi NIC Verification, which pulls the hypervisor side, not the BMC
+- Ported from a sibling project's Redfish collector, scoped down to identity + firmware + health/PSU/fans (no disk/RAID/memory inventory) to match the lighter tier of RackView's other live-pull tools
+- iDRAC/iLO BMCs typically negotiate older TLS cipher sets than OpenSSL 3.x's default security level accepts, causing a handshake failure — worked around with a custom TLS adapter that lowers the cipher security level and re-enables legacy renegotiation for that connection only
+- Same credential rule as every other live-pull tool here: username/password are used for one pull and never written to disk; only the IP/vendor/port and the BMC's own reported state are kept
+- The Devices view's firmware column now prefers BIOS/BMC firmware from an iDRAC/iLO pull over the ESXi hypervisor build for server-category devices, since that's what a vendor security advisory actually means by "firmware"
 
 **Devices view**
 - New page: a flat table of every device across every rack — name, category, vendor/model, rack, mgmt IP, firmware/version, serial, owner — sortable by column, filterable by category/customer, searchable across name/IP/serial/model
