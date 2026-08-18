@@ -8,10 +8,11 @@ from flask import Flask, jsonify, request, send_from_directory, Response
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
-from models import db, DeviceType, Rack, Device, Cable, ArpEntry, LldpDiscovery, SanSnapshot, ActivityLog, StorageSnapshot, EsxiSnapshot
+from models import db, DeviceType, Rack, Device, Cable, ArpEntry, LldpDiscovery, SanSnapshot, ActivityLog, StorageSnapshot, EsxiSnapshot, IdracSnapshot
 from san import collect_one as san_collect_one
 from storage import collect_one as storage_collect_one
 from esxi import collect_one as esxi_collect_one
+from idrac_ilo import collect_one as idrac_collect_one
 
 
 def _data_dir():
@@ -497,6 +498,14 @@ def _latest_firmware(device):
         if snap:
             return (snap.fabric or {}).get("firmware")
     elif category == "server":
+        # iDRAC/iLO's BIOS/BMC firmware is what a vendor advisory actually refers to as "firmware" —
+        # preferred over the ESXi hypervisor build, which is really an OS version, not firmware.
+        idrac_snap = IdracSnapshot.query.filter_by(device_id=device.id).order_by(IdracSnapshot.timestamp.desc()).first()
+        if idrac_snap:
+            d = idrac_snap.data or {}
+            bios, bmc = d.get("bios_version"), d.get("bmc_firmware")
+            if bios or bmc:
+                return " / ".join(p for p in [f"BIOS {bios}" if bios else None, f"BMC {bmc}" if bmc else None] if p)
         snap = EsxiSnapshot.query.filter_by(device_id=device.id).order_by(EsxiSnapshot.timestamp.desc()).first()
         if snap:
             return (snap.data or {}).get("product")
@@ -1392,6 +1401,58 @@ def esxi_collect():
 def esxi_snapshot(device_id):
     Device.query.get_or_404(device_id)
     row = EsxiSnapshot.query.filter_by(device_id=device_id).order_by(EsxiSnapshot.timestamp.desc()).first()
+    return jsonify(row.to_dict() if row else None)
+
+
+@app.route("/api/idrac/devices")
+def idrac_devices():
+    # Same pool of devices as ESXi NIC Verification — this is the out-of-band BMC side of the
+    # same physical server, not a different device.
+    devices = Device.query.join(Device.device_type).filter(DeviceType.category == "server").all()
+    return jsonify([
+        {"id": d.id, "name": d.name, "rack_id": d.rack_id, "rack_name": d.rack.name,
+         "vendor": d.device_type.vendor, "model": d.device_type.model,
+         "idrac_config": (d.metadata_json or {}).get("idrac_config")}
+        for d in devices
+    ])
+
+
+@app.route("/api/idrac/collect", methods=["POST"])
+def idrac_collect():
+    payload = request.get_json()
+    device_id = payload.get("device_id")
+    ip = (payload.get("ip") or "").strip()
+    vendor = (payload.get("vendor") or "").strip().lower()
+    port = payload.get("port")
+    username = payload.get("username")
+    password = payload.get("password")
+
+    device = Device.query.get_or_404(device_id)
+    if not ip or vendor not in ("dell", "hpe"):
+        return jsonify({"error": "ip and vendor (dell/hpe) are required"}), 400
+
+    data, error = idrac_collect_one(vendor, ip, username, password, port)
+    if error:
+        return jsonify({"error": error}), 502
+
+    data["ip"] = ip
+    data["device_id"] = device_id
+
+    merged = dict(device.metadata_json or {})
+    merged["idrac_config"] = {"ip": ip, "vendor": vendor, "port": port}
+    device.metadata_json = merged
+
+    snapshot = IdracSnapshot(timestamp=datetime.now(timezone.utc), device_id=device_id, ip=ip, data=data)
+    db.session.add(snapshot)
+    db.session.commit()
+
+    return jsonify(snapshot.to_dict())
+
+
+@app.route("/api/idrac/snapshot/<int:device_id>")
+def idrac_snapshot(device_id):
+    Device.query.get_or_404(device_id)
+    row = IdracSnapshot.query.filter_by(device_id=device_id).order_by(IdracSnapshot.timestamp.desc()).first()
     return jsonify(row.to_dict() if row else None)
 
 
