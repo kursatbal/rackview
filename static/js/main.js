@@ -123,6 +123,13 @@ async function main() {
     };
   });
 
+  const toolsMenu = document.getElementById("tools-menu");
+  document.getElementById("btn-tools").onclick = e => {
+    e.stopPropagation();
+    toolsMenu.classList.toggle("open");
+  };
+  document.addEventListener("click", () => toolsMenu.classList.remove("open"));
+
   document.getElementById("btn-edit").onclick = () => {
     setEditMode(!editMode);
     document.getElementById("btn-edit").classList.toggle("active", editMode);

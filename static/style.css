@@ -276,6 +276,27 @@ body {
   background: #D3D1C7;
 }
 
+.dropdown-menu a {
+  font-family: monospace;
+  font-size: 12px;
+  padding: 7px 10px;
+  border: none;
+  border-bottom: 1px solid #D3D1C7;
+  background: #F1EFE8;
+  color: #2C2C2A;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.dropdown-menu a:last-child {
+  border-bottom: none;
+}
+
+.dropdown-menu a:hover {
+  background: #D3D1C7;
+}
+
 .layout {
   display: flex;
   height: calc(100vh - 42px);
@@ -1862,7 +1883,7 @@ body {
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
-  border-bottom: 1px solid #B4B2A9;
+  border: 1px solid #B4B2A9;
 }
 
 #dv-table thead th:hover {
@@ -1874,7 +1895,7 @@ body {
 
 #dv-table td {
   padding: 6px 10px;
-  border-bottom: 1px solid #E4E2D8;
+  border: 1px solid #E4E2D8;
   white-space: nowrap;
 }
 
