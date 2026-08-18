@@ -75,6 +75,11 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 
 ## Changelog
 
+**Tools menu, bordered Devices table**
+- The top bar had grown to nine separate buttons as live-pull tools were added one at a time — LLDP Discovery, LLDP Auto-Cabling, SAN Switch Mapping, Storage Mapping, ESXi NIC Verification, iDRAC/iLO, and Activity Log are now grouped under a single Tools ▾ dropdown
+- Devices table now has full cell borders (a proper grid) instead of just row underlines
+- Added a help-overlay card pointing at the new Tools menu
+
 **HPE MSA support in Storage Mapping**
 - Added HPE MSA 2050/2060 SAN (SFF and LFF variants) to the device catalog
 - Storage Mapping's collector already spoke the right protocol for this without changes — Dell PowerVault/ME and HPE MSA run the same OEM controller firmware and the same SSH/XML CLI command set, confirmed by cross-checking a sibling project's separate MSA and ME adapters, which turned out to be near-identical
