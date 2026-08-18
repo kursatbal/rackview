@@ -154,6 +154,10 @@ const RV_CATALOG = [
   { model: 'PowerStore 3200T',       vendor: 'Dell', stencil: 'dell-me5-2u', u: 2, opts: { bays: 25, bayType: 'sff' } },
   { model: 'Unity XT 380F',          vendor: 'Dell', stencil: 'dell-me5-2u', u: 2, opts: { bays: 25, bayType: 'sff' } },
   { model: 'Unity XT 480F',          vendor: 'Dell', stencil: 'dell-me5-2u', u: 2, opts: { bays: 25, bayType: 'sff' } },
+  { model: 'MSA 2060 SAN',           vendor: 'HPE', stencil: 'dell-me5-2u', u: 2, opts: { bays: 24, bayType: 'sff' } },
+  { model: 'MSA 2060 SAN LFF',       vendor: 'HPE', stencil: 'dell-me5-2u', u: 2, opts: { bays: 12, bayType: 'lff' } },
+  { model: 'MSA 2050 SAN',           vendor: 'HPE', stencil: 'dell-me5-2u', u: 2, opts: { bays: 24, bayType: 'sff' } },
+  { model: 'MSA 2050 SAN LFF',       vendor: 'HPE', stencil: 'dell-me5-2u', u: 2, opts: { bays: 12, bayType: 'lff' } },
 
   // ===================== INFRASTRUCTURE =====================
   { model: 'AP8659 PDU',             vendor: 'APC', stencil: 'pdu-1u-horizontal', u: 1, opts: { outlets: 24 } },

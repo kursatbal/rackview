@@ -1,10 +1,15 @@
 """
-storage.py — Dell PowerVault/ME-series storage array adapter (SSH/CLI, XML output).
+storage.py — Dell PowerVault/ME-series and HPE MSA storage array adapter (SSH/CLI, XML output).
 
 Read-only ('show system', 'show ports'). Confirmed on a real Dell ME4024 (ME4024) —
 the array's CLI over SSH replies with a well-formed XML document per command (Dell's
 "SC-API"/SMC CLI format, shared across the ME/MD/PowerVault line), which is far more
 reliable to parse than a fixed-width text table.
+
+HPE MSA (2050/2060 series) uses the same underlying OEM controller firmware and the same
+command set, so this adapter should work against an MSA unchanged — vendor/model come back
+from the array's own "show system" reply either way. Not yet verified against real MSA
+hardware (only the Dell ME4024 has been tested end-to-end).
 """
 from __future__ import annotations
 import re
