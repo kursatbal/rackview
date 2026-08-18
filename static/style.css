@@ -1801,3 +1801,101 @@ body {
   color: #0F6E56;
   font-weight: 600;
 }
+
+/* ===== Devices (flat cross-rack list) ===== */
+.devices-page {
+  padding: 16px;
+  height: calc(100vh - 42px);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.devices-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.devices-toolbar input, .devices-toolbar select {
+  font-family: monospace;
+  font-size: 12px;
+  padding: 6px 8px;
+  border: 1px solid #888780;
+  background: #fff;
+}
+
+.devices-toolbar input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.devices-count {
+  margin-left: auto;
+  font-size: 11px;
+  color: #5F5E5A;
+  white-space: nowrap;
+}
+
+.devices-table-wrap {
+  flex: 1;
+  overflow: auto;
+  border: 1px solid #B4B2A9;
+  border-radius: 6px;
+  background: #fff;
+}
+
+#dv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+#dv-table thead th {
+  position: sticky;
+  top: 0;
+  background: #D3D1C7;
+  text-align: left;
+  padding: 7px 10px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  border-bottom: 1px solid #B4B2A9;
+}
+
+#dv-table thead th:hover {
+  background: #C4C2B8;
+}
+
+#dv-table thead th.sorted-asc::after { content: " \25B2"; font-size: 9px; }
+#dv-table thead th.sorted-desc::after { content: " \25BC"; font-size: 9px; }
+
+#dv-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid #E4E2D8;
+  white-space: nowrap;
+}
+
+.devices-row {
+  cursor: pointer;
+}
+
+.devices-row:hover {
+  background: #F1EFE8;
+}
+
+.dv-name {
+  font-weight: bold;
+}
+
+.dv-mono {
+  color: #5F5E5A;
+}
+
+.devices-empty {
+  text-align: center;
+  color: #5F5E5A;
+  padding: 20px;
+}

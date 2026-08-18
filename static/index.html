@@ -11,6 +11,7 @@
     <span class="title" id="page-title">RackView</span>
     <div class="spacer"></div>
     <button id="btn-search" title="Search (Ctrl+K)">Search</button>
+    <a id="btn-devices" class="btn-link" href="devices.html">Devices</a>
     <a id="btn-lldp" class="btn-link" href="lldp.html">LLDP Discovery</a>
     <a id="btn-lldp-autocable" class="btn-link" href="lldp-autocable.html">LLDP Auto-Cabling</a>
     <a id="btn-san" class="btn-link" href="san.html">SAN Switch Mapping</a>
@@ -91,6 +92,10 @@
         <div class="help-item">
           <h3>📜 Activity Log</h3>
           <p>Every device and cable create/update/delete is recorded with a timestamp and a before/after diff — no login system, so it tracks what changed, not who changed it.</p>
+        </div>
+        <div class="help-item">
+          <h3>📋 Devices</h3>
+          <p>A flat, sortable/filterable table of every device across every rack — name, category, mgmt IP, firmware/version (pulled live where available, from SAN/Storage/ESXi mapping), serial, owner. Click a row to jump straight to that device in its rack.</p>
         </div>
       </div>
     </div>

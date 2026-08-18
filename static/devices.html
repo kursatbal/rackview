@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RackView — Devices</title>
+  <link rel="stylesheet" href="style.css" onerror="this.onerror=null;this.href='style.css?retry='+Date.now()">
+</head>
+<body>
+  <header class="toolbar">
+    <span class="title">RackView — Devices</span>
+    <div class="spacer"></div>
+    <a class="btn-link" href="index.html">Back to rack</a>
+  </header>
+
+  <main class="devices-page">
+    <div class="devices-toolbar">
+      <input id="dv-search" type="text" placeholder="Search: name, IP, serial, model...">
+      <select id="dv-category"></select>
+      <select id="dv-customer"></select>
+      <span id="dv-count" class="devices-count"></span>
+    </div>
+    <div class="devices-table-wrap">
+      <table id="dv-table">
+        <thead>
+          <tr>
+            <th data-sort="name">Name</th>
+            <th data-sort="category">Category</th>
+            <th data-sort="vendor">Vendor / Model</th>
+            <th data-sort="rack_name">Rack</th>
+            <th data-sort="mgmt_ip">Mgmt IP</th>
+            <th data-sort="firmware">Firmware / Version</th>
+            <th data-sort="serial">Serial</th>
+            <th data-sort="owner_team">Owner</th>
+          </tr>
+        </thead>
+        <tbody id="dv-tbody"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script src="js/devices.js"></script>
+</body>
+</html>

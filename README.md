@@ -29,6 +29,7 @@ Tracking what's plugged into what in a data center usually means a spreadsheet, 
 - **ESXi NIC Verification** — pulls physical NIC link status and vSwitch mapping over the vSphere API (no SSH needed), matched to the device's `vmnic_map` to confirm each recorded cable against reality
 - **Activity Log** — every device/cable create, update, and delete is timestamped with a before/after diff, filterable by rack
 - **Mgmt IP conflict check** — flags a device whose management IP is already recorded on another device in the same customer's racks
+- **Devices view** — a flat, sortable/filterable table of every device across every rack, with firmware/version pulled live where available (SAN/Storage/ESXi mapping); click a row to jump to that device in its rack
 - **Multi-rack / floor view** — customer-isolated racks, a hall-level view, inter-rack cabling
 - **Excel export** — download a rack's or a device's cabling as `.xlsx`
 
@@ -72,6 +73,15 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 - Export: openpyxl
 
 ## Changelog
+
+**Devices view**
+- New page: a flat table of every device across every rack — name, category, vendor/model, rack, mgmt IP, firmware/version, serial, owner — sortable by column, filterable by category/customer, searchable across name/IP/serial/model
+- Firmware/version is resolved per device from whichever source actually knows it: the latest live pull for SAN switches/storage/servers (SAN Switch Mapping, Storage Mapping, ESXi NIC Verification), falling back to the manually-entered field for everything else
+- Click any row to jump straight to that device in its rack
+
+**Brocade 300 port layout and cable routing fixes**
+- The port groups were drawn column-by-column instead of row-major, confirmed wrong against a real unit — real port numbering goes top row 0-3, bottom row 4-7 within each group of 8; fixed, and the inter-group gap (previously nearly invisible) now actually reads as 3 separate blocks like the real chassis
+- Fixed cable routing choosing an unnecessarily long "bridge over the top of the rack" path for cables where one end sits on a wide multi-port device's right half and the other on a narrower device's left half, even when the two devices are directly stacked — it now compares the cost of routing both ends through the same side against the natural pairing and picks whichever is actually shorter; found and confirmed fixed against a real customer rack built from live-pulled SAN/storage/server data
 
 **ESXi NIC Verification**
 - New page: pulls physical NIC link status, speed, and vSwitch mapping from an ESXi host — over the vSphere API (HTTPS/443), not SSH, since SSH is disabled by default on ESXi and the real hosts tested against here had it off; the vSphere API needs nothing enabled on the host and returns structured data instead of esxcli text tables

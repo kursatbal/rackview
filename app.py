@@ -485,6 +485,45 @@ def delete_cable(cable_id):
     return "", 204
 
 
+def _latest_firmware(device):
+    # Firmware/version lives in different places depending on how it was learned: a live pull
+    # (SAN/Storage/ESXi mapping) takes priority over the manually-typed metadata_json.sw_version
+    # field used by the generic switch/firewall/router System tab, since a live pull is verified
+    # against the real device and the manual field can go stale.
+    category = device.device_type.category
+    snap = None
+    if category == "san-switch":
+        snap = SanSnapshot.query.filter_by(device_id=device.id).order_by(SanSnapshot.timestamp.desc()).first()
+        if snap:
+            return (snap.fabric or {}).get("firmware")
+    elif category == "server":
+        snap = EsxiSnapshot.query.filter_by(device_id=device.id).order_by(EsxiSnapshot.timestamp.desc()).first()
+        if snap:
+            return (snap.data or {}).get("product")
+    elif category == "storage":
+        snap = StorageSnapshot.query.filter_by(device_id=device.id).order_by(StorageSnapshot.timestamp.desc()).first()
+        if snap:
+            fw = (snap.data or {}).get("firmware")
+            if fw:
+                return fw
+    return (device.metadata_json or {}).get("sw_version")
+
+
+@app.route("/api/devices/all")
+def all_devices():
+    devices = Device.query.join(Device.device_type).join(Device.rack).all()
+    return jsonify([
+        {
+            "id": d.id, "name": d.name, "category": d.device_type.category,
+            "vendor": d.device_type.vendor, "model": d.device_type.model,
+            "rack_id": d.rack_id, "rack_name": d.rack.name, "customer": d.rack.customer,
+            "position_u": d.position_u, "mgmt_ip": d.mgmt_ip, "serial": d.serial,
+            "owner_team": d.owner_team, "firmware": _latest_firmware(d),
+        }
+        for d in devices
+    ])
+
+
 @app.route("/api/devices/<int:device_id>/free-ports")
 def get_free_ports(device_id):
     device = Device.query.get_or_404(device_id)
