@@ -12,13 +12,18 @@
     <div class="spacer"></div>
     <button id="btn-search" title="Search (Ctrl+K)">Search</button>
     <a id="btn-devices" class="btn-link" href="devices.html">Devices</a>
-    <a id="btn-lldp" class="btn-link" href="lldp.html">LLDP Discovery</a>
-    <a id="btn-lldp-autocable" class="btn-link" href="lldp-autocable.html">LLDP Auto-Cabling</a>
-    <a id="btn-san" class="btn-link" href="san.html">SAN Switch Mapping</a>
-    <a id="btn-storage" class="btn-link" href="storage.html">Storage Mapping</a>
-    <a id="btn-esxi" class="btn-link" href="esxi.html">ESXi NIC Verification</a>
-    <a id="btn-idrac" class="btn-link" href="idrac.html">iDRAC / iLO</a>
-    <a id="btn-activity-log" class="btn-link" href="activity-log.html">Activity Log</a>
+    <div class="dropdown">
+      <button id="btn-tools">Tools ▾</button>
+      <div id="tools-menu" class="dropdown-menu">
+        <a id="btn-lldp" href="lldp.html">LLDP Discovery</a>
+        <a id="btn-lldp-autocable" href="lldp-autocable.html">LLDP Auto-Cabling</a>
+        <a id="btn-san" href="san.html">SAN Switch Mapping</a>
+        <a id="btn-storage" href="storage.html">Storage Mapping</a>
+        <a id="btn-esxi" href="esxi.html">ESXi NIC Verification</a>
+        <a id="btn-idrac" href="idrac.html">iDRAC / iLO</a>
+        <a id="btn-activity-log" href="activity-log.html">Activity Log</a>
+      </div>
+    </div>
     <button id="btn-front" class="active">Front</button>
     <button id="btn-rear">Rear</button>
     <div class="dropdown">
@@ -54,6 +59,10 @@
       <h2>Welcome to RackView</h2>
       <p class="help-intro">Quick tour of what you can do here.</p>
       <div class="help-grid">
+        <div class="help-item">
+          <h3>🧰 Tools menu</h3>
+          <p>The <b>Tools ▾</b> button in the top bar groups every live-pull/integration screen in one place: LLDP Discovery, LLDP Auto-Cabling, SAN Switch Mapping, Storage Mapping, ESXi NIC Verification, iDRAC / iLO, and Activity Log. See the cards below for what each one does.</p>
+        </div>
         <div class="help-item">
           <h3>✏️ Edit mode</h3>
           <p>Click <b>Edit</b> in the top bar to drag devices into new U positions, rename/delete them, or edit their fields (IP, serial, notes…) in the side panel.</p>
