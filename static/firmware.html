@@ -18,8 +18,20 @@
       <span id="fw-count" class="devices-count"></span>
     </div>
     <div class="fw-summary-bar" id="fw-summary"></div>
-    <div class="fw-list-wrap">
-      <div id="fw-list" class="fw-list"></div>
+    <div class="devices-table-wrap">
+      <table id="fw-table">
+        <thead>
+          <tr>
+            <th>Vendor / Model</th>
+            <th>Category</th>
+            <th>Devices</th>
+            <th>Current version(s) seen</th>
+            <th>Latest known</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="fw-tbody"></tbody>
+      </table>
     </div>
     <div class="fw-hint">"Latest known" is entered by hand per vendor/model — RackView has no internet access to pull vendor release feeds automatically. Leave it blank until you know what's current; a model with no "Latest known" set shows as "Latest unknown", not "Outdated".</div>
   </main>

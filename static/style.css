@@ -1921,9 +1921,8 @@ body {
   padding: 20px;
 }
 
-/* Firmware Status page — card list, not a table: the vendor/model + device list can run long
-   and a version comparison reads far better as two stacked labeled blocks than as two cramped
-   table cells. */
+/* Firmware Status page — back to a table (the card layout tried a different shape but read as
+   worse), with stronger, more saturated status colors than the original pale badges had. */
 
 .fw-summary-bar {
   display: flex;
@@ -1935,16 +1934,15 @@ body {
   align-items: center;
   gap: 6px;
   font-size: 11px;
+  font-weight: bold;
   padding: 5px 10px;
   border-radius: 4px;
-  border: 1px solid transparent;
+  border: 1px solid #B4B2A9;
   cursor: pointer;
   background: #fff;
-  border-color: #B4B2A9;
   color: #5F5E5A;
 }
 
-.fw-summary-chip .fw-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
 .fw-summary-chip b { font-family: monospace; }
 
 .fw-summary-chip.active {
@@ -1953,169 +1951,115 @@ body {
   border-color: #2C2C2A;
 }
 
-.fw-list-wrap {
-  flex: 1;
-  overflow: auto;
+.fw-chip-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.fw-chip-dot-outdated { background: #D93E30; }
+.fw-chip-dot-up_to_date { background: #16916E; }
+.fw-chip-dot-unknown_latest { background: #D6971F; }
+.fw-chip-dot-no_data { background: #8A887F; }
+
+#fw-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: monospace;
+  font-size: 12px;
 }
 
-.fw-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+#fw-table thead th {
+  position: sticky;
+  top: 0;
+  background: #D3D1C7;
+  text-align: left;
+  padding: 8px 10px;
+  white-space: nowrap;
+  border: 1px solid #B4B2A9;
 }
 
-.fw-card {
-  display: grid;
-  grid-template-columns: 1.3fr 1.5fr auto;
-  gap: 18px;
-  align-items: center;
-  background: #fff;
-  border: 1px solid #D3D1C7;
-  border-left: 4px solid #B4B2A9;
-  border-radius: 6px;
-  padding: 11px 16px;
-}
-
-.fw-card-outdated { border-left-color: #C0392B; }
-.fw-card-up_to_date { border-left-color: #0F6E56; }
-.fw-card-unknown_latest { border-left-color: #C08A1E; }
-.fw-card-no_data { border-left-color: #B4B2A9; }
-
-.fw-card-name {
-  font-weight: bold;
-  font-size: 13px;
-}
-
-.fw-card-cat {
-  display: inline-block;
-  margin-left: 8px;
-  font-size: 10px;
-  font-weight: normal;
-  color: #5F5E5A;
-  background: #EDEBE1;
-  padding: 1px 6px;
-  border-radius: 3px;
+#fw-table td {
+  padding: 8px 10px;
+  border: 1px solid #E4E2D8;
+  white-space: nowrap;
   vertical-align: middle;
 }
 
-.fw-card-devices {
-  margin-top: 4px;
-  font-size: 11px;
+.fw-row:nth-child(even) { background: #FAF9F5; }
+.fw-row:hover { background: #F1EFE8; }
+
+.fw-row td:first-child { border-left: 5px solid #B4B2A9; }
+.fw-row-outdated td:first-child { border-left-color: #D93E30; }
+.fw-row-up_to_date td:first-child { border-left-color: #16916E; }
+.fw-row-unknown_latest td:first-child { border-left-color: #D6971F; }
+.fw-row-no_data td:first-child { border-left-color: #B4B2A9; }
+
+.fw-versions {
   color: #5F5E5A;
-  line-height: 1.5;
+  font-size: 11px;
 }
 
-.fw-compare {
+.fw-devices {
+  color: #5F5E5A;
+  font-size: 11px;
+  white-space: normal;
+}
+
+.fw-edit-row {
   display: flex;
+  gap: 6px;
   align-items: center;
-  gap: 10px;
 }
 
-.fw-ver-block {
-  min-width: 0;
-}
-
-.fw-ver-label {
-  font-size: 9.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: #8A887F;
-  margin-bottom: 2px;
-}
-
-.fw-ver-value {
-  font-family: monospace;
-  font-size: 12.5px;
-  color: #2C2C2A;
-  overflow-wrap: anywhere;
-}
-
-.fw-ver-value.empty { color: #ABA99F; }
-
-.fw-ver-arrow {
-  color: #ABA99F;
-  font-size: 14px;
-}
-
-.fw-ver-edit {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.fw-ver-edit input, .fw-notes-input {
+.fw-edit-row input {
   font-family: monospace;
   font-size: 12px;
-  padding: 4px 6px;
-  border: 1px solid #B4B2A9;
+  padding: 5px 7px;
+  border: 1px solid #9B9A92;
   border-radius: 3px;
-  background: #FBFAF6;
-}
-
-.fw-ver-edit input:focus, .fw-notes-input:focus {
-  outline: none;
-  border-color: #0F6E56;
   background: #fff;
 }
 
-.fw-ver-edit input[name="latest"] { width: 120px; }
-.fw-notes-input { width: 150px; }
-
-.fw-card-side {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
+.fw-edit-row input:focus {
+  outline: none;
+  border-color: #16916E;
+  box-shadow: 0 0 0 2px rgba(22, 145, 110, 0.15);
 }
 
-.fw-side-row {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
+.fw-edit-row input[name="latest"] { width: 110px; }
+.fw-edit-row input[name="notes"] { width: 150px; }
 
-.fw-save-btn {
+.fw-edit-row button {
   font-family: monospace;
   font-size: 11px;
-  padding: 4px 10px;
+  font-weight: bold;
+  padding: 5px 10px;
   border: 1px solid #888780;
   background: #F1EFE8;
   cursor: pointer;
   border-radius: 3px;
 }
 
-.fw-save-btn:hover { background: #E4E2D8; }
-.fw-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.fw-edit-row button:hover { background: #E4E2D8; }
+.fw-edit-row button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .fw-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 10.5px;
+  gap: 6px;
+  font-size: 11px;
   font-weight: bold;
-  padding: 4px 9px;
+  padding: 5px 11px;
   border-radius: 20px;
   white-space: nowrap;
+  color: #fff;
 }
 
-.fw-badge .fw-dot { width: 6px; height: 6px; border-radius: 50%; }
+.fw-badge .fw-dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; opacity: 0.9; }
 
-.fw-badge-outdated { background: #FCE8E6; color: #A32D2D; }
-.fw-badge-outdated .fw-dot { background: #C0392B; }
-.fw-badge-up_to_date { background: #DCF3E9; color: #0F6E56; }
-.fw-badge-up_to_date .fw-dot { background: #0F6E56; }
-.fw-badge-unknown_latest { background: #FBF1DA; color: #8A6D1E; }
-.fw-badge-unknown_latest .fw-dot { background: #C08A1E; }
-.fw-badge-no_data { background: #E4E2D8; color: #5F5E5A; }
-.fw-badge-no_data .fw-dot { background: #8A887F; }
+.fw-badge-outdated { background: #D93E30; }
+.fw-badge-up_to_date { background: #16916E; }
+.fw-badge-unknown_latest { background: #D6971F; }
+.fw-badge-no_data { background: #8A887F; }
 
 .fw-hint {
   font-size: 11px;
   color: #5F5E5A;
   line-height: 1.4;
-}
-
-@media (max-width: 900px) {
-  .fw-card { grid-template-columns: 1fr; }
-  .fw-card-side { align-items: flex-start; }
 }

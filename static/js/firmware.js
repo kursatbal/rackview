@@ -45,8 +45,8 @@ function renderSummary() {
   bar.appendChild(allChip);
   STATUS_ORDER.forEach(status => {
     const count = fwRows.filter(r => r.status === status).length;
-    const chip = h("div", { class: "fw-summary-chip fw-badge-" + status + (fwStatusFilter === status ? " active" : "") }, [
-      h("span", { class: "fw-dot" }),
+    const chip = h("div", { class: "fw-summary-chip" + (fwStatusFilter === status ? " active" : "") }, [
+      h("span", { class: "fw-chip-dot fw-chip-dot-" + status }),
       h("b", {}, [String(count)]),
       " " + STATUS_LABELS[status],
     ]);
@@ -66,56 +66,42 @@ function filtered() {
 
 function render() {
   const rows = filtered();
-  const list = document.getElementById("fw-list");
-  list.innerHTML = "";
+  const tbody = document.getElementById("fw-tbody");
+  tbody.innerHTML = "";
   document.getElementById("fw-count").textContent = `${rows.length} model${rows.length === 1 ? "" : "s"}`;
   if (!rows.length) {
-    list.appendChild(h("div", { class: "devices-empty" }, ["No matching models."]));
+    tbody.appendChild(h("tr", {}, [h("td", { colspan: "6", class: "devices-empty" }, ["No matching models."])]));
     return;
   }
-  rows.forEach(r => list.appendChild(buildCard(r)));
+  rows.forEach(r => tbody.appendChild(buildRow(r)));
 }
 
-function buildCard(r) {
-  const card = h("div", { class: `fw-card fw-card-${r.status}` });
+function buildRow(r) {
+  const tr = h("tr", { class: `fw-row fw-row-${r.status}` });
 
   const label = r.model.toLowerCase().startsWith(r.vendor.toLowerCase()) ? r.model : `${r.vendor} ${r.model}`;
+  tr.appendChild(h("td", { class: "dv-name" }, [label]));
+  tr.appendChild(h("td", {}, [CATEGORY_LABELS[r.category] || r.category]));
+
   const deviceNames = r.devices.map(d => `${d.name} (${d.rack_name})`).join(", ");
-  const main = h("div", {}, [
-    h("div", {}, [
-      h("span", { class: "fw-card-name" }, [label]),
-      h("span", { class: "fw-card-cat" }, [CATEGORY_LABELS[r.category] || r.category]),
-    ]),
-    h("div", { class: "fw-card-devices" }, [`${r.device_count} device${r.device_count === 1 ? "" : "s"} — ${deviceNames}`]),
-  ]);
-  card.appendChild(main);
+  tr.appendChild(h("td", { class: "fw-devices" }, [`${r.device_count} — ${deviceNames}`]));
 
-  const currentText = r.current_versions.length ? r.current_versions.join(", ") : "not pulled yet";
+  tr.appendChild(h("td", { class: "fw-versions" }, [r.current_versions.length ? r.current_versions.join(", ") : "-"]));
+
+  const editRow = h("div", { class: "fw-edit-row" });
   const latestInput = h("input", { name: "latest", type: "text", placeholder: "e.g. 9.2.0", value: r.latest_version || "" });
-  const compare = h("div", { class: "fw-compare" }, [
-    h("div", { class: "fw-ver-block" }, [
-      h("div", { class: "fw-ver-label" }, ["Running"]),
-      h("div", { class: "fw-ver-value" + (r.current_versions.length ? "" : " empty") }, [currentText]),
-    ]),
-    h("div", { class: "fw-ver-arrow" }, ["→"]),
-    h("div", { class: "fw-ver-block fw-ver-edit" }, [
-      h("div", { class: "fw-ver-label" }, ["Latest known"]),
-      latestInput,
-    ]),
-  ]);
-  card.appendChild(compare);
-
-  const notesInput = h("input", { class: "fw-notes-input", name: "notes", type: "text", placeholder: "notes (optional)", value: r.notes || "" });
-  const saveBtn = h("button", { class: "fw-save-btn" }, ["Save"]);
+  const notesInput = h("input", { name: "notes", type: "text", placeholder: "notes (optional)", value: r.notes || "" });
+  const saveBtn = h("button", {}, ["Save"]);
   saveBtn.onclick = () => saveReference(r, latestInput.value.trim(), notesInput.value.trim(), saveBtn);
-  const badge = h("span", { class: `fw-badge fw-badge-${r.status}` }, [h("span", { class: "fw-dot" }), STATUS_LABELS[r.status] || r.status]);
-  const side = h("div", { class: "fw-card-side" }, [
-    badge,
-    h("div", { class: "fw-side-row" }, [notesInput, saveBtn]),
-  ]);
-  card.appendChild(side);
+  editRow.appendChild(latestInput);
+  editRow.appendChild(notesInput);
+  editRow.appendChild(saveBtn);
+  tr.appendChild(h("td", {}, [editRow]));
 
-  return card;
+  const badge = h("span", { class: `fw-badge fw-badge-${r.status}` }, [h("span", { class: "fw-dot" }), STATUS_LABELS[r.status] || r.status]);
+  tr.appendChild(h("td", {}, [badge]));
+
+  return tr;
 }
 
 async function saveReference(r, latest, notes, btn) {
