@@ -1921,58 +1921,201 @@ body {
   padding: 20px;
 }
 
-.fw-badge {
-  display: inline-block;
+/* Firmware Status page — card list, not a table: the vendor/model + device list can run long
+   and a version comparison reads far better as two stacked labeled blocks than as two cramped
+   table cells. */
+
+.fw-summary-bar {
+  display: flex;
+  gap: 10px;
+}
+
+.fw-summary-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  background: #fff;
+  border-color: #B4B2A9;
+  color: #5F5E5A;
+}
+
+.fw-summary-chip .fw-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.fw-summary-chip b { font-family: monospace; }
+
+.fw-summary-chip.active {
+  background: #2C2C2A;
+  color: #F1EFE8;
+  border-color: #2C2C2A;
+}
+
+.fw-list-wrap {
+  flex: 1;
+  overflow: auto;
+}
+
+.fw-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fw-card {
+  display: grid;
+  grid-template-columns: 1.3fr 1.5fr auto;
+  gap: 18px;
+  align-items: center;
+  background: #fff;
+  border: 1px solid #D3D1C7;
+  border-left: 4px solid #B4B2A9;
+  border-radius: 6px;
+  padding: 11px 16px;
+}
+
+.fw-card-outdated { border-left-color: #C0392B; }
+.fw-card-up_to_date { border-left-color: #0F6E56; }
+.fw-card-unknown_latest { border-left-color: #C08A1E; }
+.fw-card-no_data { border-left-color: #B4B2A9; }
+
+.fw-card-name {
   font-weight: bold;
-  padding: 3px 8px;
+  font-size: 13px;
+}
+
+.fw-card-cat {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 10px;
+  font-weight: normal;
+  color: #5F5E5A;
+  background: #EDEBE1;
+  padding: 1px 6px;
   border-radius: 3px;
-  white-space: nowrap;
+  vertical-align: middle;
 }
 
-.fw-badge-outdated { background: #FCE8E6; color: #A32D2D; }
-.fw-badge-up_to_date { background: #DCF3E9; color: #0F6E56; }
-.fw-badge-unknown_latest { background: #EFE9D8; color: #8A6D1E; }
-.fw-badge-no_data { background: #E4E2D8; color: #5F5E5A; }
-
-.fw-versions {
-  color: #5F5E5A;
+.fw-card-devices {
+  margin-top: 4px;
   font-size: 11px;
-}
-
-.fw-devices {
   color: #5F5E5A;
-  font-size: 11px;
-  white-space: normal;
+  line-height: 1.5;
 }
 
-.fw-edit-row {
+.fw-compare {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fw-ver-block {
+  min-width: 0;
+}
+
+.fw-ver-label {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #8A887F;
+  margin-bottom: 2px;
+}
+
+.fw-ver-value {
+  font-family: monospace;
+  font-size: 12.5px;
+  color: #2C2C2A;
+  overflow-wrap: anywhere;
+}
+
+.fw-ver-value.empty { color: #ABA99F; }
+
+.fw-ver-arrow {
+  color: #ABA99F;
+  font-size: 14px;
+}
+
+.fw-ver-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fw-ver-edit input, .fw-notes-input {
+  font-family: monospace;
+  font-size: 12px;
+  padding: 4px 6px;
+  border: 1px solid #B4B2A9;
+  border-radius: 3px;
+  background: #FBFAF6;
+}
+
+.fw-ver-edit input:focus, .fw-notes-input:focus {
+  outline: none;
+  border-color: #0F6E56;
+  background: #fff;
+}
+
+.fw-ver-edit input[name="latest"] { width: 120px; }
+.fw-notes-input { width: 150px; }
+
+.fw-card-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.fw-side-row {
   display: flex;
   gap: 6px;
   align-items: center;
 }
 
-.fw-edit-row input {
-  font-family: monospace;
-  font-size: 12px;
-  padding: 4px 6px;
-  border: 1px solid #888780;
-}
-
-.fw-edit-row input[name="latest"] { width: 110px; }
-.fw-edit-row input[name="notes"] { width: 160px; }
-
-.fw-edit-row button {
+.fw-save-btn {
   font-family: monospace;
   font-size: 11px;
-  padding: 4px 8px;
+  padding: 4px 10px;
   border: 1px solid #888780;
   background: #F1EFE8;
   cursor: pointer;
+  border-radius: 3px;
 }
+
+.fw-save-btn:hover { background: #E4E2D8; }
+.fw-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.fw-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: bold;
+  padding: 4px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+
+.fw-badge .fw-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+.fw-badge-outdated { background: #FCE8E6; color: #A32D2D; }
+.fw-badge-outdated .fw-dot { background: #C0392B; }
+.fw-badge-up_to_date { background: #DCF3E9; color: #0F6E56; }
+.fw-badge-up_to_date .fw-dot { background: #0F6E56; }
+.fw-badge-unknown_latest { background: #FBF1DA; color: #8A6D1E; }
+.fw-badge-unknown_latest .fw-dot { background: #C08A1E; }
+.fw-badge-no_data { background: #E4E2D8; color: #5F5E5A; }
+.fw-badge-no_data .fw-dot { background: #8A887F; }
 
 .fw-hint {
   font-size: 11px;
   color: #5F5E5A;
   line-height: 1.4;
+}
+
+@media (max-width: 900px) {
+  .fw-card { grid-template-columns: 1fr; }
+  .fw-card-side { align-items: flex-start; }
 }

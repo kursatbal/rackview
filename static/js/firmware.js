@@ -1,4 +1,5 @@
 let fwRows = [];
+let fwStatusFilter = "";
 
 function h(tag, attrs, children) {
   const e = document.createElement(tag);
@@ -24,6 +25,7 @@ const CATEGORY_LABELS = {
   "patch-panel": "Patch Panel", passthrough: "Passthrough",
 };
 
+const STATUS_ORDER = ["outdated", "unknown_latest", "no_data", "up_to_date"];
 const STATUS_LABELS = {
   outdated: "Outdated", unknown_latest: "Latest unknown",
   up_to_date: "Up to date", no_data: "No firmware data",
@@ -31,14 +33,32 @@ const STATUS_LABELS = {
 
 async function loadRows() {
   fwRows = await fetchWithTimeout("/api/firmware/status").then(r => r.json());
+  renderSummary();
   render();
+}
+
+function renderSummary() {
+  const bar = document.getElementById("fw-summary");
+  bar.innerHTML = "";
+  const allChip = h("div", { class: "fw-summary-chip" + (fwStatusFilter === "" ? " active" : "") }, [`All (${fwRows.length})`]);
+  allChip.onclick = () => { fwStatusFilter = ""; renderSummary(); render(); };
+  bar.appendChild(allChip);
+  STATUS_ORDER.forEach(status => {
+    const count = fwRows.filter(r => r.status === status).length;
+    const chip = h("div", { class: "fw-summary-chip fw-badge-" + status + (fwStatusFilter === status ? " active" : "") }, [
+      h("span", { class: "fw-dot" }),
+      h("b", {}, [String(count)]),
+      " " + STATUS_LABELS[status],
+    ]);
+    chip.onclick = () => { fwStatusFilter = fwStatusFilter === status ? "" : status; renderSummary(); render(); };
+    bar.appendChild(chip);
+  });
 }
 
 function filtered() {
   const q = document.getElementById("fw-search").value.trim().toLowerCase();
-  const status = document.getElementById("fw-status").value;
   return fwRows.filter(r => {
-    if (status && r.status !== status) return false;
+    if (fwStatusFilter && r.status !== fwStatusFilter) return false;
     if (q && !`${r.vendor} ${r.model}`.toLowerCase().includes(q)) return false;
     return true;
   });
@@ -46,41 +66,56 @@ function filtered() {
 
 function render() {
   const rows = filtered();
-  const tbody = document.getElementById("fw-tbody");
-  tbody.innerHTML = "";
+  const list = document.getElementById("fw-list");
+  list.innerHTML = "";
   document.getElementById("fw-count").textContent = `${rows.length} model${rows.length === 1 ? "" : "s"}`;
   if (!rows.length) {
-    tbody.appendChild(h("tr", {}, [h("td", { colspan: "6", class: "devices-empty" }, ["No matching models."])]));
+    list.appendChild(h("div", { class: "devices-empty" }, ["No matching models."]));
     return;
   }
-  rows.forEach(r => tbody.appendChild(buildRow(r)));
+  rows.forEach(r => list.appendChild(buildCard(r)));
 }
 
-function buildRow(r) {
-  const tr = h("tr", {});
+function buildCard(r) {
+  const card = h("div", { class: `fw-card fw-card-${r.status}` });
+
   const label = r.model.toLowerCase().startsWith(r.vendor.toLowerCase()) ? r.model : `${r.vendor} ${r.model}`;
-  tr.appendChild(h("td", { class: "dv-name" }, [label]));
-  tr.appendChild(h("td", {}, [CATEGORY_LABELS[r.category] || r.category]));
-
   const deviceNames = r.devices.map(d => `${d.name} (${d.rack_name})`).join(", ");
-  tr.appendChild(h("td", { class: "fw-devices" }, [`${r.device_count} — ${deviceNames}`]));
+  const main = h("div", {}, [
+    h("div", {}, [
+      h("span", { class: "fw-card-name" }, [label]),
+      h("span", { class: "fw-card-cat" }, [CATEGORY_LABELS[r.category] || r.category]),
+    ]),
+    h("div", { class: "fw-card-devices" }, [`${r.device_count} device${r.device_count === 1 ? "" : "s"} — ${deviceNames}`]),
+  ]);
+  card.appendChild(main);
 
-  tr.appendChild(h("td", { class: "fw-versions" }, [r.current_versions.length ? r.current_versions.join(", ") : "-"]));
-
-  const editRow = h("div", { class: "fw-edit-row" });
+  const currentText = r.current_versions.length ? r.current_versions.join(", ") : "not pulled yet";
   const latestInput = h("input", { name: "latest", type: "text", placeholder: "e.g. 9.2.0", value: r.latest_version || "" });
-  const notesInput = h("input", { name: "notes", type: "text", placeholder: "notes (optional)", value: r.notes || "" });
-  const saveBtn = h("button", {}, ["Save"]);
+  const compare = h("div", { class: "fw-compare" }, [
+    h("div", { class: "fw-ver-block" }, [
+      h("div", { class: "fw-ver-label" }, ["Running"]),
+      h("div", { class: "fw-ver-value" + (r.current_versions.length ? "" : " empty") }, [currentText]),
+    ]),
+    h("div", { class: "fw-ver-arrow" }, ["→"]),
+    h("div", { class: "fw-ver-block fw-ver-edit" }, [
+      h("div", { class: "fw-ver-label" }, ["Latest known"]),
+      latestInput,
+    ]),
+  ]);
+  card.appendChild(compare);
+
+  const notesInput = h("input", { class: "fw-notes-input", name: "notes", type: "text", placeholder: "notes (optional)", value: r.notes || "" });
+  const saveBtn = h("button", { class: "fw-save-btn" }, ["Save"]);
   saveBtn.onclick = () => saveReference(r, latestInput.value.trim(), notesInput.value.trim(), saveBtn);
-  editRow.appendChild(latestInput);
-  editRow.appendChild(notesInput);
-  editRow.appendChild(saveBtn);
-  tr.appendChild(h("td", {}, [editRow]));
+  const badge = h("span", { class: `fw-badge fw-badge-${r.status}` }, [h("span", { class: "fw-dot" }), STATUS_LABELS[r.status] || r.status]);
+  const side = h("div", { class: "fw-card-side" }, [
+    badge,
+    h("div", { class: "fw-side-row" }, [notesInput, saveBtn]),
+  ]);
+  card.appendChild(side);
 
-  const badge = h("span", { class: `fw-badge fw-badge-${r.status}` }, [STATUS_LABELS[r.status] || r.status]);
-  tr.appendChild(h("td", {}, [badge]));
-
-  return tr;
+  return card;
 }
 
 async function saveReference(r, latest, notes, btn) {
@@ -113,7 +148,6 @@ async function saveReference(r, latest, notes, btn) {
 async function main() {
   await loadRows();
   document.getElementById("fw-search").addEventListener("input", render);
-  document.getElementById("fw-status").addEventListener("change", render);
 }
 
 function showFatalError(err) {
