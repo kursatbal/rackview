@@ -242,21 +242,28 @@ class EsxiSnapshot(db.Model):
 
 class FirmwareReference(db.Model):
     # Manually maintained per vendor+model — RackView has no internet access to pull vendor
-    # release feeds, so "what's the latest firmware" is whatever was last typed in here.
+    # release feeds, so this is a point-in-time snapshot of what was found via research, not a
+    # live feed. versions is a list of {"version": str, "date": str} ordered newest first —
+    # typically the last 3-4 releases, so you can see the recent patch cadence, not just latest.
     id = db.Column(db.Integer, primary_key=True)
     vendor = db.Column(db.String, nullable=False)
     model = db.Column(db.String, nullable=False)
-    latest_version = db.Column(db.String, nullable=False)
+    versions = db.Column(db.JSON, nullable=False, default=list)
     notes = db.Column(db.String, nullable=True)
     updated_at = db.Column(db.DateTime, nullable=False)
 
     __table_args__ = (db.UniqueConstraint("vendor", "model", name="uq_firmware_reference_vendor_model"),)
+
+    @property
+    def latest_version(self):
+        return self.versions[0]["version"] if self.versions else None
 
     def to_dict(self):
         return {
             "id": self.id,
             "vendor": self.vendor,
             "model": self.model,
+            "versions": self.versions,
             "latest_version": self.latest_version,
             "notes": self.notes,
             "updated_at": self.updated_at.isoformat(),
