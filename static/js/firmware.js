@@ -88,14 +88,12 @@ function buildRow(r) {
 
   tr.appendChild(h("td", { class: "fw-versions" }, [r.current_versions.length ? r.current_versions.join(", ") : "-"]));
 
-  const editRow = h("div", { class: "fw-edit-row" });
-  const latestInput = h("input", { name: "latest", type: "text", placeholder: "e.g. 9.2.0", value: r.latest_version || "" });
+  const historyText = (r.versions || []).map(v => v.date ? `${v.version} | ${v.date}` : v.version).join("\n");
+  const versionsArea = h("textarea", { name: "versions", rows: "3", placeholder: "9.4.2 | 2026-05\n9.4.1 | 2026-02\n9.4.0 | 2025-11" }, [historyText]);
   const notesInput = h("input", { name: "notes", type: "text", placeholder: "notes (optional)", value: r.notes || "" });
   const saveBtn = h("button", {}, ["Save"]);
-  saveBtn.onclick = () => saveReference(r, latestInput.value.trim(), notesInput.value.trim(), saveBtn);
-  editRow.appendChild(latestInput);
-  editRow.appendChild(notesInput);
-  editRow.appendChild(saveBtn);
+  saveBtn.onclick = () => saveReference(r, versionsArea.value, notesInput.value.trim(), saveBtn);
+  const editRow = h("div", { class: "fw-edit-row" }, [versionsArea, notesInput, saveBtn]);
   tr.appendChild(h("td", {}, [editRow]));
 
   const badge = h("span", { class: `fw-badge fw-badge-${r.status}` }, [h("span", { class: "fw-dot" }), STATUS_LABELS[r.status] || r.status]);
@@ -104,9 +102,17 @@ function buildRow(r) {
   return tr;
 }
 
-async function saveReference(r, latest, notes, btn) {
-  if (!latest) {
-    alert("Enter a latest known version first.");
+function parseVersionsText(text) {
+  return text.split("\n").map(line => line.trim()).filter(Boolean).map(line => {
+    const [version, date] = line.split("|").map(p => p.trim());
+    return { version, date: date || null };
+  });
+}
+
+async function saveReference(r, versionsText, notes, btn) {
+  const versions = parseVersionsText(versionsText);
+  if (!versions.length) {
+    alert("Enter at least one version — one per line, e.g. \"9.4.2 | 2026-05\".");
     return;
   }
   btn.disabled = true;
@@ -115,7 +121,7 @@ async function saveReference(r, latest, notes, btn) {
     const res = await fetchWithTimeout("/api/firmware/reference", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ vendor: r.vendor, model: r.model, latest_version: latest, notes }),
+      body: JSON.stringify({ vendor: r.vendor, model: r.model, versions, notes }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));

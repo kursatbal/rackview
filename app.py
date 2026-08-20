@@ -569,6 +569,7 @@ def firmware_status():
             "vendor": g["vendor"], "model": g["model"], "category": g["category"],
             "device_count": len(g["devices"]), "devices": g["devices"],
             "current_versions": current_versions, "latest_version": latest,
+            "versions": ref.versions if ref else [],
             "notes": ref.notes if ref else None, "status": status,
         })
     out.sort(key=lambda r: ({"outdated": 0, "unknown_latest": 1, "no_data": 2, "up_to_date": 3}[r["status"]], r["vendor"], r["model"]))
@@ -580,20 +581,57 @@ def firmware_reference_upsert():
     payload = request.get_json()
     vendor = (payload.get("vendor") or "").strip()
     model = (payload.get("model") or "").strip()
-    latest_version = (payload.get("latest_version") or "").strip()
     notes = (payload.get("notes") or "").strip() or None
-    if not vendor or not model or not latest_version:
-        return jsonify({"error": "vendor, model, and latest_version are required"}), 400
+
+    versions = []
+    for v in (payload.get("versions") or []):
+        version = (v.get("version") or "").strip()
+        if not version:
+            continue
+        versions.append({"version": version, "date": (v.get("date") or "").strip() or None})
+
+    if not vendor or not model or not versions:
+        return jsonify({"error": "vendor, model, and at least one version are required"}), 400
 
     ref = FirmwareReference.query.filter_by(vendor=vendor, model=model).first()
     if not ref:
         ref = FirmwareReference(vendor=vendor, model=model)
         db.session.add(ref)
-    ref.latest_version = latest_version
+    ref.versions = versions[:6]
     ref.notes = notes
     ref.updated_at = datetime.now(timezone.utc)
     db.session.commit()
     return jsonify(ref.to_dict())
+
+
+@app.route("/api/firmware/reference/bulk", methods=["POST"])
+def firmware_reference_bulk_upsert():
+    payload = request.get_json()
+    items = payload.get("items") or []
+    saved, skipped = 0, []
+    for item in items:
+        vendor = (item.get("vendor") or "").strip()
+        model = (item.get("model") or "").strip()
+        notes = (item.get("notes") or "").strip() or None
+        versions = []
+        for v in (item.get("versions") or []):
+            version = (v.get("version") or "").strip()
+            if not version:
+                continue
+            versions.append({"version": version, "date": (v.get("date") or "").strip() or None})
+        if not vendor or not model or not versions:
+            skipped.append({"vendor": vendor, "model": model})
+            continue
+        ref = FirmwareReference.query.filter_by(vendor=vendor, model=model).first()
+        if not ref:
+            ref = FirmwareReference(vendor=vendor, model=model)
+            db.session.add(ref)
+        ref.versions = versions[:6]
+        ref.notes = notes
+        ref.updated_at = datetime.now(timezone.utc)
+        saved += 1
+    db.session.commit()
+    return jsonify({"saved": saved, "skipped": skipped})
 
 
 @app.route("/api/firmware/reference/<int:ref_id>", methods=["DELETE"])

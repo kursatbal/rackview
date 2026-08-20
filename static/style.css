@@ -2004,26 +2004,28 @@ body {
 .fw-edit-row {
   display: flex;
   gap: 6px;
-  align-items: center;
+  align-items: flex-start;
 }
 
-.fw-edit-row input {
+.fw-edit-row input, .fw-edit-row textarea {
   font-family: monospace;
-  font-size: 12px;
+  font-size: 11px;
   padding: 5px 7px;
   border: 1px solid #9B9A92;
   border-radius: 3px;
   background: #fff;
+  resize: vertical;
 }
 
-.fw-edit-row input:focus {
+.fw-edit-row input:focus, .fw-edit-row textarea:focus {
   outline: none;
   border-color: #16916E;
   box-shadow: 0 0 0 2px rgba(22, 145, 110, 0.15);
 }
 
-.fw-edit-row input[name="latest"] { width: 110px; }
-.fw-edit-row input[name="notes"] { width: 150px; }
+.fw-edit-row textarea[name="versions"] { width: 150px; height: 46px; line-height: 1.5; }
+.fw-edit-row input[name="notes"] { width: 130px; align-self: center; }
+.fw-edit-row button { align-self: center; }
 
 .fw-edit-row button {
   font-family: monospace;
