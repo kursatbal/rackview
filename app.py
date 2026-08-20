@@ -8,7 +8,7 @@ from flask import Flask, jsonify, request, send_from_directory, Response
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
-from models import db, DeviceType, Rack, Device, Cable, ArpEntry, LldpDiscovery, SanSnapshot, ActivityLog, StorageSnapshot, EsxiSnapshot, IdracSnapshot
+from models import db, DeviceType, Rack, Device, Cable, ArpEntry, LldpDiscovery, SanSnapshot, ActivityLog, StorageSnapshot, EsxiSnapshot, IdracSnapshot, FirmwareReference
 from san import collect_one as san_collect_one
 from storage import collect_one as storage_collect_one
 from esxi import collect_one as esxi_collect_one
@@ -516,6 +516,92 @@ def _latest_firmware(device):
             if fw:
                 return fw
     return (device.metadata_json or {}).get("sw_version")
+
+
+def _current_firmware_for_compare(device):
+    # Like _latest_firmware, but returns a single raw version string suited for comparing against
+    # FirmwareReference.latest_version — not the composite "BIOS x / BMC y" display string, since
+    # what a vendor security advisory tracks for a server is the BMC firmware specifically.
+    category = device.device_type.category
+    if category == "san-switch":
+        snap = SanSnapshot.query.filter_by(device_id=device.id).order_by(SanSnapshot.timestamp.desc()).first()
+        return (snap.fabric or {}).get("firmware") if snap else None
+    if category == "server":
+        snap = IdracSnapshot.query.filter_by(device_id=device.id).order_by(IdracSnapshot.timestamp.desc()).first()
+        return (snap.data or {}).get("bmc_firmware") if snap else None
+    if category == "storage":
+        snap = StorageSnapshot.query.filter_by(device_id=device.id).order_by(StorageSnapshot.timestamp.desc()).first()
+        return (snap.data or {}).get("firmware") if snap else None
+    return (device.metadata_json or {}).get("sw_version")
+
+
+@app.route("/api/firmware/status")
+def firmware_status():
+    devices = Device.query.join(Device.device_type).all()
+    refs = {(r.vendor, r.model): r for r in FirmwareReference.query.all()}
+
+    groups = {}
+    for d in devices:
+        key = (d.device_type.vendor, d.device_type.model)
+        g = groups.setdefault(key, {
+            "vendor": key[0], "model": key[1], "category": d.device_type.category,
+            "devices": [], "current_versions": set(),
+        })
+        current = _current_firmware_for_compare(d)
+        g["devices"].append({"id": d.id, "name": d.name, "rack_name": d.rack.name, "current": current})
+        if current:
+            g["current_versions"].add(current)
+
+    out = []
+    for key, g in groups.items():
+        ref = refs.get(key)
+        latest = ref.latest_version if ref else None
+        current_versions = sorted(g["current_versions"])
+        if not current_versions:
+            status = "no_data"
+        elif not latest:
+            status = "unknown_latest"
+        elif current_versions == [latest]:
+            status = "up_to_date"
+        else:
+            status = "outdated"
+        out.append({
+            "vendor": g["vendor"], "model": g["model"], "category": g["category"],
+            "device_count": len(g["devices"]), "devices": g["devices"],
+            "current_versions": current_versions, "latest_version": latest,
+            "notes": ref.notes if ref else None, "status": status,
+        })
+    out.sort(key=lambda r: ({"outdated": 0, "unknown_latest": 1, "no_data": 2, "up_to_date": 3}[r["status"]], r["vendor"], r["model"]))
+    return jsonify(out)
+
+
+@app.route("/api/firmware/reference", methods=["POST"])
+def firmware_reference_upsert():
+    payload = request.get_json()
+    vendor = (payload.get("vendor") or "").strip()
+    model = (payload.get("model") or "").strip()
+    latest_version = (payload.get("latest_version") or "").strip()
+    notes = (payload.get("notes") or "").strip() or None
+    if not vendor or not model or not latest_version:
+        return jsonify({"error": "vendor, model, and latest_version are required"}), 400
+
+    ref = FirmwareReference.query.filter_by(vendor=vendor, model=model).first()
+    if not ref:
+        ref = FirmwareReference(vendor=vendor, model=model)
+        db.session.add(ref)
+    ref.latest_version = latest_version
+    ref.notes = notes
+    ref.updated_at = datetime.now(timezone.utc)
+    db.session.commit()
+    return jsonify(ref.to_dict())
+
+
+@app.route("/api/firmware/reference/<int:ref_id>", methods=["DELETE"])
+def firmware_reference_delete(ref_id):
+    ref = FirmwareReference.query.get_or_404(ref_id)
+    db.session.delete(ref)
+    db.session.commit()
+    return "", 204
 
 
 @app.route("/api/devices/all")

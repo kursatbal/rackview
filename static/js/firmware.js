@@ -1,0 +1,135 @@
+let fwRows = [];
+
+function h(tag, attrs, children) {
+  const e = document.createElement(tag);
+  for (const k in attrs || {}) e.setAttribute(k, attrs[k]);
+  (children || []).forEach(c => e.appendChild(typeof c === "string" ? document.createTextNode(c) : c));
+  return e;
+}
+
+function fetchWithTimeout(url, options, timeoutMs = 10000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, Object.assign({}, options, { signal: controller.signal }))
+    .finally(() => clearTimeout(timer))
+    .catch(err => {
+      if (err.name === "AbortError") throw new Error(`Request timed out (>${timeoutMs / 1000}s): ${url}`);
+      throw err;
+    });
+}
+
+const CATEGORY_LABELS = {
+  switch: "Switch", "san-switch": "SAN Switch", server: "Server", storage: "Storage",
+  firewall: "Firewall", router: "Router", pdu: "PDU", panel: "Panel",
+  "patch-panel": "Patch Panel", passthrough: "Passthrough",
+};
+
+const STATUS_LABELS = {
+  outdated: "Outdated", unknown_latest: "Latest unknown",
+  up_to_date: "Up to date", no_data: "No firmware data",
+};
+
+async function loadRows() {
+  fwRows = await fetchWithTimeout("/api/firmware/status").then(r => r.json());
+  render();
+}
+
+function filtered() {
+  const q = document.getElementById("fw-search").value.trim().toLowerCase();
+  const status = document.getElementById("fw-status").value;
+  return fwRows.filter(r => {
+    if (status && r.status !== status) return false;
+    if (q && !`${r.vendor} ${r.model}`.toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function render() {
+  const rows = filtered();
+  const tbody = document.getElementById("fw-tbody");
+  tbody.innerHTML = "";
+  document.getElementById("fw-count").textContent = `${rows.length} model${rows.length === 1 ? "" : "s"}`;
+  if (!rows.length) {
+    tbody.appendChild(h("tr", {}, [h("td", { colspan: "6", class: "devices-empty" }, ["No matching models."])]));
+    return;
+  }
+  rows.forEach(r => tbody.appendChild(buildRow(r)));
+}
+
+function buildRow(r) {
+  const tr = h("tr", {});
+  const label = r.model.toLowerCase().startsWith(r.vendor.toLowerCase()) ? r.model : `${r.vendor} ${r.model}`;
+  tr.appendChild(h("td", { class: "dv-name" }, [label]));
+  tr.appendChild(h("td", {}, [CATEGORY_LABELS[r.category] || r.category]));
+
+  const deviceNames = r.devices.map(d => `${d.name} (${d.rack_name})`).join(", ");
+  tr.appendChild(h("td", { class: "fw-devices" }, [`${r.device_count} — ${deviceNames}`]));
+
+  tr.appendChild(h("td", { class: "fw-versions" }, [r.current_versions.length ? r.current_versions.join(", ") : "-"]));
+
+  const editRow = h("div", { class: "fw-edit-row" });
+  const latestInput = h("input", { name: "latest", type: "text", placeholder: "e.g. 9.2.0", value: r.latest_version || "" });
+  const notesInput = h("input", { name: "notes", type: "text", placeholder: "notes (optional)", value: r.notes || "" });
+  const saveBtn = h("button", {}, ["Save"]);
+  saveBtn.onclick = () => saveReference(r, latestInput.value.trim(), notesInput.value.trim(), saveBtn);
+  editRow.appendChild(latestInput);
+  editRow.appendChild(notesInput);
+  editRow.appendChild(saveBtn);
+  tr.appendChild(h("td", {}, [editRow]));
+
+  const badge = h("span", { class: `fw-badge fw-badge-${r.status}` }, [STATUS_LABELS[r.status] || r.status]);
+  tr.appendChild(h("td", {}, [badge]));
+
+  return tr;
+}
+
+async function saveReference(r, latest, notes, btn) {
+  if (!latest) {
+    alert("Enter a latest known version first.");
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = "Saving…";
+  try {
+    const res = await fetchWithTimeout("/api/firmware/reference", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ vendor: r.vendor, model: r.model, latest_version: latest, notes }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      alert(err.error || `Save failed (${res.status})`);
+      return;
+    }
+    await loadRows();
+  } catch (err) {
+    alert(err.message || String(err));
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Save";
+  }
+}
+
+async function main() {
+  await loadRows();
+  document.getElementById("fw-search").addEventListener("input", render);
+  document.getElementById("fw-status").addEventListener("change", render);
+}
+
+function showFatalError(err) {
+  console.error(err);
+  const container = document.querySelector(".devices-page") || document.body;
+  const box = document.createElement("div");
+  box.style.cssText = "margin:20px;padding:14px;background:#FCE8E6;border:1px solid #A32D2D;"
+    + "color:#A32D2D;font-family:monospace;font-size:12px;white-space:pre-wrap;";
+  box.textContent = "Page failed to load (connection issue):\n" + (err && err.message ? err.message : err);
+  const retryBtn = document.createElement("button");
+  retryBtn.textContent = "Retry";
+  retryBtn.style.cssText = "margin-top:8px;font-family:monospace;font-size:12px;padding:5px 12px;cursor:pointer;";
+  retryBtn.onclick = () => location.reload();
+  box.appendChild(document.createElement("br"));
+  box.appendChild(retryBtn);
+  container.prepend(box);
+}
+
+main().catch(showFatalError);

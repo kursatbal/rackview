@@ -31,6 +31,7 @@ Tracking what's plugged into what in a data center usually means a spreadsheet, 
 - **Activity Log** — every device/cable create, update, and delete is timestamped with a before/after diff, filterable by rack
 - **Mgmt IP conflict check** — flags a device whose management IP is already recorded on another device in the same customer's racks
 - **Devices view** — a flat, sortable/filterable table of every device across every rack, with firmware/version pulled live where available (SAN/Storage/ESXi mapping); click a row to jump to that device in its rack
+- **Firmware Status** — groups every device by vendor/model, shows what firmware is actually running next to a hand-entered "latest known" version, and flags mismatches as outdated; no internet access, so "latest known" is maintained by hand
 - **Multi-rack / floor view** — customer-isolated racks, a hall-level view, inter-rack cabling
 - **Excel export** — download a rack's or a device's cabling as `.xlsx`
 
@@ -74,6 +75,11 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 - Export: openpyxl
 
 ## Changelog
+
+**Firmware Status**
+- New page: groups every placed device by vendor/model and shows the firmware actually seen on it (from the same live-pull snapshots Devices view uses: SAN Switch Mapping, Storage Mapping, iDRAC/iLO) next to a hand-entered "latest known" version per model, flagging a model as Outdated when they don't match
+- RackView doesn't reach the internet, so there's no automatic vendor release feed — "latest known" is a small per-vendor/model reference table you maintain yourself as you learn what's current; a model with nothing entered shows "Latest unknown", not "Outdated", so it's never a false alarm
+- For servers, the comparison uses the BMC (iDRAC/iLO) firmware specifically, not the combined BIOS+BMC string Devices view displays — that's what a vendor security advisory actually version-pins
 
 **Tools menu, bordered Devices table**
 - The top bar had grown to nine separate buttons as live-pull tools were added one at a time — LLDP Discovery, LLDP Auto-Cabling, SAN Switch Mapping, Storage Mapping, ESXi NIC Verification, iDRAC/iLO, and Activity Log are now grouped under a single Tools ▾ dropdown

@@ -1920,3 +1920,59 @@ body {
   color: #5F5E5A;
   padding: 20px;
 }
+
+.fw-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 3px 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.fw-badge-outdated { background: #FCE8E6; color: #A32D2D; }
+.fw-badge-up_to_date { background: #DCF3E9; color: #0F6E56; }
+.fw-badge-unknown_latest { background: #EFE9D8; color: #8A6D1E; }
+.fw-badge-no_data { background: #E4E2D8; color: #5F5E5A; }
+
+.fw-versions {
+  color: #5F5E5A;
+  font-size: 11px;
+}
+
+.fw-devices {
+  color: #5F5E5A;
+  font-size: 11px;
+  white-space: normal;
+}
+
+.fw-edit-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.fw-edit-row input {
+  font-family: monospace;
+  font-size: 12px;
+  padding: 4px 6px;
+  border: 1px solid #888780;
+}
+
+.fw-edit-row input[name="latest"] { width: 110px; }
+.fw-edit-row input[name="notes"] { width: 160px; }
+
+.fw-edit-row button {
+  font-family: monospace;
+  font-size: 11px;
+  padding: 4px 8px;
+  border: 1px solid #888780;
+  background: #F1EFE8;
+  cursor: pointer;
+}
+
+.fw-hint {
+  font-size: 11px;
+  color: #5F5E5A;
+  line-height: 1.4;
+}

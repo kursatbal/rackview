@@ -21,6 +21,7 @@
         <a id="btn-storage" href="storage.html">Storage Mapping</a>
         <a id="btn-esxi" href="esxi.html">ESXi NIC Verification</a>
         <a id="btn-idrac" href="idrac.html">iDRAC / iLO</a>
+        <a id="btn-firmware" href="firmware.html">Firmware Status</a>
         <a id="btn-activity-log" href="activity-log.html">Activity Log</a>
       </div>
     </div>
@@ -61,7 +62,7 @@
       <div class="help-grid">
         <div class="help-item">
           <h3>🧰 Tools menu</h3>
-          <p>The <b>Tools ▾</b> button in the top bar groups every live-pull/integration screen in one place: LLDP Discovery, LLDP Auto-Cabling, SAN Switch Mapping, Storage Mapping, ESXi NIC Verification, iDRAC / iLO, and Activity Log. See the cards below for what each one does.</p>
+          <p>The <b>Tools ▾</b> button in the top bar groups every live-pull/integration screen in one place: LLDP Discovery, LLDP Auto-Cabling, SAN Switch Mapping, Storage Mapping, ESXi NIC Verification, iDRAC / iLO, Firmware Status, and Activity Log. See the cards below for what each one does.</p>
         </div>
         <div class="help-item">
           <h3>✏️ Edit mode</h3>
@@ -102,6 +103,10 @@
         <div class="help-item">
           <h3>🔧 iDRAC / iLO</h3>
           <p>Pulls BIOS/BMC firmware version and health (PSUs, fans) from a Dell iDRAC or HPE iLO over Redfish (HTTPS) — the out-of-band management controller, separate from the ESXi NIC Verification pull. Credentials are used once and never saved.</p>
+        </div>
+        <div class="help-item">
+          <h3>🧾 Firmware Status</h3>
+          <p>Groups every device by vendor/model and shows what firmware is actually running (from the latest live pull, where available) next to a hand-entered "latest known" version — flags a model as Outdated when they don't match. RackView has no internet access, so "latest known" has to be typed in by hand and kept up to date.</p>
         </div>
         <div class="help-item">
           <h3>📜 Activity Log</h3>
