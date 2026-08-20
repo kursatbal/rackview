@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RackView — Firmware Status</title>
+  <link rel="stylesheet" href="style.css" onerror="this.onerror=null;this.href='style.css?retry='+Date.now()">
+</head>
+<body>
+  <header class="toolbar">
+    <span class="title">RackView — Firmware Status</span>
+    <div class="spacer"></div>
+    <a class="btn-link" href="index.html">Back to rack</a>
+  </header>
+
+  <main class="devices-page">
+    <div class="devices-toolbar">
+      <input id="fw-search" type="text" placeholder="Search: vendor, model...">
+      <select id="fw-status">
+        <option value="">All statuses</option>
+        <option value="outdated">Outdated</option>
+        <option value="unknown_latest">Latest unknown</option>
+        <option value="up_to_date">Up to date</option>
+        <option value="no_data">No firmware data</option>
+      </select>
+      <span id="fw-count" class="devices-count"></span>
+    </div>
+    <div class="devices-table-wrap">
+      <table id="fw-table">
+        <thead>
+          <tr>
+            <th>Vendor / Model</th>
+            <th>Category</th>
+            <th>Devices</th>
+            <th>Current version(s) seen</th>
+            <th>Latest known</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="fw-tbody"></tbody>
+      </table>
+    </div>
+    <div class="fw-hint">"Latest known" is entered by hand per vendor/model — RackView has no internet access to pull vendor release feeds automatically. Leave it blank until you know what's current; a model with no "Latest known" set shows as "Latest unknown", not "Outdated".</div>
+  </main>
+
+  <script src="js/firmware.js"></script>
+</body>
+</html>

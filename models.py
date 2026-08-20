@@ -240,6 +240,29 @@ class EsxiSnapshot(db.Model):
         }
 
 
+class FirmwareReference(db.Model):
+    # Manually maintained per vendor+model — RackView has no internet access to pull vendor
+    # release feeds, so "what's the latest firmware" is whatever was last typed in here.
+    id = db.Column(db.Integer, primary_key=True)
+    vendor = db.Column(db.String, nullable=False)
+    model = db.Column(db.String, nullable=False)
+    latest_version = db.Column(db.String, nullable=False)
+    notes = db.Column(db.String, nullable=True)
+    updated_at = db.Column(db.DateTime, nullable=False)
+
+    __table_args__ = (db.UniqueConstraint("vendor", "model", name="uq_firmware_reference_vendor_model"),)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "vendor": self.vendor,
+            "model": self.model,
+            "latest_version": self.latest_version,
+            "notes": self.notes,
+            "updated_at": self.updated_at.isoformat(),
+        }
+
+
 class SanSnapshot(db.Model):
     # Username/password are deliberately never persisted — only the connection endpoint (ip/vendor/
     # port, kept on Device.metadata_json.san_config) and the switch's own reported state are saved.
