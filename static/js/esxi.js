@@ -147,10 +147,63 @@ async function collectEsxi() {
   }
 }
 
+async function collectVcenter() {
+  const errEl = document.getElementById("vc-error");
+  const resultEl = document.getElementById("vc-result");
+  errEl.textContent = "";
+  resultEl.innerHTML = "";
+  const ip = document.getElementById("vc-ip").value.trim();
+  const port = document.getElementById("vc-port").value.trim();
+  const username = document.getElementById("vc-user").value;
+  const password = document.getElementById("vc-pass").value;
+
+  if (!ip) { errEl.textContent = "vCenter IP is required."; return; }
+  if (!username || !password) { errEl.textContent = "Username and password are required."; return; }
+
+  const btn = document.getElementById("btn-vc-collect");
+  btn.disabled = true;
+  btn.textContent = "Pulling…";
+  try {
+    const res = await fetchWithTimeout("/api/esxi/collect-vcenter", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ip, port: port || null, username, password }),
+    }, 60000);
+    const result = await res.json();
+    if (!res.ok) {
+      errEl.textContent = result.error || `Request failed (${res.status})`;
+      return;
+    }
+    document.getElementById("vc-pass").value = "";
+    const wrap = h("div", { class: "san-vc-result" });
+    (result.matched || []).forEach(m => {
+      wrap.appendChild(h("div", { class: "san-vc-row matched" }, [
+        h("span", {}, [`✓ ${m.host}`]), h("span", {}, [`→ ${m.device_name} (${m.rack_name})`]),
+      ]));
+    });
+    (result.unmatched || []).forEach(u => {
+      wrap.appendChild(h("div", { class: "san-vc-row unmatched" }, [
+        h("span", {}, [`− ${u.host || "?"}`]), h("span", {}, [u.reason || ""]),
+      ]));
+    });
+    if (!wrap.children.length) wrap.appendChild(h("div", { class: "san-empty" }, ["No hosts found on this vCenter."]));
+    resultEl.appendChild(h("div", { class: "san-h4" }, [`${(result.matched || []).length} matched, ${(result.unmatched || []).length} not in any rack`]));
+    resultEl.appendChild(wrap);
+    exDevices = await fetchWithTimeout("/api/esxi/devices").then(r => r.json());
+    loadLastSnapshot(Number(document.getElementById("ex-switch-select").value));
+  } catch (err) {
+    errEl.textContent = err.message || String(err);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Pull all from vCenter";
+  }
+}
+
 async function main() {
   await loadExDevices();
   document.getElementById("ex-switch-select").onchange = applySelectedDefaults;
   document.getElementById("btn-ex-collect").onclick = collectEsxi;
+  document.getElementById("btn-vc-collect").onclick = collectVcenter;
 }
 
 function showFatalError(err) {

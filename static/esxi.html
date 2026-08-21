@@ -42,6 +42,34 @@
       <button id="btn-ex-collect" class="primary">Pull NIC info</button>
       <div id="ex-error" class="san-error"></div>
       <div id="ex-last-pulled" class="san-hint"></div>
+
+      <div class="san-vc-section">
+        <div class="san-h4" style="margin-top:0">Pull all hosts via vCenter</div>
+        <div class="san-hint">One vCenter login enumerates every host it manages — each is matched against a rack device by mgmt IP (or name if no IP matches) and only matched hosts get a snapshot saved. Nothing is pulled for a vCenter host that isn't placed in a rack here.</div>
+        <div class="san-field-row">
+          <div class="san-field">
+            <label for="vc-ip">vCenter IP / hostname</label>
+            <input id="vc-ip" type="text" placeholder="192.168.1.5">
+          </div>
+          <div class="san-field san-field-narrow">
+            <label for="vc-port">HTTPS port</label>
+            <input id="vc-port" type="text" placeholder="443">
+          </div>
+        </div>
+        <div class="san-field-row">
+          <div class="san-field">
+            <label for="vc-user">Username</label>
+            <input id="vc-user" type="text" autocomplete="off" placeholder="administrator@vsphere.local">
+          </div>
+          <div class="san-field">
+            <label for="vc-pass">Password</label>
+            <input id="vc-pass" type="password" autocomplete="off">
+          </div>
+        </div>
+        <button id="btn-vc-collect">Pull all from vCenter</button>
+        <div id="vc-error" class="san-error"></div>
+        <div id="vc-result"></div>
+      </div>
     </div>
 
     <div class="san-results-col">
