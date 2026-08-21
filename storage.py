@@ -72,12 +72,27 @@ class DellMEAdapter:
                     "speed": p.get("actual-speed"),
                 })
 
+            # 'show system' never carried a firmware field — Storage Mapping recorded system/port
+            # state but never actually captured the array's firmware, so Firmware Status had
+            # nothing to compare against. 'show versions' is the dedicated SC-API command for
+            # this; not yet re-verified against a real ME4024 (needs VPN access to confirm the
+            # 'bundle-version' property name matches this array's exact FW).
+            firmware = None
+            try:
+                ver_root = self._run_xml("show versions")
+                ver_obj = ver_root.find(".//OBJECT[@basetype='versions']")
+                ver_props = {p.get("name"): p.text for p in ver_obj.findall("PROPERTY")} if ver_obj is not None else {}
+                firmware = ver_props.get("bundle-version") or ver_props.get("bundle-version-fw")
+            except StorageError:
+                pass  # older firmware or a command-name mismatch — don't fail the whole pull over it
+
             return {
                 "system": sys_props.get("system-name") or self.host,
                 "vendor": sys_props.get("vendor-name"),
                 "model": sys_props.get("product-id"),
                 "serial": sys_props.get("midplane-serial-number"),
                 "health": sys_props.get("health"),
+                "firmware": firmware,
                 "ports": ports,
             }
         finally:
