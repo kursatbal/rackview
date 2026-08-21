@@ -118,6 +118,32 @@ function renderData(data) {
     block.appendChild(grid);
   }
 
+  const inventory = data.firmware_inventory || [];
+  if (inventory.length) {
+    block.appendChild(h("div", { class: "san-h4" }, [`All firmware components (${inventory.length})`]));
+    block.appendChild(h("div", { class: "san-hint" }, [
+      "Every component this BMC reports a version for — NICs, RAID/HBA controllers, PSUs, CPLDs, and more. These vary by exact configuration, not by model, so there's no \"latest known\" comparison for them — this is just what's on this specific box right now.",
+    ]));
+    const searchBox = h("input", { class: "san-fw-search", type: "text", placeholder: "Filter components…" });
+    const listBox = h("div", { class: "san-fw-list" });
+    const renderList = () => {
+      const q = searchBox.value.trim().toLowerCase();
+      listBox.innerHTML = "";
+      inventory
+        .filter(c => !q || (c.name || "").toLowerCase().includes(q))
+        .forEach(c => {
+          listBox.appendChild(h("div", { class: "san-fw-row" }, [
+            h("span", { class: "san-fw-name" }, [c.name || "?"]),
+            h("span", { class: "san-fw-version" }, [c.version || "-"]),
+          ]));
+        });
+    };
+    searchBox.addEventListener("input", renderList);
+    renderList();
+    block.appendChild(searchBox);
+    block.appendChild(listBox);
+  }
+
   body.appendChild(block);
 }
 

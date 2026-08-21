@@ -95,6 +95,36 @@ class _RedfishBMC:
     def _service_tag(self, sysj):
         return sysj.get("SKU") or sysj.get("SerialNumber") or sysj.get("AssetTag")
 
+    def _firmware_inventory(self):
+        # BIOS/BMC only answer "is the server itself current" — the real firmware picture on a
+        # rack server includes NICs, RAID/HBA controllers, PSUs, backplanes, CPLDs, etc., and
+        # those vary by exact configuration (which RAID card, how many NIC ports) rather than by
+        # model, so there's no per-model "latest known" reference for them — this is purely
+        # "what's actually on this specific box right now," not a comparison.
+        try:
+            coll = self._get("/redfish/v1/UpdateService/FirmwareInventory?$expand=.($levels=1)")
+        except BMCError:
+            try:
+                coll = self._get("/redfish/v1/UpdateService/FirmwareInventory")
+            except BMCError:
+                return []
+
+        members = (coll.get("Members") or [])[:150]
+        items = []
+        for m in members:
+            if m.get("Name") or m.get("Version"):
+                items.append(m)  # already expanded via $expand
+                continue
+            odata_id = m.get("@odata.id")
+            if odata_id:
+                detail = self._try(odata_id)
+                if detail:
+                    items.append(detail)
+
+        out = [{"name": it.get("Name"), "version": it.get("Version")} for it in items if it.get("Name") or it.get("Version")]
+        out.sort(key=lambda x: (x["name"] or "").lower())
+        return out
+
     def collect(self):
         sysj = self._get(self.SYS)  # auth/connectivity check — never swallowed
         mgr = self._try(self.MGR) or {}
@@ -131,6 +161,7 @@ class _RedfishBMC:
             "memory_gb": mem.get("TotalSystemMemoryGiB"),
             "power_supplies": psus,
             "fans": fans,
+            "firmware_inventory": self._firmware_inventory(),
         }
 
 
