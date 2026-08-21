@@ -26,7 +26,7 @@ Tracking what's plugged into what in a data center usually means a spreadsheet, 
 - **LLDP Auto-Cabling** — a separate tool that matches LLDP neighbors against existing cabling and creates/updates/removes cables, with a review step per link and a picker/shortcut for neighbors that aren't in the rack yet
 - **SAN Switch Mapping** — pick a SAN switch already placed in a rack, enter its IP and login, and pull live port/zoning info over SSH (Brocade FOS or Cisco MDS); the username/password are used once and never saved
 - **Storage Mapping** — same idea for Dell PowerVault/ME and HPE MSA storage arrays (same underlying controller CLI): pulls live FC port status and WWNs over SSH, each port cross-referenced against RackView's own cabling
-- **ESXi NIC Verification** — pulls physical NIC link status and vSwitch mapping over the vSphere API (no SSH needed), matched to the device's `vmnic_map` to confirm each recorded cable against reality
+- **ESXi NIC Verification** — pulls physical NIC link status and vSwitch mapping over the vSphere API (no SSH needed), matched to the device's `vmnic_map` to confirm each recorded cable against reality. Can also pull one host at a time or, with vCenter credentials, every host vCenter manages in one go — each matched to a rack device by mgmt IP/name, unmatched hosts are skipped. ESXi's own version is tracked in Firmware Status/List as its own product, separate from the server's BMC firmware
 - **iDRAC / iLO** — pulls BIOS/BMC firmware version, health (PSUs, fans), and the full component firmware inventory (NICs, RAID/HBA, CPLDs, etc.) from a Dell iDRAC or HPE iLO over Redfish (HTTPS), the out-of-band management controller rather than the hypervisor; credentials used once and never saved
 - **Activity Log** — every device/cable create, update, and delete is timestamped with a before/after diff, filterable by rack
 - **Mgmt IP conflict check** — flags a device whose management IP is already recorded on another device in the same customer's racks
@@ -76,6 +76,10 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 - Export: openpyxl
 
 ## Changelog
+
+**vCenter bulk ESXi pull, ESXi tracked in Firmware Status/List**
+- ESXi NIC Verification can now pull from vCenter instead of one host at a time — one login enumerates every host vCenter manages, each matched against a RackView device by mgmt IP (falling back to name) so only hosts actually placed in a rack get a snapshot saved; unmatched hosts are reported, not silently ignored or guessed at
+- ESXi itself is now tracked in Firmware Status and Firmware List as its own product ("VMware ESXi"), independent of the server hardware it runs on — a host's hypervisor build is a different release train from its BMC firmware, so it needed its own row rather than being folded into the server's BIOS/BMC comparison
 
 **iDRAC/iLO full component firmware inventory**
 - BIOS and BMC firmware alone don't tell the whole story on a rack server — NICs, RAID/HBA controllers, PSUs, CPLDs, and more all carry their own firmware, and each varies by exact configuration (which RAID card, how many NIC ports) rather than by model, so there's no per-model "latest known" to compare against like there is for BIOS/BMC

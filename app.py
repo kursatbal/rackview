@@ -11,7 +11,7 @@ from openpyxl.styles import Font
 from models import db, DeviceType, Rack, Device, Cable, ArpEntry, LldpDiscovery, SanSnapshot, ActivityLog, StorageSnapshot, EsxiSnapshot, IdracSnapshot, FirmwareReference
 from san import collect_one as san_collect_one
 from storage import collect_one as storage_collect_one
-from esxi import collect_one as esxi_collect_one
+from esxi import collect_one as esxi_collect_one, collect_from_vcenter as esxi_collect_from_vcenter
 from idrac_ilo import collect_one as idrac_collect_one
 
 
@@ -552,6 +552,25 @@ def firmware_status():
         if current:
             g["current_versions"].add(current)
 
+    # ESXi is a separate "product" from the server hardware it runs on (its own release train,
+    # independent of whether the box is a Dell or an HPE) -- a device's BMC firmware group above
+    # doesn't tell you if the hypervisor itself is current, so give it its own pseudo-group. Only
+    # devices with an actual ESXi pull belong here -- no way to know a server runs ESXi otherwise.
+    esxi_key = ("VMware", "ESXi")
+    esxi_group = {"vendor": esxi_key[0], "model": esxi_key[1], "category": "server", "devices": [], "current_versions": set()}
+    for d in devices:
+        if d.device_type.category != "server":
+            continue
+        snap = EsxiSnapshot.query.filter_by(device_id=d.id).order_by(EsxiSnapshot.timestamp.desc()).first()
+        if not snap:
+            continue
+        product = (snap.data or {}).get("product")
+        esxi_group["devices"].append({"id": d.id, "name": d.name, "rack_name": d.rack.name, "current": product})
+        if product:
+            esxi_group["current_versions"].add(product)
+    if esxi_group["devices"]:
+        groups[esxi_key] = esxi_group
+
     out = []
     for key, g in groups.items():
         ref = refs.get(key)
@@ -600,6 +619,19 @@ def firmware_catalog():
             "notes": ref.notes if ref else None,
             "updated_at": ref.updated_at.isoformat() if ref else None,
         })
+
+    # ESXi isn't hardware, so it has no DeviceType row -- add it as its own catalog entry so it
+    # can still be looked up ("what's the latest ESXi") the same way as any physical model.
+    esxi_key = ("VMware", "ESXi")
+    esxi_ref = refs.get(esxi_key)
+    out.append({
+        "vendor": esxi_key[0], "model": esxi_key[1], "category": "server",
+        "deployed_count": EsxiSnapshot.query.with_entities(EsxiSnapshot.device_id).distinct().count(),
+        "versions": esxi_ref.versions if esxi_ref else [],
+        "latest_version": esxi_ref.latest_version if esxi_ref else None,
+        "notes": esxi_ref.notes if esxi_ref else None,
+        "updated_at": esxi_ref.updated_at.isoformat() if esxi_ref else None,
+    })
     out.sort(key=lambda r: (r["latest_version"] is None, r["vendor"], r["model"]))
     return jsonify(out)
 
@@ -1547,6 +1579,54 @@ def esxi_collect():
     db.session.commit()
 
     return jsonify(snapshot.to_dict())
+
+
+@app.route("/api/esxi/collect-vcenter", methods=["POST"])
+def esxi_collect_vcenter():
+    payload = request.get_json()
+    ip = (payload.get("ip") or "").strip()
+    port = payload.get("port")
+    username = payload.get("username")
+    password = payload.get("password")
+    if not ip:
+        return jsonify({"error": "vCenter ip is required"}), 400
+
+    hosts, error = esxi_collect_from_vcenter(ip, username, password, port)
+    if error:
+        return jsonify({"error": error}), 502
+
+    devices = Device.query.join(Device.device_type).filter(DeviceType.category == "server").all()
+    matched, unmatched = [], []
+    for h in hosts:
+        if h.get("error"):
+            unmatched.append({"host": h.get("host"), "reason": h["error"]})
+            continue
+
+        mgmt_ips = set(h.get("mgmt_ips") or [])
+        short_name = (h.get("host") or "").split(".")[0].lower()
+        device = next((d for d in devices if d.mgmt_ip and d.mgmt_ip in mgmt_ips), None)
+        if not device:
+            device = next((d for d in devices if d.name.lower() == short_name), None)
+        if not device:
+            unmatched.append({"host": h.get("host"), "reason": "no matching device (by mgmt IP or name) placed in any rack"})
+            continue
+
+        matched_ip = next(iter(mgmt_ips), ip)
+        data = dict(h)
+        data["ip"] = matched_ip
+        data["device_id"] = device.id
+        data["nics"] = _attach_esxi_cable_destinations(device, data.get("nics") or [])
+
+        merged = dict(device.metadata_json or {})
+        merged["esxi_config"] = {"ip": matched_ip, "port": port}
+        device.metadata_json = merged
+
+        snapshot = EsxiSnapshot(timestamp=datetime.now(timezone.utc), device_id=device.id, ip=matched_ip, data=data)
+        db.session.add(snapshot)
+        matched.append({"device_id": device.id, "device_name": device.name, "rack_name": device.rack.name, "host": h.get("host")})
+
+    db.session.commit()
+    return jsonify({"matched": matched, "unmatched": unmatched})
 
 
 @app.route("/api/esxi/snapshot/<int:device_id>")

@@ -1485,6 +1485,34 @@ body {
   gap: 8px;
 }
 
+.san-vc-section {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #30363d;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.san-vc-result {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+}
+
+.san-vc-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  background: #161b22;
+}
+
+.san-vc-row.matched { color: #7ee787; }
+.san-vc-row.unmatched { color: #8b949e; }
+
 .san-field-narrow {
   flex: 0 0 70px;
 }
