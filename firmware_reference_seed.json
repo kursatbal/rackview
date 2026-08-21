@@ -4308,5 +4308,28 @@
    }
   ],
   "notes": "Same SonicOS Gen7 train as NSa 4700"
+ },
+ {
+  "vendor": "VMware",
+  "model": "ESXi",
+  "versions": [
+   {
+    "version": "VMware ESXi 8.0.3 build-25595708",
+    "date": "2026-07"
+   },
+   {
+    "version": "VMware ESXi 8.0.3 build-25429389",
+    "date": "2026-05"
+   },
+   {
+    "version": "VMware ESXi 8.0.3 build-25205845",
+    "date": "2026-02"
+   },
+   {
+    "version": "VMware ESXi 8.0.2 build-25626445",
+    "date": "2026-08"
+   }
+  ],
+  "notes": "8.0.2 build-25626445 (2026-08) is a later-dated security patch backported to the older 8.0.2 branch -- 8.0.3 build-25595708 is treated as latest for comparison since 8.0.3 is the newer minor version. Hosts on 6.x/7.x are separately EOL/out of general support."
  }
 ]
