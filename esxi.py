@@ -77,7 +77,11 @@ def _collect_host(h, content):
 
     return {
         "host": h.name,
-        "product": content.about.fullName,
+        # h.config.product is the HostSystem's own build info -- content.about describes whatever
+        # `si` connected to, which is the *vCenter's* version when pulling through vCenter, not
+        # the individual ESXi host's (a real bug caught by testing against a real vCenter: every
+        # host came back reporting "VMware vCenter Server 6.7.0", not its own ESXi version).
+        "product": h.config.product.fullName if h.config.product else content.about.fullName,
         "mgmt_ips": _mgmt_ips(h),
         "nics": nics,
     }
