@@ -1957,14 +1957,14 @@ body {
 .fw-chip-dot-unknown_latest { background: #D6971F; }
 .fw-chip-dot-no_data { background: #8A887F; }
 
-#fw-table {
+#fw-table, #fwl-table {
   width: 100%;
   border-collapse: collapse;
   font-family: monospace;
   font-size: 12px;
 }
 
-#fw-table thead th {
+#fw-table thead th, #fwl-table thead th {
   position: sticky;
   top: 0;
   background: #D3D1C7;
@@ -1974,12 +1974,20 @@ body {
   border: 1px solid #B4B2A9;
 }
 
-#fw-table td {
+#fwl-table thead th[data-sort] { cursor: pointer; user-select: none; }
+#fwl-table thead th[data-sort]:hover { background: #C4C2B8; }
+#fwl-table thead th.sorted-asc::after { content: " \25B2"; font-size: 9px; }
+#fwl-table thead th.sorted-desc::after { content: " \25BC"; font-size: 9px; }
+
+#fw-table td, #fwl-table td {
   padding: 8px 10px;
   border: 1px solid #E4E2D8;
   white-space: nowrap;
   vertical-align: middle;
 }
+
+#fwl-table tbody tr:nth-child(even) { background: #FAF9F5; }
+#fwl-table tbody tr:hover { background: #F1EFE8; }
 
 .fw-row:nth-child(even) { background: #FAF9F5; }
 .fw-row:hover { background: #F1EFE8; }
