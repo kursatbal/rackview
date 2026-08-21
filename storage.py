@@ -1,7 +1,7 @@
 """
 storage.py — Dell PowerVault/ME-series and HPE MSA storage array adapter (SSH/CLI, XML output).
 
-Read-only ('show system', 'show ports'). Confirmed on a real Dell ME4024 (ME4024) —
+Read-only ('show system', 'show ports'). Confirmed on a real Dell ME4024 —
 the array's CLI over SSH replies with a well-formed XML document per command (Dell's
 "SC-API"/SMC CLI format, shared across the ME/MD/PowerVault line), which is far more
 reliable to parse than a fixed-width text table.
