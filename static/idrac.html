@@ -45,7 +45,7 @@
           <input id="bmc-pass" type="password" autocomplete="off">
         </div>
       </div>
-      <div class="san-hint">Redfish over HTTPS — separate from the ESXi NIC Verification pull (that's the hypervisor, this is the out-of-band management controller: BIOS/BMC firmware, health, PSU/fans). Username/password are used for this pull only — never saved.</div>
+      <div class="san-hint">Redfish over HTTPS — separate from the ESXi NIC Verification pull (that's the hypervisor, this is the out-of-band management controller: BIOS/BMC firmware, health, PSU/fans, and the full component firmware inventory — NICs, RAID/HBA, CPLDs, etc.). Username/password are used for this pull only — never saved.</div>
       <button id="btn-bmc-collect" class="primary">Pull BMC info</button>
       <div id="bmc-error" class="san-error"></div>
       <div id="bmc-last-pulled" class="san-hint"></div>

@@ -27,7 +27,7 @@ Tracking what's plugged into what in a data center usually means a spreadsheet, 
 - **SAN Switch Mapping** — pick a SAN switch already placed in a rack, enter its IP and login, and pull live port/zoning info over SSH (Brocade FOS or Cisco MDS); the username/password are used once and never saved
 - **Storage Mapping** — same idea for Dell PowerVault/ME and HPE MSA storage arrays (same underlying controller CLI): pulls live FC port status and WWNs over SSH, each port cross-referenced against RackView's own cabling
 - **ESXi NIC Verification** — pulls physical NIC link status and vSwitch mapping over the vSphere API (no SSH needed), matched to the device's `vmnic_map` to confirm each recorded cable against reality
-- **iDRAC / iLO** — pulls BIOS/BMC firmware version and health (PSUs, fans) from a Dell iDRAC or HPE iLO over Redfish (HTTPS), the out-of-band management controller rather than the hypervisor; credentials used once and never saved
+- **iDRAC / iLO** — pulls BIOS/BMC firmware version, health (PSUs, fans), and the full component firmware inventory (NICs, RAID/HBA, CPLDs, etc.) from a Dell iDRAC or HPE iLO over Redfish (HTTPS), the out-of-band management controller rather than the hypervisor; credentials used once and never saved
 - **Activity Log** — every device/cable create, update, and delete is timestamped with a before/after diff, filterable by rack
 - **Mgmt IP conflict check** — flags a device whose management IP is already recorded on another device in the same customer's racks
 - **Devices view** — a flat, sortable/filterable table of every device across every rack, with firmware/version pulled live where available (SAN/Storage/ESXi mapping); click a row to jump to that device in its rack
@@ -76,6 +76,10 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 - Export: openpyxl
 
 ## Changelog
+
+**iDRAC/iLO full component firmware inventory**
+- BIOS and BMC firmware alone don't tell the whole story on a rack server — NICs, RAID/HBA controllers, PSUs, CPLDs, and more all carry their own firmware, and each varies by exact configuration (which RAID card, how many NIC ports) rather than by model, so there's no per-model "latest known" to compare against like there is for BIOS/BMC
+- Pulls the full list via Redfish's `UpdateService/FirmwareInventory` (every DMTF-compliant BMC exposes this) and shows it as a searchable list on the iDRAC/iLO page — purely "what's on this specific box right now," not a status comparison
 
 **Firmware List**
 - New page: a full-catalog firmware reference lookup, separate from Firmware Status — every firmware-bearing model RackView knows about (210 of them), whether or not anyone has one deployed, so you can check "what's the latest for the ME5024" without needing one in a rack

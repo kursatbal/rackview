@@ -1648,6 +1648,40 @@ body {
 
 .san-dot-ok { background: #3fb950; }
 .san-dot-warn { background: #d29922; }
+
+.san-fw-search {
+  width: 100%;
+  font-family: monospace;
+  font-size: 11px;
+  padding: 6px 8px;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  background: #161b22;
+  color: #e6edf3;
+  margin-bottom: 8px;
+}
+
+.san-fw-list {
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+}
+
+.san-fw-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 11px;
+  font-size: 11px;
+  border-bottom: 1px solid #21262d;
+}
+
+.san-fw-row:last-child { border-bottom: none; }
+.san-fw-row:nth-child(even) { background: #161b22; }
+
+.san-fw-name { color: #e6edf3; }
+.san-fw-version { color: #7ee787; font-family: monospace; white-space: nowrap; }
 .san-dot-unknown { background: #484f58; }
 
 .san-zonegrid {
