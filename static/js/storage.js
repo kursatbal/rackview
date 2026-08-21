@@ -97,7 +97,7 @@ function renderData(data) {
     h("b", {}, [`\u{1F5C4}️ ${data.system || "?"}`]),
     h("span", { class: "san-pill san-pill-ip" }, [data.ip || ""]),
     h("span", { class: "san-sub" }, [
-      [data.vendor, data.model, data.serial, data.health ? "Health: " + data.health : null].filter(Boolean).join(" · "),
+      [data.vendor, data.model, data.serial, data.firmware ? "Firmware: " + data.firmware : null, data.health ? "Health: " + data.health : null].filter(Boolean).join(" · "),
     ]),
   ]);
   block.appendChild(head);
