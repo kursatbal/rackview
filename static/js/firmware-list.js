@@ -76,11 +76,14 @@ function buildRow(r) {
   tr.appendChild(h("td", { class: "dv-mono" }, [r.deployed_count ? String(r.deployed_count) : "-"]));
 
   const historyText = (r.versions || []).map(v => v.date ? `${v.version} | ${v.date}` : v.version).join("\n");
-  const versionsArea = h("textarea", { name: "versions", rows: "3", placeholder: "9.4.2 | 2026-05\n9.4.1 | 2026-02\n9.4.0 | 2025-11" }, [historyText]);
+  const versionsArea = h("textarea", { name: "versions", rows: "4", placeholder: "9.4.2 | 2026-05\n9.4.1 | 2026-02\n9.4.0 | 2025-11" }, [historyText]);
   const notesInput = h("input", { name: "notes", type: "text", placeholder: "notes (optional)", value: r.notes || "" });
   const saveBtn = h("button", {}, ["Save"]);
   saveBtn.onclick = () => saveReference(r, versionsArea.value, notesInput.value.trim(), saveBtn);
-  const editRow = h("div", { class: "fw-edit-row" }, [versionsArea, notesInput, saveBtn]);
+  const editRow = h("div", { class: "fw-edit-row" }, [
+    versionsArea,
+    h("div", { class: "fw-edit-bottom-row" }, [notesInput, saveBtn]),
+  ]);
   tr.appendChild(h("td", {}, [editRow]));
 
   tr.appendChild(h("td", { class: "dv-mono" }, [r.updated_at ? new Date(r.updated_at).toLocaleDateString() : "-"]));
