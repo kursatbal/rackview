@@ -31,7 +31,8 @@ Tracking what's plugged into what in a data center usually means a spreadsheet, 
 - **Activity Log** — every device/cable create, update, and delete is timestamped with a before/after diff, filterable by rack
 - **Mgmt IP conflict check** — flags a device whose management IP is already recorded on another device in the same customer's racks
 - **Devices view** — a flat, sortable/filterable table of every device across every rack, with firmware/version pulled live where available (SAN/Storage/ESXi mapping); click a row to jump to that device in its rack
-- **Firmware Status** — groups every device by vendor/model, shows what firmware is actually running next to a hand-entered "latest known" version, and flags mismatches as outdated; no internet access, so "latest known" is maintained by hand
+- **Firmware Status** — groups every *deployed* device by vendor/model, shows what firmware is actually running next to a hand-entered "latest known" version, and flags mismatches as outdated; no internet access, so "latest known" is maintained by hand
+- **Firmware List** — the full catalog reference lookup, every firmware-bearing model whether deployed or not, for checking "what's current for the X" without needing one in a rack; edits update the same table Firmware Status compares against
 - **Multi-rack / floor view** — customer-isolated racks, a hall-level view, inter-rack cabling
 - **Excel export** — download a rack's or a device's cabling as `.xlsx`
 
@@ -75,6 +76,11 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 - Export: openpyxl
 
 ## Changelog
+
+**Firmware List**
+- New page: a full-catalog firmware reference lookup, separate from Firmware Status — every firmware-bearing model RackView knows about (210 of them), whether or not anyone has one deployed, so you can check "what's the latest for the ME5024" without needing one in a rack
+- Same editable version-history table as Firmware Status, same underlying data — a save here updates the reference Firmware Status compares deployed devices against
+- Firmware Status stays scoped to what's actually deployed ("is what's running okay"); this page is the product-level lookup ("what do we know about model X")
 
 **Firmware Status**
 - New page: groups every placed device by vendor/model and shows the firmware actually seen on it (from the same live-pull snapshots Devices view uses: SAN Switch Mapping, Storage Mapping, iDRAC/iLO) next to a hand-entered "latest known" version per model, flagging a model as Outdated when they don't match

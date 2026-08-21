@@ -576,6 +576,34 @@ def firmware_status():
     return jsonify(out)
 
 
+@app.route("/api/firmware/catalog")
+def firmware_catalog():
+    # Firmware Status is scoped to what's actually deployed ("is what's running okay"); this is
+    # the full-catalog lookup ("what do we know about model X") — every firmware-bearing model,
+    # whether or not anyone has one in a rack yet.
+    fw_categories = {"server", "switch", "storage", "router", "san-switch", "firewall"}
+    refs = {(r.vendor, r.model): r for r in FirmwareReference.query.all()}
+    deployed_counts = {}
+    for d in Device.query.join(Device.device_type).all():
+        key = (d.device_type.vendor, d.device_type.model)
+        deployed_counts[key] = deployed_counts.get(key, 0) + 1
+
+    out = []
+    for dt in DeviceType.query.filter(DeviceType.category.in_(fw_categories)).all():
+        key = (dt.vendor, dt.model)
+        ref = refs.get(key)
+        out.append({
+            "vendor": dt.vendor, "model": dt.model, "category": dt.category,
+            "deployed_count": deployed_counts.get(key, 0),
+            "versions": ref.versions if ref else [],
+            "latest_version": ref.latest_version if ref else None,
+            "notes": ref.notes if ref else None,
+            "updated_at": ref.updated_at.isoformat() if ref else None,
+        })
+    out.sort(key=lambda r: (r["latest_version"] is None, r["vendor"], r["model"]))
+    return jsonify(out)
+
+
 @app.route("/api/firmware/reference", methods=["POST"])
 def firmware_reference_upsert():
     payload = request.get_json()

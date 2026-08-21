@@ -22,6 +22,7 @@
         <a id="btn-esxi" href="esxi.html">ESXi NIC Verification</a>
         <a id="btn-idrac" href="idrac.html">iDRAC / iLO</a>
         <a id="btn-firmware" href="firmware.html">Firmware Status</a>
+        <a id="btn-firmware-list" href="firmware-list.html">Firmware List</a>
         <a id="btn-activity-log" href="activity-log.html">Activity Log</a>
       </div>
     </div>
@@ -62,7 +63,7 @@
       <div class="help-grid">
         <div class="help-item">
           <h3>🧰 Tools menu</h3>
-          <p>The <b>Tools ▾</b> button in the top bar groups every live-pull/integration screen in one place: LLDP Discovery, LLDP Auto-Cabling, SAN Switch Mapping, Storage Mapping, ESXi NIC Verification, iDRAC / iLO, Firmware Status, and Activity Log. See the cards below for what each one does.</p>
+          <p>The <b>Tools ▾</b> button in the top bar groups every live-pull/integration screen in one place: LLDP Discovery, LLDP Auto-Cabling, SAN Switch Mapping, Storage Mapping, ESXi NIC Verification, iDRAC / iLO, Firmware Status, Firmware List, and Activity Log. See the cards below for what each one does.</p>
         </div>
         <div class="help-item">
           <h3>✏️ Edit mode</h3>
@@ -106,7 +107,11 @@
         </div>
         <div class="help-item">
           <h3>🧾 Firmware Status</h3>
-          <p>Groups every device by vendor/model and shows what firmware is actually running (from the latest live pull, where available) next to a hand-entered "latest known" version — flags a model as Outdated when they don't match. RackView has no internet access, so "latest known" has to be typed in by hand and kept up to date.</p>
+          <p>Groups every <b>deployed</b> device by vendor/model and shows what firmware is actually running (from the latest live pull, where available) next to a hand-entered "latest known" version — flags a model as Outdated when they don't match. RackView has no internet access, so "latest known" has to be typed in by hand and kept up to date.</p>
+        </div>
+        <div class="help-item">
+          <h3>📚 Firmware List</h3>
+          <p>The full catalog reference lookup — every firmware-bearing model RackView knows about, whether or not anyone has one in a rack yet, so you can check "what's current for the ME5024" without needing one deployed. Editable from here too; edits update the same table Firmware Status compares against.</p>
         </div>
         <div class="help-item">
           <h3>📜 Activity Log</h3>

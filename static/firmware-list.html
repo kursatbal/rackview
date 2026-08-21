@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>RackView — Firmware List</title>
+  <link rel="stylesheet" href="style.css" onerror="this.onerror=null;this.href='style.css?retry='+Date.now()">
+</head>
+<body>
+  <header class="toolbar">
+    <span class="title">RackView — Firmware List</span>
+    <div class="spacer"></div>
+    <a class="btn-link" href="firmware.html">Firmware Status</a>
+    <a class="btn-link" href="index.html">Back to rack</a>
+  </header>
+
+  <main class="devices-page">
+    <div class="devices-toolbar">
+      <input id="fwl-search" type="text" placeholder="Search: vendor, model...">
+      <select id="fwl-category"></select>
+      <span id="fwl-count" class="devices-count"></span>
+    </div>
+    <div class="devices-table-wrap">
+      <table id="fwl-table">
+        <thead>
+          <tr>
+            <th data-sort="vendor">Vendor / Model</th>
+            <th data-sort="category">Category</th>
+            <th data-sort="deployed_count">In racks</th>
+            <th>Latest known</th>
+            <th data-sort="updated_at">Updated</th>
+          </tr>
+        </thead>
+        <tbody id="fwl-tbody"></tbody>
+      </table>
+    </div>
+    <div class="fw-hint">Every firmware-bearing model in the catalog, whether or not anyone has one in a rack yet — a straight product lookup ("what's current for the ME5024") separate from Firmware Status, which only tracks devices actually deployed. Editing here updates the same reference table Firmware Status compares against.</div>
+  </main>
+
+  <script src="js/firmware-list.js"></script>
+</body>
+</html>
