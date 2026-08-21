@@ -1,0 +1,4312 @@
+[
+ {
+  "vendor": "Arista",
+  "model": "Arista 7050CX3-32S",
+  "versions": [
+   {
+    "version": "EOS-4.36.2F",
+    "date": "2026-08"
+   },
+   {
+    "version": "EOS-4.35.6M",
+    "date": "2026-08"
+   },
+   {
+    "version": "EOS-4.34.8M",
+    "date": "2026-08"
+   },
+   {
+    "version": "EOS-4.33.10M",
+    "date": "2026-08"
+   }
+  ],
+  "notes": "F = newest feature train, M = maintenance trains for older majors"
+ },
+ {
+  "vendor": "Arista",
+  "model": "Arista 7060CX-32S",
+  "versions": [
+   {
+    "version": "EOS-4.36.2F",
+    "date": "2026-08"
+   },
+   {
+    "version": "EOS-4.35.6M",
+    "date": "2026-08"
+   },
+   {
+    "version": "EOS-4.34.8M",
+    "date": "2026-08"
+   }
+  ],
+  "notes": "Shares common EOS release train across Arista fixed-switch platforms"
+ },
+ {
+  "vendor": "Arista",
+  "model": "Arista 7280CR3-32P4",
+  "versions": [
+   {
+    "version": "EOS-4.36.2F",
+    "date": "2026-08"
+   },
+   {
+    "version": "EOS-4.35.6M",
+    "date": "2026-08"
+   },
+   {
+    "version": "EOS-4.34.8M",
+    "date": "2026-08"
+   }
+  ],
+  "notes": "Shares common EOS release train across Arista fixed-switch platforms"
+ },
+ {
+  "vendor": "Arista",
+  "model": "Arista 7504R3",
+  "versions": [
+   {
+    "version": "EOS 4.36.1F",
+    "date": "2026-06"
+   },
+   {
+    "version": "EOS 4.34.1F",
+    "date": "2025-06"
+   },
+   {
+    "version": "EOS 4.33.8M",
+    "date": "2026-06"
+   }
+  ],
+  "notes": "7500R3 modular chassis family; note EOL advisory 21089 applies to 7500R/R2, not R3"
+ },
+ {
+  "vendor": "Arista",
+  "model": "Arista 7508R3",
+  "versions": [
+   {
+    "version": "EOS 4.36.1F",
+    "date": "2026-06"
+   },
+   {
+    "version": "EOS 4.34.1F",
+    "date": "2025-06"
+   },
+   {
+    "version": "EOS 4.33.8M",
+    "date": "2026-06"
+   }
+  ],
+  "notes": "Shares EOS release train with 7504R3 (same 7500R3 chassis family)"
+ },
+ {
+  "vendor": "Aruba",
+  "model": "Aruba 2930F 48G",
+  "versions": [
+   {
+    "version": "WC.16.11.0013",
+    "date": "2022-10"
+   },
+   {
+    "version": "WC.16.11.0005",
+    "date": "2022-05"
+   }
+  ],
+  "notes": "ArubaOS-Switch (legacy, not AOS-CX), 16.11 branch, WC image family"
+ },
+ {
+  "vendor": "Aruba",
+  "model": "Aruba CX 6200F 48G",
+  "versions": [
+   {
+    "version": "10.14.1040",
+    "date": "2025-01"
+   },
+   {
+    "version": "10.13.1040",
+    "date": "2024-08"
+   }
+  ],
+  "notes": "Same AOS-CX release train as 6300M"
+ },
+ {
+  "vendor": "Aruba",
+  "model": "Aruba CX 6300M 48G",
+  "versions": [
+   {
+    "version": "10.14.1040",
+    "date": "2025-01"
+   },
+   {
+    "version": "10.13.1040",
+    "date": "2024-08"
+   }
+  ],
+  "notes": "AOS-CX release train"
+ },
+ {
+  "vendor": "Aruba",
+  "model": "Aruba CX 8325-48Y8C",
+  "versions": [
+   {
+    "version": "10.14.1040",
+    "date": "2025-01"
+   },
+   {
+    "version": "10.13.1030",
+    "date": "2024-08"
+   }
+  ],
+  "notes": "Shares AOS-CX version train with other CX switches"
+ },
+ {
+  "vendor": "Aruba",
+  "model": "Aruba CX 8360-32Y4C",
+  "versions": [
+   {
+    "version": "AOS-CX 10.14.1010",
+    "date": "2024-10"
+   },
+   {
+    "version": "AOS-CX 10.13.1030",
+    "date": "2024-08"
+   },
+   {
+    "version": "AOS-CX 10.14.0001",
+    "date": "2024-06"
+   }
+  ],
+  "notes": "10.16.xx exists as a newer Long Supported Release; publish date unconfirmed"
+ },
+ {
+  "vendor": "Aruba",
+  "model": "Aruba CX 9300-32D",
+  "versions": [
+   {
+    "version": "AOS-CX 10.13.1040",
+    "date": "2024-08"
+   },
+   {
+    "version": "AOS-CX 10.13.1010",
+    "date": "2024-04"
+   },
+   {
+    "version": "AOS-CX 10.13.0005",
+    "date": "2023-11"
+   }
+  ],
+  "notes": "10.15.xx exists as a newer Short Supported Release; publish date unconfirmed"
+ },
+ {
+  "vendor": "Broadcom",
+  "model": "Brocade G610",
+  "versions": [
+   {
+    "version": "9.2.2c1",
+    "date": "2026-05"
+   },
+   {
+    "version": "9.2.2b",
+    "date": "2025-10"
+   },
+   {
+    "version": "9.2.2a",
+    "date": "2025-05"
+   },
+   {
+    "version": "9.2.2",
+    "date": "2024-12"
+   }
+  ],
+  "notes": "Same FOS 9.2.2.x release train as G620"
+ },
+ {
+  "vendor": "Broadcom",
+  "model": "Brocade G620",
+  "versions": [
+   {
+    "version": "9.2.2c1",
+    "date": "2026-05"
+   },
+   {
+    "version": "9.2.2b",
+    "date": "2025-10"
+   },
+   {
+    "version": "9.2.2a",
+    "date": "2025-05"
+   },
+   {
+    "version": "9.2.2",
+    "date": "2024-12"
+   }
+  ],
+  "notes": "Fabric OS release train"
+ },
+ {
+  "vendor": "Brocade",
+  "model": "Brocade 300",
+  "versions": [
+   {
+    "version": "7.4.2j",
+    "date": "2019"
+   }
+  ],
+  "notes": "EOL/discontinued (Broadcom end-of-support April 2024); 7.4.2j is the highest Fabric OS ever released for this switch, later FOS 8.x/9.x never supported this hardware"
+ },
+ {
+  "vendor": "Check Point",
+  "model": "Check Point 16600",
+  "versions": [
+   {
+    "version": "R82.20",
+    "date": "2026-04"
+   },
+   {
+    "version": "R82.10",
+    "date": "2025-12"
+   },
+   {
+    "version": "R81.20",
+    "date": "2021-12"
+   }
+  ],
+  "notes": "R81.20 (Titan) remains long-term recommended via Jumbo Hotfix Accumulator updates"
+ },
+ {
+  "vendor": "Check Point",
+  "model": "Check Point 6600",
+  "versions": [
+   {
+    "version": "R82.10",
+    "date": "2025-12"
+   },
+   {
+    "version": "R82",
+    "date": "2025-04"
+   },
+   {
+    "version": "R81.20",
+    "date": "2022-11"
+   }
+  ],
+  "notes": "R82 GA ~Apr 2025; R82.10 GA Dec 29 2025"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "ASR 1001-HX",
+  "versions": [
+   {
+    "version": "17.16.1",
+    "date": "2024-12"
+   },
+   {
+    "version": "17.15.1",
+    "date": "2024-08"
+   },
+   {
+    "version": "17.14.1a",
+    "date": "2024-06"
+   }
+  ],
+  "notes": "Shares IOS-XE 17.x release train with ASR1000 series"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "ASR 1001-X",
+  "versions": [
+   {
+    "version": "17.16.1",
+    "date": "2024-12"
+   },
+   {
+    "version": "17.15.1",
+    "date": "2024-08"
+   },
+   {
+    "version": "17.14.1a",
+    "date": "2024-06"
+   }
+  ],
+  "notes": "ASR1000 tracks same IOS-XE Extended Maintenance train as ISR4000"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "ASR 1002-HX",
+  "versions": [
+   {
+    "version": "17.16.1",
+    "date": "2024-12"
+   },
+   {
+    "version": "17.15.1",
+    "date": "2024-08"
+   },
+   {
+    "version": "17.14.1a",
+    "date": "2024-06"
+   }
+  ],
+  "notes": "Shares IOS-XE 17.x release train with ASR1000 series"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Catalyst 8200L",
+  "versions": [
+   {
+    "version": "17.16.1",
+    "date": "2024-12"
+   },
+   {
+    "version": "17.15.1",
+    "date": "2024-08"
+   },
+   {
+    "version": "17.14.1a",
+    "date": "2024-06"
+   }
+  ],
+  "notes": "Catalyst 8300 family release notes cover this edge platform"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Catalyst 8300-1N1S",
+  "versions": [
+   {
+    "version": "17.16.1",
+    "date": "2024-12"
+   },
+   {
+    "version": "17.15.1",
+    "date": "2024-08"
+   },
+   {
+    "version": "17.14.1a",
+    "date": "2024-06"
+   }
+  ],
+  "notes": "Cisco Catalyst 8300 Series Edge Platforms release notes"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Catalyst 8300-2N2S",
+  "versions": [
+   {
+    "version": "17.16.1",
+    "date": "2024-12"
+   },
+   {
+    "version": "17.15.1",
+    "date": "2024-08"
+   },
+   {
+    "version": "17.14.1a",
+    "date": "2024-06"
+   }
+  ],
+  "notes": "Cisco Catalyst 8300 Series Edge Platforms release notes"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Catalyst 8500-12X",
+  "versions": [
+   {
+    "version": "17.13.1a",
+    "date": "2023-11"
+   },
+   {
+    "version": "17.12.1a",
+    "date": "2023-08"
+   },
+   {
+    "version": "17.10.1a",
+    "date": "2023-02"
+   }
+  ],
+  "notes": "Catalyst 8500 platform trails ISR/ASR/8300 trains (older IOS-XE train)"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Catalyst 9200-48T",
+  "versions": [
+   {
+    "version": "17.15.4a",
+    "date": "2025-08"
+   },
+   {
+    "version": "17.12.x",
+    "date": "2025"
+   }
+  ],
+  "notes": "9200 platform typically trails 9300/9500 on newest ED trains"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Catalyst 9200L-24P",
+  "versions": [
+   {
+    "version": "17.15.4a",
+    "date": "2025-08"
+   },
+   {
+    "version": "17.12.x",
+    "date": "2025"
+   }
+  ],
+  "notes": "Same IOS-XE release train as Catalyst 9200-48T"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Catalyst 9300-24P",
+  "versions": [
+   {
+    "version": "17.18.1",
+    "date": "2025-08"
+   },
+   {
+    "version": "17.15.4a",
+    "date": "2025-08"
+   }
+  ],
+  "notes": "Same IOS-XE release train as other Catalyst 9300 models"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Catalyst 9300-48P",
+  "versions": [
+   {
+    "version": "17.18.1",
+    "date": "2025-08"
+   },
+   {
+    "version": "17.15.4a",
+    "date": "2025-08"
+   }
+  ],
+  "notes": "IOS-XE; 17.15 and 17.12 are Extended-Support trains with ongoing rebuilds"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Catalyst 9300X-48HX",
+  "versions": [
+   {
+    "version": "17.18.1",
+    "date": "2025-08"
+   },
+   {
+    "version": "17.15.4a",
+    "date": "2025-08"
+   }
+  ],
+  "notes": "Same IOS-XE release train as other Catalyst 9300 models"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Catalyst 9410R",
+  "versions": [
+   {
+    "version": "IOS XE 26.1.1",
+    "date": "2026-04"
+   },
+   {
+    "version": "IOS XE 17.18.1",
+    "date": "2025-08"
+   },
+   {
+    "version": "IOS XE 17.17.1",
+    "date": "2025-03"
+   },
+   {
+    "version": "IOS XE 17.16.1",
+    "date": "2024-12"
+   }
+  ],
+  "notes": "Catalyst 9400/9600 modular chassis family"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Catalyst 9500-48Y4C",
+  "versions": [
+   {
+    "version": "17.18.1",
+    "date": "2025-08"
+   },
+   {
+    "version": "17.15.4a",
+    "date": "2025-08"
+   }
+  ],
+  "notes": "Same IOS-XE release train as Catalyst 9300"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Catalyst 9606R",
+  "versions": [
+   {
+    "version": "IOS XE 26.1.1",
+    "date": "2026-04"
+   },
+   {
+    "version": "IOS XE 17.18.1",
+    "date": "2025-08"
+   },
+   {
+    "version": "IOS XE 17.17.1",
+    "date": "2025-03"
+   },
+   {
+    "version": "IOS XE 17.16.1",
+    "date": "2024-12"
+   }
+  ],
+  "notes": "Catalyst 9600 modular chassis family"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Firepower 1140",
+  "versions": [
+   {
+    "version": "7.4.2",
+    "date": "2024"
+   },
+   {
+    "version": "7.4.1",
+    "date": "2023-12"
+   },
+   {
+    "version": "7.2.5",
+    "date": "2024"
+   },
+   {
+    "version": "7.2.4",
+    "date": "2023"
+   }
+  ],
+  "notes": "FTD 7.2/7.3/7.4 train; 7.6+ support not confirmed for this platform"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Firepower 2130",
+  "versions": [
+   {
+    "version": "7.4.2",
+    "date": "2024"
+   },
+   {
+    "version": "7.4.1",
+    "date": "2023-12"
+   },
+   {
+    "version": "7.2.5",
+    "date": "2024"
+   },
+   {
+    "version": "7.0.6",
+    "date": "2023"
+   }
+  ],
+  "notes": "Firepower 2100 series cannot run FTD 7.6+; 7.4.x is last supported train"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Firepower 2140",
+  "versions": [
+   {
+    "version": "7.4.2",
+    "date": "2024"
+   },
+   {
+    "version": "7.4.1",
+    "date": "2023-12"
+   },
+   {
+    "version": "7.2.5",
+    "date": "2024"
+   },
+   {
+    "version": "7.0.6",
+    "date": "2023"
+   }
+  ],
+  "notes": "Same FTD train as Firepower 2130"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Firepower 4115",
+  "versions": [
+   {
+    "version": "7.7",
+    "date": "2025"
+   },
+   {
+    "version": "7.6",
+    "date": "2024-09"
+   },
+   {
+    "version": "7.4.2",
+    "date": "2024"
+   },
+   {
+    "version": "7.4.1",
+    "date": "2023-12"
+   }
+  ],
+  "notes": "Firepower 4100 series (4112/4115/4125/4145) on FTD 7.7.x"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Firepower 4125",
+  "versions": [
+   {
+    "version": "7.7",
+    "date": "2025"
+   },
+   {
+    "version": "7.6",
+    "date": "2024-09"
+   },
+   {
+    "version": "7.4.2",
+    "date": "2024"
+   },
+   {
+    "version": "7.4.1",
+    "date": "2023-12"
+   }
+  ],
+  "notes": "Same FTD train as Firepower 4115 (4100 series)"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Firepower 9300",
+  "versions": [
+   {
+    "version": "7.4.2",
+    "date": "2024"
+   },
+   {
+    "version": "7.4.1",
+    "date": "2023-12"
+   },
+   {
+    "version": "7.2.5",
+    "date": "2024"
+   },
+   {
+    "version": "7.0.6",
+    "date": "2023"
+   }
+  ],
+  "notes": "FTD 7.4 supported on 9300; End-of-Sale last order Mar 31 2026"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "ISR 4321",
+  "versions": [
+   {
+    "version": "17.16.1",
+    "date": "2024-12"
+   },
+   {
+    "version": "17.15.1",
+    "date": "2024-08"
+   },
+   {
+    "version": "17.14.1a",
+    "date": "2024-06"
+   }
+  ],
+  "notes": "IOS-XE 17.x Extended Maintenance train shared across ISR4000"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "ISR 4331",
+  "versions": [
+   {
+    "version": "17.16.1",
+    "date": "2024-12"
+   },
+   {
+    "version": "17.15.1",
+    "date": "2024-08"
+   },
+   {
+    "version": "17.14.1a",
+    "date": "2024-06"
+   }
+  ],
+  "notes": "Shares IOS-XE 17.x release train with ISR 4000 series"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "ISR 4351",
+  "versions": [
+   {
+    "version": "17.16.1",
+    "date": "2024-12"
+   },
+   {
+    "version": "17.15.1",
+    "date": "2024-08"
+   },
+   {
+    "version": "17.14.1a",
+    "date": "2024-06"
+   }
+  ],
+  "notes": "Shares IOS-XE 17.x release train with ISR 4000 series"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "ISR 4431",
+  "versions": [
+   {
+    "version": "17.16.1",
+    "date": "2024-12"
+   },
+   {
+    "version": "17.15.1",
+    "date": "2024-08"
+   },
+   {
+    "version": "17.14.1a",
+    "date": "2024-06"
+   }
+  ],
+  "notes": "Shares IOS-XE 17.x release train with ISR 4000 series"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "ISR 4451-X",
+  "versions": [
+   {
+    "version": "17.16.1",
+    "date": "2024-12"
+   },
+   {
+    "version": "17.15.1",
+    "date": "2024-08"
+   },
+   {
+    "version": "17.14.1a",
+    "date": "2024-06"
+   }
+  ],
+  "notes": "Shares IOS-XE 17.x release train with ISR 4000 series"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "MDS 9148T",
+  "versions": [
+   {
+    "version": "9.4(4)",
+    "date": "2025-08"
+   },
+   {
+    "version": "9.4(3b)",
+    "date": "2025-10"
+   }
+  ],
+  "notes": "MDS 9000 NX-OS/SAN-OS train; 9.4(4) reported deferred for Fabric Switches per Cisco (CSCws09730)"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Nexus 92300YC",
+  "versions": [
+   {
+    "version": "10.4(5)M",
+    "date": "2025"
+   }
+  ],
+  "notes": "Older 9200-platform switch; only verified entry included"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Nexus 92348GC-FX3",
+  "versions": [
+   {
+    "version": "10.5(5)M",
+    "date": "2026-04"
+   },
+   {
+    "version": "10.5(4)M",
+    "date": "2026-04"
+   },
+   {
+    "version": "10.5(3)F",
+    "date": "2026-04"
+   }
+  ],
+  "notes": "FX3 platform is in the current NX-OS 9000 10.5.x train"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Nexus 93108TC-EX",
+  "versions": [
+   {
+    "version": "10.5(5)M",
+    "date": "2026-04"
+   },
+   {
+    "version": "10.5(4)M",
+    "date": "2026-04"
+   },
+   {
+    "version": "10.5(3)F",
+    "date": "2026-04"
+   }
+  ],
+  "notes": "Same NX-OS 9000 release train as other Nexus 93xx switches"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Nexus 9316D-GX",
+  "versions": [
+   {
+    "version": "10.5(6)M",
+    "date": "2026-07"
+   },
+   {
+    "version": "10.6(3)F",
+    "date": "2026-05"
+   },
+   {
+    "version": "10.6(2)F",
+    "date": "2026-04"
+   }
+  ],
+  "notes": "Same NX-OS Nexus 9000 fixed-switch train"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Nexus 93180YC-EX",
+  "versions": [
+   {
+    "version": "10.5(5)M",
+    "date": "2026-04"
+   },
+   {
+    "version": "10.5(4)M",
+    "date": "2026-04"
+   },
+   {
+    "version": "10.5(3)F",
+    "date": "2026-04"
+   }
+  ],
+  "notes": "Same NX-OS 9000 release train as 93180YC-FX"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Nexus 93180YC-FX",
+  "versions": [
+   {
+    "version": "10.5(5)M",
+    "date": "2026-04"
+   },
+   {
+    "version": "10.5(4)M",
+    "date": "2026-04"
+   },
+   {
+    "version": "10.5(3)F",
+    "date": "2026-04"
+   }
+  ],
+  "notes": "NX-OS 9300 platform train"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Nexus 9332C",
+  "versions": [
+   {
+    "version": "10.5(6)M",
+    "date": "2026-07"
+   },
+   {
+    "version": "10.6(3)F",
+    "date": "2026-05"
+   },
+   {
+    "version": "10.6(2)F",
+    "date": "2026-04"
+   }
+  ],
+  "notes": "Same NX-OS Nexus 9000 fixed-switch train"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Nexus 9336C-FX2",
+  "versions": [
+   {
+    "version": "10.5(5)M",
+    "date": "2026-04"
+   },
+   {
+    "version": "10.5(4)M",
+    "date": "2026-04"
+   },
+   {
+    "version": "10.5(3)F",
+    "date": "2026-04"
+   }
+  ],
+  "notes": "Same NX-OS 9000 release train as other current-gen Nexus 93xx"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Nexus 9348D-GX2A",
+  "versions": [
+   {
+    "version": "10.5(6)M",
+    "date": "2026-07"
+   },
+   {
+    "version": "10.6(3)F",
+    "date": "2026-05"
+   },
+   {
+    "version": "10.6(2)F",
+    "date": "2026-04"
+   }
+  ],
+  "notes": "Same NX-OS Nexus 9000 fixed-switch train"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Nexus 9364C",
+  "versions": [
+   {
+    "version": "10.5(6)M",
+    "date": "2026-07"
+   },
+   {
+    "version": "10.6(3)F",
+    "date": "2026-05"
+   },
+   {
+    "version": "10.6(2)F",
+    "date": "2026-04"
+   }
+  ],
+  "notes": "NX-OS unified image; M and F are parallel maintenance/feature trains"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Nexus 9408",
+  "versions": [
+   {
+    "version": "10.5(6)M",
+    "date": "2026-07"
+   },
+   {
+    "version": "10.6(3)F",
+    "date": "2026-05"
+   },
+   {
+    "version": "10.6(2)F",
+    "date": "2026-04"
+   },
+   {
+    "version": "10.4(3)F",
+    "date": "2024-03"
+   }
+  ],
+  "notes": "9408 support confirmed starting 10.4(3)F"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Nexus 9504",
+  "versions": [
+   {
+    "version": "10.5(6)M",
+    "date": "2026-07"
+   },
+   {
+    "version": "10.6(3)F",
+    "date": "2026-05"
+   },
+   {
+    "version": "10.6(2)F",
+    "date": "2026-04"
+   }
+  ],
+  "notes": "Modular chassis, nxos64-msll image"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Nexus 9508",
+  "versions": [
+   {
+    "version": "10.4(7)M",
+    "date": "2026-02"
+   },
+   {
+    "version": "10.4(6)M",
+    "date": "2025-09"
+   },
+   {
+    "version": "10.4(5)M",
+    "date": "2025-03"
+   }
+  ],
+  "notes": "NX-OS 10.4 M-train (modular chassis)"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Nexus 9516",
+  "versions": [
+   {
+    "version": "10.4(7)M",
+    "date": "2026-02"
+   },
+   {
+    "version": "10.4(6)M",
+    "date": "2025-09"
+   },
+   {
+    "version": "10.4(5)M",
+    "date": "2025-03"
+   }
+  ],
+  "notes": "Shares NX-OS 10.4 M-train with Nexus 9508 (same Nexus 9500 modular chassis family)"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Secure Firewall 3120",
+  "versions": [
+   {
+    "version": "7.7",
+    "date": "2025"
+   },
+   {
+    "version": "7.6",
+    "date": "2024-09"
+   },
+   {
+    "version": "7.4.2",
+    "date": "2024"
+   },
+   {
+    "version": "7.4.1",
+    "date": "2023-12"
+   }
+  ],
+  "notes": "Secure Firewall 3100 series, ongoing FTD 7.6.x/7.7.x support"
+ },
+ {
+  "vendor": "Cisco",
+  "model": "Secure Firewall 3140",
+  "versions": [
+   {
+    "version": "7.7",
+    "date": "2025"
+   },
+   {
+    "version": "7.6",
+    "date": "2024-09"
+   },
+   {
+    "version": "7.4.2",
+    "date": "2024"
+   },
+   {
+    "version": "7.4.1",
+    "date": "2023-12"
+   }
+  ],
+  "notes": "Same FTD train as 3120 (Secure Firewall 3100 series)"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge HS5610",
+  "versions": [
+   {
+    "version": "7.30.10.50",
+    "date": "2026-03"
+   },
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   }
+  ],
+  "notes": "iDRAC9, current-gen 7.20.x/7.30.x release train"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge HS5620",
+  "versions": [
+   {
+    "version": "7.30.10.50",
+    "date": "2026-03"
+   },
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   }
+  ],
+  "notes": "iDRAC9, current-gen 7.20.x/7.30.x release train"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R240",
+  "versions": [
+   {
+    "version": "7.00.00.183",
+    "date": "2025-10"
+   },
+   {
+    "version": "7.00.00.182",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.10.90.05",
+    "date": "2024-12"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared across Dell 14G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R250",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared train across Dell 15G entry rack PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R260",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared across Dell 16G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R340",
+  "versions": [
+   {
+    "version": "7.00.00.183",
+    "date": "2025-10"
+   },
+   {
+    "version": "7.00.00.182",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.10.90.05",
+    "date": "2024-12"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared across Dell 14G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R350",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared train across Dell 15G entry rack PowerEdge (R250/R350/R450/R550 family)"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R360",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared across Dell 16G PowerEdge single-socket line"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R440",
+  "versions": [
+   {
+    "version": "7.00.00.183",
+    "date": "2025-10"
+   },
+   {
+    "version": "7.00.00.182",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.10.90.05",
+    "date": "2024-12"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared across Dell 14G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R450",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared across Dell 15G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R470",
+  "versions": [
+   {
+    "version": "1.30.30.50",
+    "date": "2026-06"
+   },
+   {
+    "version": "1.30.10.50",
+    "date": "2026-03"
+   },
+   {
+    "version": "1.30.09.16",
+    "date": "2026-03"
+   },
+   {
+    "version": "1.30.09.10",
+    "date": "2026-03"
+   }
+  ],
+  "notes": "iDRAC10 firmware, shared across Dell 17G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R4715",
+  "versions": [
+   {
+    "version": "1.30.30.50",
+    "date": "2026-06"
+   },
+   {
+    "version": "1.30.10.50",
+    "date": "2026-03"
+   },
+   {
+    "version": "1.30.09.16",
+    "date": "2026-03"
+   },
+   {
+    "version": "1.30.09.10",
+    "date": "2026-03"
+   }
+  ],
+  "notes": "iDRAC10 firmware, shared across Dell 17G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R540",
+  "versions": [
+   {
+    "version": "7.00.00.184",
+    "date": "2026-04"
+   },
+   {
+    "version": "7.00.00.183",
+    "date": "2025-10"
+   },
+   {
+    "version": "7.00.00.182",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.00.00.181",
+    "date": "2025-03"
+   }
+  ],
+  "notes": "iDRAC9 firmware, 14G PowerEdge shared 7.00.00.x release train"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R550",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared release train across Dell 15G/16G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R570",
+  "versions": [
+   {
+    "version": "1.30.30.50",
+    "date": "2026-06"
+   },
+   {
+    "version": "1.30.10.50",
+    "date": "2026-03"
+   },
+   {
+    "version": "1.20.80.50",
+    "date": "2025-12"
+   }
+  ],
+  "notes": "iDRAC10 firmware shared across Dell 17G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R5715",
+  "versions": [
+   {
+    "version": "1.30.30.50",
+    "date": "2026-06"
+   },
+   {
+    "version": "1.30.10.50",
+    "date": "2026-03"
+   },
+   {
+    "version": "1.20.80.50",
+    "date": "2025-12"
+   }
+  ],
+  "notes": "iDRAC10 firmware shared across Dell 17G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R640",
+  "versions": [
+   {
+    "version": "7.00.00.183",
+    "date": "2025-10"
+   },
+   {
+    "version": "7.00.00.182",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.10.90.05",
+    "date": "2024-12"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared across Dell 14G PowerEdge (R240/R340/R440/R540/R640/R740/R840/R940)"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R6415",
+  "versions": [
+   {
+    "version": "7.00.00.183",
+    "date": "2025-10"
+   },
+   {
+    "version": "7.00.00.182",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.10.90.05",
+    "date": "2024-12"
+   },
+   {
+    "version": "7.10.90.00",
+    "date": "2024-12"
+   }
+  ],
+  "notes": "iDRAC9 firmware, Dell 14G AMD EPYC PowerEdge (R6415/R7415/R7425 family)"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R650",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared across Dell 15G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R650xs",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared across Dell 15G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R6515",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared across Dell 15G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R6525",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared across Dell 15G PowerEdge (AMD counterpart of R6515)"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R660",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared across Dell 15G/16G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R660xs",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared across Dell 15G/16G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R6615",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared across Dell 15G/16G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R6625",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared across Dell 15G/16G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R670",
+  "versions": [
+   {
+    "version": "1.30.30.50",
+    "date": "2026-06"
+   },
+   {
+    "version": "1.30.10.50",
+    "date": "2026-03"
+   },
+   {
+    "version": "1.30.09.16",
+    "date": "2026-03"
+   },
+   {
+    "version": "1.30.09.10",
+    "date": "2026-03"
+   }
+  ],
+  "notes": "iDRAC10 firmware, shared across Dell 17G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R6715",
+  "versions": [
+   {
+    "version": "1.30.30.50",
+    "date": "2026-06"
+   },
+   {
+    "version": "1.30.10.50",
+    "date": "2026-03"
+   },
+   {
+    "version": "1.30.09.16",
+    "date": "2026-03"
+   },
+   {
+    "version": "1.30.09.10",
+    "date": "2026-03"
+   }
+  ],
+  "notes": "iDRAC10 firmware, shared across Dell 17G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R6725",
+  "versions": [
+   {
+    "version": "1.30.30.50",
+    "date": "2026-06"
+   },
+   {
+    "version": "1.30.10.50",
+    "date": "2026-03"
+   },
+   {
+    "version": "1.30.09.16",
+    "date": "2026-03"
+   },
+   {
+    "version": "1.30.09.10",
+    "date": "2026-03"
+   }
+  ],
+  "notes": "iDRAC10 firmware, shared across Dell 17G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R740",
+  "versions": [
+   {
+    "version": "7.00.00.184",
+    "date": "2026-04"
+   },
+   {
+    "version": "7.00.00.183",
+    "date": "2025-10"
+   },
+   {
+    "version": "7.00.00.182",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.00.00.181",
+    "date": "2025-03"
+   }
+  ],
+  "notes": "iDRAC9 firmware, 14G PowerEdge uses a separate 7.00.00.x release train"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R740xd",
+  "versions": [
+   {
+    "version": "7.00.00.184",
+    "date": "2026-04"
+   },
+   {
+    "version": "7.00.00.183",
+    "date": "2025-10"
+   },
+   {
+    "version": "7.00.00.182",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.00.00.181",
+    "date": "2025-03"
+   }
+  ],
+  "notes": "iDRAC9 firmware, 14G PowerEdge shared 7.00.00.x release train"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R7415",
+  "versions": [
+   {
+    "version": "7.00.00.183",
+    "date": "2025-10"
+   },
+   {
+    "version": "7.00.00.182",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.00.00.181",
+    "date": "2025-03"
+   },
+   {
+    "version": "7.00.00.173",
+    "date": "2024-08"
+   }
+  ],
+  "notes": "iDRAC9, 14G legacy AMD EPYC platform release train, shared with R7425/R940/R940xa"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R7425",
+  "versions": [
+   {
+    "version": "7.00.00.183",
+    "date": "2025-10"
+   },
+   {
+    "version": "7.00.00.182",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.00.00.181",
+    "date": "2025-03"
+   },
+   {
+    "version": "7.00.00.173",
+    "date": "2024-08"
+   }
+  ],
+  "notes": "iDRAC9, 14G legacy AMD EPYC platform release train"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R750",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, 15G shares release train with 16G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R750xa",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared release train across Dell 15G/16G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R750xs",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared release train across Dell 15G/16G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R7515",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared release train across Dell 15G/16G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R7525",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared release train across Dell 15G/16G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R760",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared across Dell 16G PowerEdge (R660/R760/R860/R960 family)"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R760xa",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared release train across Dell 15G/16G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R760xd2",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared release train across Dell 15G/16G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R760xs",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared release train across Dell 15G/16G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R7615",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared release train across Dell 15G/16G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R7625",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared release train across Dell 15G/16G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R770",
+  "versions": [
+   {
+    "version": "1.30.30.50",
+    "date": "2026-06"
+   },
+   {
+    "version": "1.30.10.50",
+    "date": "2026-03"
+   },
+   {
+    "version": "1.20.80.50",
+    "date": "2025-12"
+   }
+  ],
+  "notes": "iDRAC10 firmware shared across Dell 17G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R770AP",
+  "versions": [
+   {
+    "version": "1.30.30.50",
+    "date": "2026-06"
+   },
+   {
+    "version": "1.30.10.50",
+    "date": "2026-03"
+   },
+   {
+    "version": "1.20.80.50",
+    "date": "2025-12"
+   }
+  ],
+  "notes": "iDRAC10 firmware shared across Dell 17G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R7715",
+  "versions": [
+   {
+    "version": "1.30.30.50",
+    "date": "2026-06"
+   },
+   {
+    "version": "1.30.10.50",
+    "date": "2026-03"
+   },
+   {
+    "version": "1.20.80.50",
+    "date": "2025-12"
+   }
+  ],
+  "notes": "iDRAC10 firmware shared across Dell 17G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R7725",
+  "versions": [
+   {
+    "version": "1.30.30.50",
+    "date": "2026-06"
+   },
+   {
+    "version": "1.30.10.50",
+    "date": "2026-03"
+   },
+   {
+    "version": "1.20.80.50",
+    "date": "2025-12"
+   }
+  ],
+  "notes": "iDRAC10 firmware shared across Dell 17G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R7725xd",
+  "versions": [
+   {
+    "version": "1.30.30.50",
+    "date": "2026-06"
+   },
+   {
+    "version": "1.30.10.50",
+    "date": "2026-03"
+   },
+   {
+    "version": "1.20.80.50",
+    "date": "2025-12"
+   }
+  ],
+  "notes": "iDRAC10 firmware shared across Dell 17G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R840",
+  "versions": [
+   {
+    "version": "7.00.00.184",
+    "date": "2026-04"
+   },
+   {
+    "version": "7.00.00.183",
+    "date": "2025-10"
+   },
+   {
+    "version": "7.00.00.182",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.00.00.181",
+    "date": "2025-03"
+   }
+  ],
+  "notes": "iDRAC9 firmware, 14G PowerEdge shared 7.00.00.x release train"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R860",
+  "versions": [
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.70.50",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 firmware, shared release train across Dell 15G/16G PowerEdge"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R940",
+  "versions": [
+   {
+    "version": "7.00.00.183",
+    "date": "2025-10"
+   },
+   {
+    "version": "7.00.00.182",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.00.00.181",
+    "date": "2025-03"
+   },
+   {
+    "version": "7.00.00.173",
+    "date": "2024-08"
+   }
+  ],
+  "notes": "iDRAC9, 14G legacy Intel 4-socket platform release train"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R940xa",
+  "versions": [
+   {
+    "version": "7.00.00.183",
+    "date": "2025-10"
+   },
+   {
+    "version": "7.00.00.182",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.00.00.181",
+    "date": "2025-03"
+   },
+   {
+    "version": "7.00.00.173",
+    "date": "2024-08"
+   }
+  ],
+  "notes": "iDRAC9, 14G legacy platform release train"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge R960",
+  "versions": [
+   {
+    "version": "7.30.10.50",
+    "date": "2026-03"
+   },
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9, current-gen high-end platform release train, shared with XE8640/XE9680"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge XE8640",
+  "versions": [
+   {
+    "version": "7.30.10.50",
+    "date": "2026-03"
+   },
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iDRAC9 GPU-server platform release train"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge XE9680",
+  "versions": [
+   {
+    "version": "7.30.10.50",
+    "date": "2026-03"
+   },
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   },
+   {
+    "version": "7.20.30.50",
+    "date": "2025-06"
+   },
+   {
+    "version": "7.10.90.05",
+    "date": "2024-12"
+   }
+  ],
+  "notes": "iDRAC9 GPU-server platform"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge XR5610",
+  "versions": [
+   {
+    "version": "6.10.25.00",
+    "date": "2023-06"
+   }
+  ],
+  "notes": "iDRAC9 telco/edge firmware track for XR5610, separate release cadence from mainline rack servers"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerEdge XR7620",
+  "versions": [
+   {
+    "version": "7.30.10.50",
+    "date": "2026-03"
+   },
+   {
+    "version": "7.20.80.50",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.20.60.50",
+    "date": "2025-09"
+   }
+  ],
+  "notes": "iDRAC9, current-gen 7.20.x/7.30.x release train"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerStore 1200T",
+  "versions": [
+   {
+    "version": "4.3.1.1",
+    "date": "2026-05"
+   },
+   {
+    "version": "4.3.1.0",
+    "date": "2026-02"
+   },
+   {
+    "version": "4.3.0.0",
+    "date": "2025-12"
+   },
+   {
+    "version": "4.2.0.1",
+    "date": "2025-10"
+   }
+  ],
+  "notes": "Same PowerStoreOS release train as other PowerStore T models"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerStore 3200T",
+  "versions": [
+   {
+    "version": "4.3.1.1",
+    "date": "2026-05"
+   },
+   {
+    "version": "4.3.1.0",
+    "date": "2026-02"
+   },
+   {
+    "version": "4.3.0.0",
+    "date": "2025-12"
+   },
+   {
+    "version": "4.2.0.1",
+    "date": "2025-10"
+   }
+  ],
+  "notes": "Same PowerStoreOS release train as other PowerStore T models"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerStore 500T",
+  "versions": [
+   {
+    "version": "4.3.1.1",
+    "date": "2026-05"
+   },
+   {
+    "version": "4.3.1.0",
+    "date": "2026-02"
+   },
+   {
+    "version": "4.3.0.0",
+    "date": "2025-12"
+   },
+   {
+    "version": "4.2.0.1",
+    "date": "2025-10"
+   }
+  ],
+  "notes": "PowerStoreOS, 4.3.1.1 is current LTS2026 recommended release"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerSwitch N3248TE-ON",
+  "versions": [
+   {
+    "version": "10.6.0.6",
+    "date": "2025-09"
+   },
+   {
+    "version": "10.5.6.2",
+    "date": "2024-11"
+   },
+   {
+    "version": "10.5.6.0",
+    "date": "2023-11"
+   }
+  ],
+  "notes": "N-series ON switches run the same OS10 train as S-series"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerSwitch S4128F-ON",
+  "versions": [
+   {
+    "version": "10.6.0.6",
+    "date": "2025-09"
+   },
+   {
+    "version": "10.5.6.2",
+    "date": "2024-11"
+   },
+   {
+    "version": "10.5.6.0",
+    "date": "2023-11"
+   }
+  ],
+  "notes": "Same OS10 release train as other S41xx-ON switches"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerSwitch S4148F-ON",
+  "versions": [
+   {
+    "version": "10.6.0.6",
+    "date": "2025-09"
+   },
+   {
+    "version": "10.5.6.2",
+    "date": "2024-11"
+   },
+   {
+    "version": "10.5.6.0",
+    "date": "2023-11"
+   }
+  ],
+  "notes": "Dell SmartFabric OS10 release train"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerSwitch S4148T-ON",
+  "versions": [
+   {
+    "version": "10.6.0.6",
+    "date": "2025-09"
+   },
+   {
+    "version": "10.5.6.2",
+    "date": "2024-11"
+   },
+   {
+    "version": "10.5.6.0",
+    "date": "2023-11"
+   }
+  ],
+  "notes": "Same OS10 release train as S4148F-ON"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerSwitch S5224F-ON",
+  "versions": [
+   {
+    "version": "10.6.0.6",
+    "date": "2025-09"
+   },
+   {
+    "version": "10.5.6.7",
+    "date": "2025"
+   },
+   {
+    "version": "10.5.5.7",
+    "date": "2025-03"
+   }
+  ],
+  "notes": "Same SmartFabric OS10 release train as S5248F-ON"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerSwitch S5248F-ON",
+  "versions": [
+   {
+    "version": "10.6.0.6",
+    "date": "2025-09"
+   },
+   {
+    "version": "10.5.6.7",
+    "date": "2025"
+   },
+   {
+    "version": "10.5.5.7",
+    "date": "2025-03"
+   }
+  ],
+  "notes": "Dell SmartFabric OS10"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerSwitch Z9332F-ON",
+  "versions": [
+   {
+    "version": "10.6.0.6",
+    "date": "2025-10"
+   },
+   {
+    "version": "10.5.5.7",
+    "date": "2025-03"
+   },
+   {
+    "version": "10.5.6.2",
+    "date": "2024-11"
+   }
+  ],
+  "notes": "Same OS10 release train"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerSwitch Z9432F-ON",
+  "versions": [
+   {
+    "version": "10.6.0.6",
+    "date": "2025-10"
+   },
+   {
+    "version": "10.5.5.7",
+    "date": "2025-03"
+   },
+   {
+    "version": "10.5.6.2",
+    "date": "2024-11"
+   }
+  ],
+  "notes": "SmartFabric OS10, parallel 10.5.x/10.6.x branches"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerSwitch Z9664F-ON",
+  "versions": [
+   {
+    "version": "10.6.0.6",
+    "date": "2025-10"
+   },
+   {
+    "version": "10.5.5.7",
+    "date": "2025-03"
+   },
+   {
+    "version": "10.5.6.2",
+    "date": "2024-11"
+   }
+  ],
+  "notes": "Same OS10 release train as Z9432F-ON/Z9332F-ON"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerVault ME4012",
+  "versions": [
+   {
+    "version": "GT280R014-01",
+    "date": "2024-01"
+   },
+   {
+    "version": "GT280R011-01",
+    "date": "2023-02"
+   },
+   {
+    "version": "GT280R010-01",
+    "date": "2022-07"
+   },
+   {
+    "version": "GT280R009-02",
+    "date": "2021-07"
+   }
+  ],
+  "notes": "Shares GT280R firmware family with ME4024"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerVault ME4024",
+  "versions": [
+   {
+    "version": "GT280R014-01",
+    "date": "2024-01"
+   },
+   {
+    "version": "GT280R011-01",
+    "date": "2023-02"
+   },
+   {
+    "version": "GT280R010-01",
+    "date": "2022-07"
+   },
+   {
+    "version": "GT280R009-02",
+    "date": "2021-07"
+   }
+  ],
+  "notes": "Older ME4 Series controller firmware family, legacy/EOL"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerVault ME5012",
+  "versions": [
+   {
+    "version": "1.2.2.1",
+    "date": "2026-02"
+   },
+   {
+    "version": "1.2.1.5",
+    "date": "2025-08"
+   },
+   {
+    "version": "1.2.1.1",
+    "date": "2024-10"
+   },
+   {
+    "version": "1.2.1.0",
+    "date": "2024-06"
+   }
+  ],
+  "notes": "Shares ME5 Series firmware family with ME5024/ME5084"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerVault ME5024",
+  "versions": [
+   {
+    "version": "1.2.2.1",
+    "date": "2026-02"
+   },
+   {
+    "version": "1.2.1.5",
+    "date": "2025-08"
+   },
+   {
+    "version": "1.2.1.1",
+    "date": "2024-10"
+   },
+   {
+    "version": "1.2.1.0",
+    "date": "2024-06"
+   }
+  ],
+  "notes": "ME Storage Manager firmware shared across ME5012/ME5024/ME5084"
+ },
+ {
+  "vendor": "Dell",
+  "model": "PowerVault ME5084",
+  "versions": [
+   {
+    "version": "1.2.2.1",
+    "date": "2026-02"
+   },
+   {
+    "version": "1.2.1.5",
+    "date": "2025-08"
+   },
+   {
+    "version": "1.2.1.1",
+    "date": "2024-10"
+   },
+   {
+    "version": "1.2.1.0",
+    "date": "2024-06"
+   }
+  ],
+  "notes": "Shares ME5 Series firmware family with ME5024/ME5012"
+ },
+ {
+  "vendor": "Dell",
+  "model": "Unity XT 380F",
+  "versions": [
+   {
+    "version": "5.5.4.0.5.037",
+    "date": "2026-05"
+   },
+   {
+    "version": "5.5.3.0.5.057",
+    "date": "2026-02"
+   },
+   {
+    "version": "5.5.2.0.5.014",
+    "date": "2025-10"
+   },
+   {
+    "version": "5.5.1.0.5.025",
+    "date": "2025-07"
+   }
+  ],
+  "notes": "Unity OE, 5.5.2.0.5.014 flagged by Dell as Recommended Code"
+ },
+ {
+  "vendor": "Dell",
+  "model": "Unity XT 480F",
+  "versions": [
+   {
+    "version": "5.5.4.0.5.037",
+    "date": "2026-05"
+   },
+   {
+    "version": "5.5.3.0.5.057",
+    "date": "2026-02"
+   },
+   {
+    "version": "5.5.2.0.5.014",
+    "date": "2025-10"
+   },
+   {
+    "version": "5.5.1.0.5.025",
+    "date": "2025-07"
+   }
+  ],
+  "notes": "Same Unity OE release train as other Unity XT/F models"
+ },
+ {
+  "vendor": "Fortinet",
+  "model": "FortiGate 1000F",
+  "versions": [
+   {
+    "version": "7.6.7",
+    "date": "2026-08"
+   },
+   {
+    "version": "7.6.6",
+    "date": "2026-07"
+   },
+   {
+    "version": "7.6.4",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.6.3",
+    "date": "2025-04"
+   }
+  ],
+  "notes": "FortiOS 7.6.x train"
+ },
+ {
+  "vendor": "Fortinet",
+  "model": "FortiGate 120G",
+  "versions": [
+   {
+    "version": "7.6.7",
+    "date": "2026-08"
+   },
+   {
+    "version": "7.6.6",
+    "date": "2026-07"
+   },
+   {
+    "version": "7.6.4",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.6.3",
+    "date": "2025-04"
+   }
+  ],
+  "notes": "FortiOS 7.6.x train"
+ },
+ {
+  "vendor": "Fortinet",
+  "model": "FortiGate 1800F",
+  "versions": [
+   {
+    "version": "7.6.7",
+    "date": "2026-08"
+   },
+   {
+    "version": "7.6.6",
+    "date": "2026-07"
+   },
+   {
+    "version": "7.6.4",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.6.3",
+    "date": "2025-04"
+   }
+  ],
+  "notes": "FortiOS 7.6.x train"
+ },
+ {
+  "vendor": "Fortinet",
+  "model": "FortiGate 200G",
+  "versions": [
+   {
+    "version": "7.6.7",
+    "date": "2026-06"
+   },
+   {
+    "version": "7.6.6",
+    "date": "2026-02"
+   },
+   {
+    "version": "7.6.5",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.6.4",
+    "date": "2025-08"
+   }
+  ],
+  "notes": "FortiOS 7.6 branch, shared across FortiGate F/G-series"
+ },
+ {
+  "vendor": "Fortinet",
+  "model": "FortiGate 2600F",
+  "versions": [
+   {
+    "version": "7.6.7",
+    "date": "2026-08"
+   },
+   {
+    "version": "7.6.6",
+    "date": "2026-07"
+   },
+   {
+    "version": "7.6.4",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.6.3",
+    "date": "2025-04"
+   }
+  ],
+  "notes": "FortiOS 7.6.x train"
+ },
+ {
+  "vendor": "Fortinet",
+  "model": "FortiGate 3500F",
+  "versions": [
+   {
+    "version": "7.6.7",
+    "date": "2026-08"
+   },
+   {
+    "version": "7.6.6",
+    "date": "2026-07"
+   },
+   {
+    "version": "7.6.4",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.6.3",
+    "date": "2025-04"
+   }
+  ],
+  "notes": "FortiOS 7.6.x train"
+ },
+ {
+  "vendor": "Fortinet",
+  "model": "FortiGate 400F",
+  "versions": [
+   {
+    "version": "7.6.7",
+    "date": "2026-06"
+   },
+   {
+    "version": "7.6.6",
+    "date": "2026-02"
+   },
+   {
+    "version": "7.6.5",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.6.4",
+    "date": "2025-08"
+   }
+  ],
+  "notes": "Same FortiOS 7.6 branch as other current-gen FortiGate models"
+ },
+ {
+  "vendor": "Fortinet",
+  "model": "FortiGate 600F",
+  "versions": [
+   {
+    "version": "7.6.7",
+    "date": "2026-06"
+   },
+   {
+    "version": "7.6.6",
+    "date": "2026-02"
+   },
+   {
+    "version": "7.6.5",
+    "date": "2025-12"
+   },
+   {
+    "version": "7.6.4",
+    "date": "2025-08"
+   }
+  ],
+  "notes": "Same FortiOS 7.6 branch as other current-gen FortiGate models"
+ },
+ {
+  "vendor": "Fortinet",
+  "model": "FortiGate 900G",
+  "versions": [
+   {
+    "version": "7.6.7",
+    "date": "2026-08"
+   },
+   {
+    "version": "7.6.6",
+    "date": "2026-07"
+   },
+   {
+    "version": "7.6.4",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.6.3",
+    "date": "2025-04"
+   }
+  ],
+  "notes": "FortiOS, shared with other enterprise FortiGate F-series"
+ },
+ {
+  "vendor": "Fortinet",
+  "model": "FortiGate 90G",
+  "versions": [
+   {
+    "version": "7.6.7",
+    "date": "2026-08"
+   },
+   {
+    "version": "7.6.6",
+    "date": "2026-07"
+   },
+   {
+    "version": "7.6.4",
+    "date": "2025-08"
+   },
+   {
+    "version": "7.6.3",
+    "date": "2025-04"
+   }
+  ],
+  "notes": "FortiOS 7.6.x train"
+ },
+ {
+  "vendor": "HPE",
+  "model": "Apollo 4200 Gen10 Plus",
+  "versions": [
+   {
+    "version": "3.21",
+    "date": "2026-07"
+   },
+   {
+    "version": "3.20",
+    "date": "2026-06"
+   },
+   {
+    "version": "3.13",
+    "date": "2025-06"
+   },
+   {
+    "version": "3.00",
+    "date": "2024-01"
+   }
+  ],
+  "notes": "iLO 5 firmware, shared release train across HPE Gen10/Gen10 Plus ProLiant/Apollo"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL160 Gen10",
+  "versions": [
+   {
+    "version": "3.21",
+    "date": "2026-07"
+   },
+   {
+    "version": "3.20",
+    "date": "2026-06"
+   },
+   {
+    "version": "3.19",
+    "date": "2026-04"
+   },
+   {
+    "version": "3.16",
+    "date": "2025-12"
+   }
+  ],
+  "notes": "iLO 5 firmware, shared across HPE Gen10/Gen10 Plus ProLiant servers"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL180 Gen10",
+  "versions": [
+   {
+    "version": "3.21",
+    "date": "2026-07"
+   },
+   {
+    "version": "3.20",
+    "date": "2026-06"
+   },
+   {
+    "version": "3.13",
+    "date": "2025-06"
+   },
+   {
+    "version": "3.00",
+    "date": "2024-01"
+   }
+  ],
+  "notes": "iLO 5 firmware, shared release train across HPE Gen10/Gen10 Plus ProLiant/Apollo"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL20 Gen10",
+  "versions": [
+   {
+    "version": "3.21",
+    "date": "2026-07"
+   },
+   {
+    "version": "3.20",
+    "date": "2026-06"
+   },
+   {
+    "version": "3.19",
+    "date": "2026-04"
+   },
+   {
+    "version": "3.16",
+    "date": "2025-12"
+   }
+  ],
+  "notes": "iLO 5 firmware, shared across HPE Gen10/Gen10 Plus ProLiant servers"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL20 Gen10 Plus",
+  "versions": [
+   {
+    "version": "3.21",
+    "date": "2026-07"
+   },
+   {
+    "version": "3.20",
+    "date": "2026-06"
+   },
+   {
+    "version": "3.19",
+    "date": "2026-04"
+   },
+   {
+    "version": "3.16",
+    "date": "2025-12"
+   }
+  ],
+  "notes": "iLO 5 firmware, shared across HPE Gen10/Gen10 Plus ProLiant servers"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL320 Gen11",
+  "versions": [
+   {
+    "version": "1.75",
+    "date": "2026-04"
+   },
+   {
+    "version": "1.72",
+    "date": "2025-11"
+   },
+   {
+    "version": "1.69",
+    "date": "2025-06"
+   },
+   {
+    "version": "1.66",
+    "date": "2024-12"
+   }
+  ],
+  "notes": "iLO 6, shared across Gen11 ProLiant platforms"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL320 Gen12",
+  "versions": [
+   {
+    "version": "1.24.00",
+    "date": "2026-08"
+   },
+   {
+    "version": "1.21.00",
+    "date": "2026-04"
+   },
+   {
+    "version": "1.16.00",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iLO 7, shared across Gen12 ProLiant platforms"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL325 Gen10",
+  "versions": [
+   {
+    "version": "3.21",
+    "date": "2026-07"
+   },
+   {
+    "version": "3.20",
+    "date": "2026-06"
+   },
+   {
+    "version": "3.19",
+    "date": "2026-04"
+   },
+   {
+    "version": "3.16",
+    "date": "2025-12"
+   }
+  ],
+  "notes": "iLO 5 firmware, shared across HPE Gen10/Gen10 Plus ProLiant servers"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL325 Gen10 Plus v2",
+  "versions": [
+   {
+    "version": "3.21",
+    "date": "2026-07"
+   },
+   {
+    "version": "3.20",
+    "date": "2026-06"
+   },
+   {
+    "version": "3.19",
+    "date": "2026-04"
+   },
+   {
+    "version": "3.16",
+    "date": "2025-12"
+   }
+  ],
+  "notes": "iLO 5 firmware, shared across HPE Gen10/Gen10 Plus ProLiant servers"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL325 Gen11",
+  "versions": [
+   {
+    "version": "1.75",
+    "date": "2026-04"
+   },
+   {
+    "version": "1.72",
+    "date": "2025-11"
+   },
+   {
+    "version": "1.69",
+    "date": "2025-06"
+   },
+   {
+    "version": "1.66",
+    "date": "2024-12"
+   }
+  ],
+  "notes": "iLO 6, shared across Gen11 ProLiant platforms"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL325 Gen12",
+  "versions": [
+   {
+    "version": "1.24.00",
+    "date": "2026-08"
+   },
+   {
+    "version": "1.21.00",
+    "date": "2026-04"
+   },
+   {
+    "version": "1.16.00",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iLO 7 (AMD EPYC platform); shared across Gen12 ProLiant platforms"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL340 Gen12",
+  "versions": [
+   {
+    "version": "1.24.00",
+    "date": "2026-08"
+   },
+   {
+    "version": "1.23.00",
+    "date": "2026-07"
+   },
+   {
+    "version": "1.21.00",
+    "date": "2026-04"
+   },
+   {
+    "version": "1.20.00",
+    "date": "2026-01"
+   }
+  ],
+  "notes": "iLO 7 firmware, shared BMC train with other Gen12 ProLiant servers"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL345 Gen10 Plus",
+  "versions": [
+   {
+    "version": "3.21",
+    "date": "2026-07"
+   },
+   {
+    "version": "3.20",
+    "date": "2026-06"
+   },
+   {
+    "version": "3.13",
+    "date": "2025-06"
+   },
+   {
+    "version": "3.00",
+    "date": "2024-01"
+   }
+  ],
+  "notes": "iLO 5 firmware, shared release train across HPE Gen10/Gen10 Plus ProLiant/Apollo"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL345 Gen11",
+  "versions": [
+   {
+    "version": "1.78",
+    "date": "2026-07"
+   },
+   {
+    "version": "1.77",
+    "date": "2026-06"
+   }
+  ],
+  "notes": "iLO 6 firmware, shared across HPE Gen11 ProLiant servers"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL345 Gen12",
+  "versions": [
+   {
+    "version": "1.24.00",
+    "date": "2026-08"
+   },
+   {
+    "version": "1.23.00",
+    "date": "2026-07"
+   },
+   {
+    "version": "1.21.00",
+    "date": "2026-04"
+   },
+   {
+    "version": "1.20.00",
+    "date": "2026-01"
+   }
+  ],
+  "notes": "iLO 7 firmware (AMD EPYC), shared BMC train with other HPE Gen12 ProLiant"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL360 Gen10",
+  "versions": [
+   {
+    "version": "3.21",
+    "date": "2026-07"
+   },
+   {
+    "version": "3.20",
+    "date": "2026-06"
+   },
+   {
+    "version": "3.19",
+    "date": "2026-04"
+   },
+   {
+    "version": "3.16",
+    "date": "2025-12"
+   }
+  ],
+  "notes": "iLO 5 firmware, shared across HPE Gen10/Gen10 Plus ProLiant servers"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL360 Gen10 Plus",
+  "versions": [
+   {
+    "version": "3.21",
+    "date": "2026-07"
+   },
+   {
+    "version": "3.20",
+    "date": "2026-06"
+   },
+   {
+    "version": "3.19",
+    "date": "2026-04"
+   },
+   {
+    "version": "3.16",
+    "date": "2025-12"
+   }
+  ],
+  "notes": "iLO 5 firmware, shared across HPE Gen10/Gen10 Plus ProLiant servers"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL360 Gen11",
+  "versions": [
+   {
+    "version": "1.75",
+    "date": "2026-04"
+   },
+   {
+    "version": "1.72",
+    "date": "2025-11"
+   },
+   {
+    "version": "1.69",
+    "date": "2025-06"
+   },
+   {
+    "version": "1.66",
+    "date": "2024-12"
+   }
+  ],
+  "notes": "iLO 6, shared across Gen11 ProLiant platforms"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL360 Gen12",
+  "versions": [
+   {
+    "version": "1.24.00",
+    "date": "2026-08"
+   },
+   {
+    "version": "1.21.00",
+    "date": "2026-04"
+   },
+   {
+    "version": "1.16.00",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "iLO 7, shared across Gen12 ProLiant platforms"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL360 Gen9",
+  "versions": [
+   {
+    "version": "2.82.5",
+    "date": "2023-02"
+   }
+  ],
+  "notes": "iLO 4 firmware, final released version for Gen9 (iLO 4 is EOL, no newer versions)"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL365 Gen10 Plus",
+  "versions": [
+   {
+    "version": "3.21",
+    "date": "2026-07"
+   },
+   {
+    "version": "3.20",
+    "date": "2026-06"
+   },
+   {
+    "version": "3.19",
+    "date": "2026-04"
+   },
+   {
+    "version": "3.16",
+    "date": "2025-12"
+   }
+  ],
+  "notes": "iLO 5 firmware, shared across HPE Gen10/Gen10 Plus ProLiant servers"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL365 Gen11",
+  "versions": [
+   {
+    "version": "1.78",
+    "date": "2026-07"
+   },
+   {
+    "version": "1.77",
+    "date": "2026-06"
+   }
+  ],
+  "notes": "iLO 6 firmware, shared across HPE Gen11 ProLiant servers"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL380 Gen10",
+  "versions": [
+   {
+    "version": "3.21",
+    "date": "2026-07"
+   },
+   {
+    "version": "3.20",
+    "date": "2026-06"
+   },
+   {
+    "version": "3.13",
+    "date": "2025-06"
+   },
+   {
+    "version": "3.00",
+    "date": "2024-01"
+   }
+  ],
+  "notes": "iLO 5 firmware, shared release train across HPE Gen10/Gen10 Plus ProLiant/Apollo"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL380 Gen10 Plus",
+  "versions": [
+   {
+    "version": "3.21",
+    "date": "2026-07"
+   },
+   {
+    "version": "3.20",
+    "date": "2026-06"
+   },
+   {
+    "version": "3.13",
+    "date": "2025-06"
+   },
+   {
+    "version": "3.00",
+    "date": "2024-01"
+   }
+  ],
+  "notes": "iLO 5 firmware, shared release train across HPE Gen10/Gen10 Plus ProLiant/Apollo"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL380 Gen11",
+  "versions": [
+   {
+    "version": "1.78",
+    "date": "2026-07"
+   },
+   {
+    "version": "1.77",
+    "date": "2026-06"
+   }
+  ],
+  "notes": "iLO 6 firmware, shared across HPE Gen11 ProLiant servers"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL380 Gen12",
+  "versions": [
+   {
+    "version": "1.24.00",
+    "date": "2026-08"
+   },
+   {
+    "version": "1.21.00",
+    "date": "2026-04"
+   }
+  ],
+  "notes": "iLO 7 firmware, shared across HPE Gen12 ProLiant servers"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL380 Gen9",
+  "versions": [
+   {
+    "version": "2.82",
+    "date": "2023-02"
+   },
+   {
+    "version": "2.79",
+    "date": "2021-06"
+   },
+   {
+    "version": "2.70",
+    "date": "2019-04"
+   }
+  ],
+  "notes": "iLO 4 firmware, shared release train across HPE Gen8/Gen9 ProLiant"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL380a Gen11",
+  "versions": [
+   {
+    "version": "1.78",
+    "date": "2026-07"
+   },
+   {
+    "version": "1.76",
+    "date": "2026-05"
+   },
+   {
+    "version": "1.74",
+    "date": "2026-01"
+   }
+  ],
+  "notes": "iLO 6 firmware, shared release train across HPE Gen11 ProLiant servers"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL380a Gen12",
+  "versions": [
+   {
+    "version": "1.24.00",
+    "date": "2026-08"
+   },
+   {
+    "version": "1.21.00",
+    "date": "2026-04"
+   },
+   {
+    "version": "1.17.00",
+    "date": "2025-07"
+   }
+  ],
+  "notes": "iLO 7 firmware (U72 ASIC), HPE Gen12 ProLiant"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL385 Gen10",
+  "versions": [
+   {
+    "version": "3.21",
+    "date": "2026-07"
+   },
+   {
+    "version": "3.20",
+    "date": "2026-06"
+   },
+   {
+    "version": "3.13",
+    "date": "2025-06"
+   },
+   {
+    "version": "3.00",
+    "date": "2024-01"
+   }
+  ],
+  "notes": "iLO 5 firmware, shared release train across HPE Gen10/Gen10 Plus ProLiant/Apollo"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL385 Gen10 Plus v2",
+  "versions": [
+   {
+    "version": "3.21",
+    "date": "2026-07"
+   },
+   {
+    "version": "3.20",
+    "date": "2026-06"
+   },
+   {
+    "version": "3.13",
+    "date": "2025-06"
+   },
+   {
+    "version": "3.00",
+    "date": "2024-01"
+   }
+  ],
+  "notes": "iLO 5 firmware, shared release train across HPE Gen10/Gen10 Plus ProLiant/Apollo"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL385 Gen11",
+  "versions": [
+   {
+    "version": "1.78",
+    "date": "2026-07"
+   },
+   {
+    "version": "1.76",
+    "date": "2026-05"
+   },
+   {
+    "version": "1.74",
+    "date": "2026-01"
+   }
+  ],
+  "notes": "iLO 6 firmware, shared release train across HPE Gen11 ProLiant servers"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL560 Gen10",
+  "versions": [
+   {
+    "version": "3.21",
+    "date": "2026-07"
+   },
+   {
+    "version": "3.20",
+    "date": "2026-06"
+   },
+   {
+    "version": "3.13",
+    "date": "2025-06"
+   },
+   {
+    "version": "3.00",
+    "date": "2024-01"
+   }
+  ],
+  "notes": "iLO 5 firmware, shared release train across HPE Gen10/Gen10 Plus ProLiant/Apollo"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL560 Gen11",
+  "versions": [
+   {
+    "version": "1.78",
+    "date": "2026-07"
+   },
+   {
+    "version": "1.76",
+    "date": "2026-05"
+   },
+   {
+    "version": "1.74",
+    "date": "2026-01"
+   }
+  ],
+  "notes": "iLO 6 firmware, shared release train across HPE Gen11 ProLiant servers"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL560 Gen9",
+  "versions": [
+   {
+    "version": "2.82",
+    "date": "2023-02"
+   },
+   {
+    "version": "2.79",
+    "date": "2021-06"
+   },
+   {
+    "version": "2.70",
+    "date": "2019-04"
+   }
+  ],
+  "notes": "iLO 4 firmware, shared release train across HPE Gen8/Gen9 ProLiant"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL580 Gen10",
+  "versions": [
+   {
+    "version": "3.21",
+    "date": "2026-07"
+   },
+   {
+    "version": "3.20",
+    "date": "2026-06"
+   },
+   {
+    "version": "3.13",
+    "date": "2025-06"
+   },
+   {
+    "version": "3.00",
+    "date": "2024-01"
+   }
+  ],
+  "notes": "iLO 5 firmware, shared release train across HPE Gen10/Gen10 Plus ProLiant/Apollo"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant DL580 Gen9",
+  "versions": [
+   {
+    "version": "2.82",
+    "date": "2023-02"
+   },
+   {
+    "version": "2.79",
+    "date": "2021-06"
+   },
+   {
+    "version": "2.70",
+    "date": "2019-04"
+   }
+  ],
+  "notes": "iLO 4 firmware, shared release train across HPE Gen8/Gen9 ProLiant"
+ },
+ {
+  "vendor": "HPE",
+  "model": "ProLiant RL300 Gen11",
+  "versions": [
+   {
+    "version": "1.78",
+    "date": "2026-07"
+   },
+   {
+    "version": "1.77",
+    "date": "2026-06"
+   }
+  ],
+  "notes": "iLO 6 firmware, shared across HPE Gen11 ProLiant servers"
+ },
+ {
+  "vendor": "Juniper",
+  "model": "ACX7100-32C",
+  "versions": [
+   {
+    "version": "25.4R1",
+    "date": "2025-12"
+   }
+  ],
+  "notes": "Junos OS Evolved (EVO), not classic Junos"
+ },
+ {
+  "vendor": "Juniper",
+  "model": "MX10003",
+  "versions": [
+   {
+    "version": "23.4R2",
+    "date": "2026-02"
+   },
+   {
+    "version": "23.4R1",
+    "date": "2025-08"
+   }
+  ],
+  "notes": "Junos OS mainline train for MX series"
+ },
+ {
+  "vendor": "Juniper",
+  "model": "MX204",
+  "versions": [
+   {
+    "version": "23.4R2",
+    "date": "2026-02"
+   }
+  ],
+  "notes": "Only one release confirmed with date confidence this pass"
+ },
+ {
+  "vendor": "Juniper",
+  "model": "MX480",
+  "versions": [
+   {
+    "version": "25.4R1",
+    "date": "2025-12"
+   },
+   {
+    "version": "25.2R1",
+    "date": "2025-07"
+   },
+   {
+    "version": "24.4R1",
+    "date": "2024-12"
+   }
+  ],
+  "notes": "Junos OS mainline releases for MX series"
+ },
+ {
+  "vendor": "Juniper",
+  "model": "MX960",
+  "versions": [
+   {
+    "version": "25.4R1",
+    "date": "2025-12"
+   },
+   {
+    "version": "25.2R1",
+    "date": "2025-07"
+   },
+   {
+    "version": "24.4R1",
+    "date": "2024-12"
+   }
+  ],
+  "notes": "Shares Junos OS mainline release train with MX480"
+ },
+ {
+  "vendor": "Juniper",
+  "model": "SRX1500",
+  "versions": [
+   {
+    "version": "24.4R1",
+    "date": "2024-12"
+   },
+   {
+    "version": "24.2R1",
+    "date": "2024-06"
+   },
+   {
+    "version": "23.4R2",
+    "date": "2024-04"
+   },
+   {
+    "version": "23.4R1",
+    "date": "2023-12"
+   }
+  ],
+  "notes": "Junos, dates approximate standard R1/R2 cadence"
+ },
+ {
+  "vendor": "Juniper",
+  "model": "SRX4100",
+  "versions": [
+   {
+    "version": "24.4R1",
+    "date": "2024-12"
+   },
+   {
+    "version": "24.2R1",
+    "date": "2024-06"
+   },
+   {
+    "version": "23.4R2",
+    "date": "2024-04"
+   },
+   {
+    "version": "23.4R1",
+    "date": "2023-12"
+   }
+  ],
+  "notes": "Same Junos train as SRX1500/SRX4200"
+ },
+ {
+  "vendor": "Juniper",
+  "model": "SRX4200",
+  "versions": [
+   {
+    "version": "24.4R1",
+    "date": "2024-12"
+   },
+   {
+    "version": "24.2R1",
+    "date": "2024-06"
+   },
+   {
+    "version": "23.4R2",
+    "date": "2024-04"
+   },
+   {
+    "version": "23.4R1",
+    "date": "2023-12"
+   }
+  ],
+  "notes": "Same Junos train as SRX1500/SRX4100"
+ },
+ {
+  "vendor": "Palo Alto",
+  "model": "PA-1410",
+  "versions": [
+   {
+    "version": "12.2.2",
+    "date": "2026-07"
+   },
+   {
+    "version": "12.1.9",
+    "date": "2026-08"
+   },
+   {
+    "version": "11.2.13-h1",
+    "date": "2026-08"
+   },
+   {
+    "version": "11.1.16-h1",
+    "date": "2026-08"
+   }
+  ],
+  "notes": "PA-1400 series compatibility matrix"
+ },
+ {
+  "vendor": "Palo Alto",
+  "model": "PA-1420",
+  "versions": [
+   {
+    "version": "11.1.6",
+    "date": "2025-07"
+   },
+   {
+    "version": "11.1.4",
+    "date": "2024-08"
+   },
+   {
+    "version": "11.1.3",
+    "date": "2024-04"
+   },
+   {
+    "version": "11.1.2",
+    "date": "2023-12"
+   }
+  ],
+  "notes": "PA-1400 series supports PAN-OS 11.0/11.1/11.2+"
+ },
+ {
+  "vendor": "Palo Alto",
+  "model": "PA-3410",
+  "versions": [
+   {
+    "version": "12.2.2",
+    "date": "2026-07"
+   },
+   {
+    "version": "12.1.9",
+    "date": "2026-08"
+   },
+   {
+    "version": "11.2.13-h1",
+    "date": "2026-08"
+   },
+   {
+    "version": "11.1.16-h1",
+    "date": "2026-08"
+   }
+  ],
+  "notes": "PAN-OS, PA-3400 series compatibility matrix"
+ },
+ {
+  "vendor": "Palo Alto",
+  "model": "PA-3420",
+  "versions": [
+   {
+    "version": "12.2.2",
+    "date": "2026-07"
+   },
+   {
+    "version": "12.1.9",
+    "date": "2026-08"
+   },
+   {
+    "version": "11.2.13-h1",
+    "date": "2026-08"
+   },
+   {
+    "version": "11.1.16-h1",
+    "date": "2026-08"
+   }
+  ],
+  "notes": "Shares PA-3400 series compatibility matrix"
+ },
+ {
+  "vendor": "Palo Alto",
+  "model": "PA-3440",
+  "versions": [
+   {
+    "version": "12.2.2",
+    "date": "2026-07"
+   },
+   {
+    "version": "12.1.9",
+    "date": "2026-08"
+   },
+   {
+    "version": "11.2.13-h1",
+    "date": "2026-08"
+   },
+   {
+    "version": "11.1.16-h1",
+    "date": "2026-08"
+   }
+  ],
+  "notes": "Shares PA-3400 series compatibility matrix"
+ },
+ {
+  "vendor": "Palo Alto",
+  "model": "PA-5410",
+  "versions": [
+   {
+    "version": "12.2.2",
+    "date": "2026-07"
+   },
+   {
+    "version": "12.1.9",
+    "date": "2026-08"
+   },
+   {
+    "version": "11.2.13-h1",
+    "date": "2026-08"
+   },
+   {
+    "version": "11.1.16-h1",
+    "date": "2026-08"
+   }
+  ],
+  "notes": "PA-5400 series compatibility matrix"
+ },
+ {
+  "vendor": "Palo Alto",
+  "model": "PA-5420",
+  "versions": [
+   {
+    "version": "12.2.2",
+    "date": "2026-07"
+   },
+   {
+    "version": "12.1.9",
+    "date": "2026-08"
+   },
+   {
+    "version": "11.2.13-h1",
+    "date": "2026-08"
+   },
+   {
+    "version": "11.1.16-h1",
+    "date": "2026-08"
+   }
+  ],
+  "notes": "Shares PA-5400 series compatibility matrix"
+ },
+ {
+  "vendor": "Palo Alto",
+  "model": "PA-5430",
+  "versions": [
+   {
+    "version": "12.2.2",
+    "date": "2026-07"
+   },
+   {
+    "version": "12.1.9",
+    "date": "2026-08"
+   },
+   {
+    "version": "11.2.13-h1",
+    "date": "2026-08"
+   },
+   {
+    "version": "11.1.16-h1",
+    "date": "2026-08"
+   }
+  ],
+  "notes": "Shares PA-5400 series compatibility matrix"
+ },
+ {
+  "vendor": "Palo Alto",
+  "model": "PA-5440",
+  "versions": [
+   {
+    "version": "12.2.2",
+    "date": "2026-07"
+   },
+   {
+    "version": "12.1.9",
+    "date": "2026-08"
+   },
+   {
+    "version": "11.2.13-h1",
+    "date": "2026-08"
+   },
+   {
+    "version": "11.1.16-h1",
+    "date": "2026-08"
+   }
+  ],
+  "notes": "PA-5440 supports PAN-OS 11.0-12.2 (no 10.2)"
+ },
+ {
+  "vendor": "Pure Storage",
+  "model": "FlashArray//C R4",
+  "versions": [
+   {
+    "version": "6.10.5",
+    "date": "2026-03"
+   },
+   {
+    "version": "6.8.6",
+    "date": "2025-06"
+   },
+   {
+    "version": "6.6.0",
+    "date": "2023-10"
+   }
+  ],
+  "notes": "Purity//FA unified codebase across //X and //C"
+ },
+ {
+  "vendor": "Pure Storage",
+  "model": "FlashArray//C R5",
+  "versions": [
+   {
+    "version": "6.10.5",
+    "date": "2026-03"
+   },
+   {
+    "version": "6.8.6",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "Purity//FA, newer hardware"
+ },
+ {
+  "vendor": "Pure Storage",
+  "model": "FlashArray//E",
+  "versions": [
+   {
+    "version": "6.10.5",
+    "date": "2026-03"
+   },
+   {
+    "version": "6.10.1",
+    "date": "2025-10"
+   },
+   {
+    "version": "6.9.2",
+    "date": "2025"
+   }
+  ],
+  "notes": "Same Purity//FA release train as FlashArray//X/XL"
+ },
+ {
+  "vendor": "Pure Storage",
+  "model": "FlashArray//X R4",
+  "versions": [
+   {
+    "version": "6.10.5",
+    "date": "2026-03"
+   },
+   {
+    "version": "6.8.6",
+    "date": "2025-06"
+   },
+   {
+    "version": "6.6.0",
+    "date": "2023-10"
+   }
+  ],
+  "notes": "Purity//FA"
+ },
+ {
+  "vendor": "Pure Storage",
+  "model": "FlashArray//X R5",
+  "versions": [
+   {
+    "version": "6.10.5",
+    "date": "2026-03"
+   },
+   {
+    "version": "6.8.6",
+    "date": "2025-06"
+   }
+  ],
+  "notes": "Purity//FA, newer hardware"
+ },
+ {
+  "vendor": "Pure Storage",
+  "model": "FlashArray//XL 130",
+  "versions": [
+   {
+    "version": "6.10.5",
+    "date": "2026-03"
+   },
+   {
+    "version": "6.8.6",
+    "date": "2025-06"
+   },
+   {
+    "version": "6.6.0",
+    "date": "2023-10"
+   }
+  ],
+  "notes": "Purity//FA"
+ },
+ {
+  "vendor": "Pure Storage",
+  "model": "FlashArray//XL 170",
+  "versions": [
+   {
+    "version": "6.10.5",
+    "date": "2026-03"
+   },
+   {
+    "version": "6.10.1",
+    "date": "2025-10"
+   },
+   {
+    "version": "6.9.2",
+    "date": "2025"
+   }
+  ],
+  "notes": "Purity//FA feature/LLR release lines"
+ },
+ {
+  "vendor": "SonicWall",
+  "model": "SonicWall NSa 4700",
+  "versions": [
+   {
+    "version": "7.3.1-7013",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.3.0-7012",
+    "date": "2025"
+   },
+   {
+    "version": "7.2.0-7015",
+    "date": "2024"
+   },
+   {
+    "version": "7.1.1",
+    "date": "2023-12"
+   }
+  ],
+  "notes": "SonicOS Gen7"
+ },
+ {
+  "vendor": "SonicWall",
+  "model": "SonicWall NSa 6700",
+  "versions": [
+   {
+    "version": "7.3.1-7013",
+    "date": "2025-11"
+   },
+   {
+    "version": "7.3.0-7012",
+    "date": "2025"
+   },
+   {
+    "version": "7.2.0-7015",
+    "date": "2024"
+   },
+   {
+    "version": "7.1.1",
+    "date": "2023-12"
+   }
+  ],
+  "notes": "Same SonicOS Gen7 train as NSa 4700"
+ }
+]

@@ -78,7 +78,8 @@ static/          Frontend — HTML/CSS + vanilla JS, rendered as inline SVG
 
 **Firmware Status**
 - New page: groups every placed device by vendor/model and shows the firmware actually seen on it (from the same live-pull snapshots Devices view uses: SAN Switch Mapping, Storage Mapping, iDRAC/iLO) next to a hand-entered "latest known" version per model, flagging a model as Outdated when they don't match
-- RackView doesn't reach the internet, so there's no automatic vendor release feed — "latest known" is a small per-vendor/model reference table you maintain yourself as you learn what's current; a model with nothing entered shows "Latest unknown", not "Outdated", so it's never a false alarm
+- RackView doesn't reach the internet, so there's no automatic vendor release feed — "latest known" is a small per-vendor/model reference table, tracking the last 3-4 releases with dates, not just the newest one; a model with nothing entered shows "Latest unknown", not "Outdated", so it's never a false alarm
+- Pre-seeded with real researched data for all 210 firmware-bearing catalog models (every switch/router/firewall/SAN-switch/storage/server) — ships with the demo data so a fresh install already has a useful baseline. Meant to be refreshed by hand every month or so as new firmware ships; each row is independently editable from the page
 - For servers, the comparison uses the BMC (iDRAC/iLO) firmware specifically, not the combined BIOS+BMC string Devices view displays — that's what a vendor security advisory actually version-pins
 
 **Tools menu, bordered Devices table**
