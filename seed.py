@@ -1,11 +1,15 @@
 import json
 import os
+from datetime import datetime, timezone
 
 from app import app
-from models import db, DeviceType, Rack, Device, Cable, ArpEntry
+from models import db, DeviceType, Rack, Device, Cable, ArpEntry, FirmwareReference
 
 with open(os.path.join(os.path.dirname(__file__), "device_ports.json"), encoding="utf-8") as f:
     DEVICE_PORTS = json.load(f)
+
+with open(os.path.join(os.path.dirname(__file__), "firmware_reference_seed.json"), encoding="utf-8") as f:
+    FIRMWARE_REFERENCE_SEED = json.load(f)
 
 RV_DEVICE_CATALOG = [
     ('Dell', 'PowerEdge R470', 1, 'server', 'dell-rack-1u'),
@@ -415,6 +419,12 @@ def seed():
         ArpEntry(device_id=sw_core_02.id, ip="10.10.0.1", mac="0050.56a1.4f01", port="mgmt0", vlan="10"),
     ]
     db.session.add_all(arp_entries)
+
+    now = datetime.now(timezone.utc)
+    db.session.add_all([
+        FirmwareReference(vendor=r["vendor"], model=r["model"], versions=r["versions"], notes=r["notes"], updated_at=now)
+        for r in FIRMWARE_REFERENCE_SEED
+    ])
 
     db.session.commit()
     print("seeded rack", rack.id)
