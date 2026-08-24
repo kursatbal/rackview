@@ -162,13 +162,16 @@ async function collectVcenter() {
 
   const btn = document.getElementById("btn-vc-collect");
   btn.disabled = true;
-  btn.textContent = "Pulling…";
+  btn.textContent = "Pulling (can take a few minutes)…";
   try {
+    // A vCenter with several hosts genuinely takes minutes, not seconds -- confirmed against a
+    // real vCenter with 2 hosts taking well over a minute. The previous 60s timeout meant the
+    // browser gave up and showed an error while the pull was still quietly succeeding server-side.
     const res = await fetchWithTimeout("/api/esxi/collect-vcenter", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ip, port: port || null, username, password }),
-    }, 60000);
+    }, 600000);
     const result = await res.json();
     if (!res.ok) {
       errEl.textContent = result.error || `Request failed (${res.status})`;

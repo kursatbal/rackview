@@ -164,7 +164,9 @@ function setActiveFaceButton(face) {
 function showFatalError(err) {
   console.error(err);
   const container = document.querySelector(".rack-container") || document.body;
+  if (container.querySelector(".rv-fatal-error")) return; // already showing one — don't stack duplicates
   const box = document.createElement("div");
+  box.className = "rv-fatal-error";
   box.style.cssText = "margin:20px;padding:14px;background:#FCE8E6;border:1px solid #A32D2D;"
     + "color:#A32D2D;font-family:monospace;font-size:12px;white-space:pre-wrap;";
   box.textContent = "Page failed to load (connection issue):\n" + (err && err.message ? err.message : err);
@@ -176,5 +178,12 @@ function showFatalError(err) {
   box.appendChild(retryBtn);
   container.prepend(box);
 }
+
+// Belt-and-suspenders: main()'s own try/catch covers everything called from inside it, but a
+// stray error in an event handler or a timer callback wouldn't otherwise surface as anything
+// more than a silent blank page — always show something actionable instead of leaving the user
+// stuck looking at an empty rack with no indication anything went wrong.
+window.addEventListener("error", e => showFatalError(e.error || new Error(e.message)));
+window.addEventListener("unhandledrejection", e => showFatalError(e.reason));
 
 main().catch(showFatalError);
