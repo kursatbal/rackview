@@ -1724,6 +1724,18 @@ def _ensure_db():
 
 
 if __name__ == "__main__":
+    # Flask's built-in dev server (app.run) is single-process and its connection backlog is small
+    # enough that a real browser tab -- which opens several parallel connections for one page load
+    # (html + css + the bundled js + a handful of API calls) -- can occasionally get a connection
+    # refused/reset ("Failed to fetch") or measurably delayed under just that ordinary load, no
+    # heavy traffic required. Confirmed by hammering every tool page's "back to rack" link in a
+    # loop: intermittent failures on essentially every page, not any one of them specifically.
+    # Since the packaged exe runs this exact same code path, that flakiness would ship to real
+    # users too. waitress is a proper (if modest) production WSGI server, pure Python so it needs
+    # no extra native build step for PyInstaller, and its thread pool + connection queue handle
+    # this kind of ordinary concurrent local load without dropping connections.
+    from waitress import serve
+
     if getattr(sys, "frozen", False):
         import threading
         import time
@@ -1736,7 +1748,7 @@ if __name__ == "__main__":
             webbrowser.open("http://127.0.0.1:5000")
 
         threading.Thread(target=_open_browser, daemon=True).start()
-        app.run(host="127.0.0.1", debug=False, use_reloader=False, threaded=True)
+        serve(app, host="127.0.0.1", port=5000, threads=16)
     else:
         # Dev mode never runs seed.py automatically, but new tables (e.g. a fresh model added
         # to models.py) still need creating on an existing dev DB — create_all() only adds
@@ -1744,4 +1756,4 @@ if __name__ == "__main__":
         with app.app_context():
             db.create_all()
             _ensure_db_columns()
-        app.run(host="127.0.0.1", debug=True, use_reloader=False, threaded=True)
+        serve(app, host="127.0.0.1", port=5000, threads=16)

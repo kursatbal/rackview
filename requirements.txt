@@ -4,3 +4,4 @@ openpyxl
 paramiko
 pyvmomi
 requests
+waitress
