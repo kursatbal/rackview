@@ -984,6 +984,33 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Overlay on a cabled port's already-drawn (static) LED -- see applyPortActivityOverlay() in
+   rack.js. Per-dot animation-delay is set inline so dots don't all breathe in lockstep. */
+@keyframes rv-breathe {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+.rv-port-live {
+  animation: rv-breathe 2.4s ease-in-out infinite;
+}
+
+.rv-drift-outline {
+  animation: rv-breathe 3.2s ease-in-out infinite;
+}
+
+@keyframes rv-spin {
+  to { transform: rotate(360deg); }
+}
+
+.rv-fan-spin {
+  animation: rv-spin 3.5s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rv-port-live, .rv-drift-outline, .rv-fan-spin { animation: none; }
+}
+
 .toast-title {
   font-size: 12px;
   font-weight: bold;

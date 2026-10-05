@@ -82,6 +82,47 @@ def get_rack(rack_id):
     return jsonify(data)
 
 
+@app.route("/api/racks/<int:rack_id>/device-drift")
+def rack_device_drift(rack_id):
+    # Device-level view of the same drift data /api/drift/summary already aggregates per rack --
+    # reads whatever the latest LLDP/SAN/Storage pull already computed, nothing is re-pulled or
+    # re-classified here. Only san-switch/switch (LLDP) and storage (StorageSnapshot) categories
+    # have any drift signal today -- server/firewall/router/pdu/patch-panel devices never appear
+    # in the result, rather than showing a misleading "ok" for something never actually checked.
+    devices = Device.query.filter_by(rack_id=rack_id).all()
+    result = {}
+    for d in devices:
+        category = d.device_type.category
+        conflict = new = missing = 0
+
+        if category in ("san-switch", "switch"):
+            lldp = LldpDiscovery.query.filter_by(switch_id=d.id).order_by(LldpDiscovery.timestamp.desc()).first()
+            if lldp:
+                conflict += lldp.summary.get("changed", 0)
+                new += lldp.summary.get("added", 0)
+
+        if category == "san-switch":
+            san = SanSnapshot.query.filter_by(device_id=d.id).order_by(SanSnapshot.timestamp.desc()).first()
+            if san:
+                ds = (san.fabric or {}).get("drift_summary") or {}
+                conflict += ds.get("conflict", 0)
+                new += ds.get("new", 0)
+
+        if category == "storage":
+            st = StorageSnapshot.query.filter_by(device_id=d.id).order_by(StorageSnapshot.timestamp.desc()).first()
+            if st:
+                ds = (st.data or {}).get("drift_summary") or {}
+                new += ds.get("new", 0)
+                missing += ds.get("missing", 0)
+
+        if conflict:
+            result[d.id] = {"status": "conflict", "conflict": conflict, "new": new, "missing": missing}
+        elif new or missing:
+            result[d.id] = {"status": "new" if new else "missing", "conflict": 0, "new": new, "missing": missing}
+
+    return jsonify(result)
+
+
 @app.route("/api/racks/<int:rack_id>/cables")
 def get_rack_cables(rack_id):
     device_ids = [d.id for d in Device.query.filter_by(rack_id=rack_id).all()]
@@ -1989,6 +2030,7 @@ if __name__ == "__main__":
             webbrowser.open("http://127.0.0.1:5000")
 
         threading.Thread(target=_open_browser, daemon=True).start()
+        print("RackView is running at http://127.0.0.1:5000 -- leave this window open, close it to stop the server.")
         serve(app, host="127.0.0.1", port=5000, threads=16)
     else:
         # Dev mode never runs seed.py automatically, but new tables (e.g. a fresh model added
@@ -1997,4 +2039,5 @@ if __name__ == "__main__":
         with app.app_context():
             db.create_all()
             _ensure_db_columns()
+        print("RackView is running at http://127.0.0.1:5000 -- leave this window open, close it to stop the server.")
         serve(app, host="127.0.0.1", port=5000, threads=16)

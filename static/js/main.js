@@ -17,6 +17,8 @@ async function loadData() {
   rack = await fetchWithTimeout(`/api/racks/${currentRackId}`).then(r => r.json());
   const allCables = await fetchWithTimeout(`/api/racks/${currentRackId}/cables`).then(r => r.json());
   cables = allCables.filter(c => c.medium !== "power");
+  currentDeviceDrift = await fetchWithTimeout(`/api/racks/${currentRackId}/device-drift`)
+    .then(r => r.json()).catch(() => ({}));
 
   const titleEl = document.getElementById("page-title");
   if (titleEl) titleEl.textContent = `RackView — ${rack.name} · ${rack.site}`;

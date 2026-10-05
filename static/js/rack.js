@@ -92,6 +92,10 @@ let registry = {};
 let adjacency = {};
 let currentRack = null;
 let currentCables = [];
+// Set externally by main.js after its own fetch, read here on every render/re-render — not a
+// renderRack() parameter, since most re-render call sites (drag, cable edits, ...) don't have
+// fresh drift data to pass and shouldn't need to re-fetch it just to redraw.
+let currentDeviceDrift = {};
 let editMode = false;
 let dragState = null;
 let lastDragMoved = false;
@@ -331,6 +335,7 @@ function drawDevice(rootG, device, y) {
 
   const hooks = {
     registerPort: (name, px, py) => { registry[device.id].ports[name] = { x: px, y: py }; },
+    registerPortHover: portName => setTooltipPort(device.id, portName),
     onPortClick: portName => onPortClick(device.id, portName),
     onPortContextMenu: (portName, ev) => {
       if (window.showPortContextMenu) window.showPortContextMenu(ev, device.id, portName);
@@ -415,14 +420,42 @@ function drawDevice(rootG, device, y) {
 // useful while a cable end is following the cursor, so you can see exactly what it'll land on.
 let tooltipBaseHTML = "";
 let tooltipPortName = null;
+let tooltipDeviceId = null;
 
 function renderTooltip() {
   const tip = document.getElementById("rv-tooltip");
   if (!tip) return;
-  tip.innerHTML = tooltipBaseHTML + (tooltipPortName ? `<br><strong>Port: ${tooltipPortName}</strong>` : "");
+  let html = tooltipBaseHTML;
+  if (tooltipPortName) {
+    html += `<br><strong>Port: ${tooltipPortName}</strong>`;
+    // Same endpoint a cable gets a cable-hover tooltip is here too, just reached by hovering the
+    // port itself instead of the cable path -- reuses the already-loaded currentCables, no fetch.
+    const cable = (currentCables || []).find(c =>
+      (c.a_device_id === tooltipDeviceId && c.a_port === tooltipPortName) ||
+      (c.b_device_id === tooltipDeviceId && c.b_port === tooltipPortName)
+    );
+    if (cable) {
+      const mine = cable.a_device_id === tooltipDeviceId;
+      const otherId = mine ? cable.b_device_id : cable.a_device_id;
+      const otherPort = mine ? cable.b_port : cable.a_port;
+      const otherDev = currentRack && currentRack.devices.find(dv => dv.id === otherId);
+      const otherPortLabel = typeof portDisplayName === "function" ? portDisplayName(otherId, otherPort) : otherPort;
+      html += `<br>${cable.medium} → ${otherDev ? otherDev.name : "?"} ${otherPortLabel}`;
+    }
+  }
+  const drift = tooltipDeviceId != null ? currentDeviceDrift[tooltipDeviceId] : null;
+  if (drift) {
+    const parts = [];
+    if (drift.conflict) parts.push(`${drift.conflict} conflict`);
+    if (drift.new) parts.push(`${drift.new} new`);
+    if (drift.missing) parts.push(`${drift.missing} missing`);
+    html += `<br><strong style="color:#D98A3D">⚠ ${parts.join(" · ")} since last pull</strong>`;
+  }
+  tip.innerHTML = html;
 }
 
-function setTooltipPort(portName) {
+function setTooltipPort(deviceId, portName) {
+  tooltipDeviceId = deviceId;
   tooltipPortName = portName;
   renderTooltip();
 }
@@ -435,6 +468,7 @@ function attachTooltip(deviceGroup, device, type) {
     tooltipBaseHTML = `<strong>${device.name}</strong><br>${type.vendor} ${type.model}<br>`
       + `U${device.position_u}–U${uTop} · ${type.u_height}U`;
     tooltipPortName = null;
+    tooltipDeviceId = device.id;
     renderTooltip();
     tip.style.display = "block";
   });
@@ -445,6 +479,7 @@ function attachTooltip(deviceGroup, device, type) {
   deviceGroup.addEventListener("mouseleave", () => {
     tip.style.display = "none";
     tooltipPortName = null;
+    tooltipDeviceId = null;
   });
 }
 
@@ -717,6 +752,49 @@ function onDragEnd() {
   }
 }
 
+// Purely additive overlay drawn on top of the already-rendered, static decorative LEDs — doesn't
+// touch any stencil draw call (there are hundreds of hardcoded `lit` call sites across
+// rv-stencils-dell.js/rv-stencils-misc.js, too risky to rewire individually). Any port that's an
+// endpoint of a real Cable gets a small breathing green dot at its already-registered coordinate;
+// a per-dot random animation-delay keeps them from all pulsing in lockstep.
+function applyPortActivityOverlay(g, cables) {
+  const cabled = new Set();
+  (cables || []).forEach(c => {
+    cabled.add(`${c.a_device_id}:${c.a_port}`);
+    cabled.add(`${c.b_device_id}:${c.b_port}`);
+  });
+  Object.keys(registry).forEach(idStr => {
+    const id = Number(idStr);
+    const rec = registry[id];
+    Object.entries(rec.ports || {}).forEach(([portName, pt]) => {
+      if (!cabled.has(`${id}:${portName}`)) return;
+      el("circle", {
+        cx: pt.x, cy: pt.y, r: 1.1, fill: "url(#rvLedGreen)",
+        class: "rv-port-live", "pointer-events": "none",
+        style: `animation-delay:${(Math.random() * 2.4).toFixed(2)}s`,
+      }, g);
+    });
+  });
+}
+
+// Small colored outline around a device whose most recent LLDP/SAN/Storage pull found drift
+// against documented cabling (see /api/racks/<id>/device-drift) — conflict (red) outranks
+// new/missing (amber) when a device somehow has both.
+function applyDriftIndicators(g, deviceDrift) {
+  Object.entries(deviceDrift || {}).forEach(([idStr, info]) => {
+    const id = Number(idStr);
+    const rec = registry[id];
+    if (!rec || !rec.bounds) return;
+    const color = info.status === "conflict" ? RV_COLORS.power : RV_COLORS.relatedStroke;
+    const b = rec.bounds;
+    el("rect", {
+      x: b.x - 1, y: b.y - 1, width: b.w + 2, height: b.h + 2, rx: 2,
+      fill: "none", stroke: color, "stroke-width": 1.4, "stroke-dasharray": "4,2",
+      class: "rv-drift-outline", "pointer-events": "none",
+    }, g);
+  });
+}
+
 function renderRack(svgEl, rack, cables) {
   currentRack = rack;
   currentCables = cables;
@@ -742,6 +820,8 @@ function renderRack(svgEl, rack, cables) {
       o.id !== d.id && belowU >= o.position_u && belowU < o.position_u + o.device_type.u_height);
   });
   drawDeviceLabels(g, rack, layout);
+  applyPortActivityOverlay(g, cables);
+  applyDriftIndicators(g, currentDeviceDrift);
 
   svgEl.onwheel = e => {
     e.preventDefault();

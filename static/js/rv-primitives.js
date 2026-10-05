@@ -23,10 +23,10 @@ function rvHit(parent, x, y, w, h, ctx, portName) {
   if (ctx && ctx.onPortContextMenu && portName) {
     r.addEventListener('contextmenu', ev => { ev.preventDefault(); ev.stopPropagation(); ctx.onPortContextMenu(portName, ev); });
   }
-  if (portName && typeof setTooltipPort === 'function') {
+  if (portName && ctx && ctx.registerPortHover) {
     // mouseenter/mouseleave don't bubble, so no stopPropagation needed here.
-    r.addEventListener('mouseenter', () => setTooltipPort(portName));
-    r.addEventListener('mouseleave', () => setTooltipPort(null));
+    r.addEventListener('mouseenter', () => ctx.registerPortHover(portName));
+    r.addEventListener('mouseleave', () => ctx.registerPortHover(null));
   }
   return r;
 }
@@ -245,14 +245,15 @@ function rvPsu(parent, x, y, w, h, ctx, portName, opts) {
 
 function rvFan(parent, cx, cy, r, ctx, portName) {
   const g = el('g', { filter: 'url(#rvShadow)' }, parent);
+  const blades = el('g', { class: 'rv-fan-spin', style: `transform-origin:${cx}px ${cy}px` }, g);
   el('circle', { cx, cy, r, fill: '#3E3D3B', stroke: '#1E1D1C', 'stroke-width': 0.55 }, g);
   for (let k = 1; k <= 3; k++)
-    el('circle', { cx, cy, r: r * k / 3.6, fill: 'none', stroke: '#1A1918', 'stroke-width': 0.45 }, g);
+    el('circle', { cx, cy, r: r * k / 3.6, fill: 'none', stroke: '#1A1918', 'stroke-width': 0.45 }, blades);
   for (let k = 0; k < 8; k++) {
     const a = k * Math.PI / 4;
     el('line', { x1: cx + Math.cos(a) * r * 0.2, y1: cy + Math.sin(a) * r * 0.2,
       x2: cx + Math.cos(a) * r * 0.92, y2: cy + Math.sin(a) * r * 0.92,
-      stroke: '#1A1918', 'stroke-width': 0.45 }, g);
+      stroke: '#1A1918', 'stroke-width': 0.45 }, blades);
   }
   el('circle', { cx, cy, r: r * 0.2, fill: '#252423' }, g);
   if (portName) rvHit(g, cx - r, cy - r, r * 2, r * 2, ctx, portName);
