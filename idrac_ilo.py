@@ -67,6 +67,7 @@ class _RedfishBMC:
     SYS = "/redfish/v1/Systems/1"
     CHASSIS = "/redfish/v1/Chassis/1"
     MGR = "/redfish/v1/Managers/1"
+    LOG_PATH = None
 
     def __init__(self, host, user, pwd, port=443):
         self.host, self.port = host, int(port or 443)
@@ -125,6 +126,43 @@ class _RedfishBMC:
         out.sort(key=lambda x: (x["name"] or "").lower())
         return out
 
+    def _log_entries(self):
+        # Surfaces the BMC's own persistent event log (Dell Lifecycle Log / HPE IML) — a
+        # per-asset history that lives on the box itself, independent of anything RackView has
+        # pulled before, and survives an OS reinstall. LOG_PATH is best-effort: older/lower-end
+        # BMC generations may not expose it at this exact path, or at all — same graceful
+        # no-op-on-failure shape as _firmware_inventory() above, never raises.
+        if not self.LOG_PATH:
+            return []
+        try:
+            coll = self._get(self.LOG_PATH + "?$expand=.($levels=1)")
+        except BMCError:
+            try:
+                coll = self._get(self.LOG_PATH)
+            except BMCError:
+                return []
+
+        members = (coll.get("Members") or [])[:100]
+        items = []
+        for m in members:
+            if m.get("Message") or m.get("Created"):
+                items.append(m)  # already expanded via $expand
+                continue
+            odata_id = m.get("@odata.id")
+            if odata_id:
+                detail = self._try(odata_id)
+                if detail:
+                    items.append(detail)
+
+        out = [{
+            "id": it.get("Id"),
+            "created": it.get("Created"),
+            "severity": _HEALTH.get(str(it.get("Severity") or "").lower(), "UNKNOWN"),
+            "message": it.get("Message") or "",
+        } for it in items if it.get("Created") or it.get("Message")]
+        out.sort(key=lambda x: x["created"] or "", reverse=True)
+        return out
+
     def collect(self):
         sysj = self._get(self.SYS)  # auth/connectivity check — never swallowed
         mgr = self._try(self.MGR) or {}
@@ -162,6 +200,7 @@ class _RedfishBMC:
             "power_supplies": psus,
             "fans": fans,
             "firmware_inventory": self._firmware_inventory(),
+            "lifecycle_log": self._log_entries(),
         }
 
 
@@ -170,6 +209,7 @@ class IdracAdapter(_RedfishBMC):
     SYS = "/redfish/v1/Systems/System.Embedded.1"
     CHASSIS = "/redfish/v1/Chassis/System.Embedded.1"
     MGR = "/redfish/v1/Managers/iDRAC.Embedded.1"
+    LOG_PATH = "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices/Lclog/Entries"
 
     def _service_tag(self, sysj):
         return sysj.get("SKU") or sysj.get("AssetTag")
@@ -180,6 +220,7 @@ class IloAdapter(_RedfishBMC):
     SYS = "/redfish/v1/Systems/1"
     CHASSIS = "/redfish/v1/Chassis/1"
     MGR = "/redfish/v1/Managers/1"
+    LOG_PATH = "/redfish/v1/Systems/1/LogServices/IML/Entries"
 
     def _service_tag(self, sysj):
         return sysj.get("SerialNumber") or sysj.get("SKU")

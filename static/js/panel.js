@@ -292,6 +292,111 @@ function buildGroupHeader(group, count) {
   ]);
 }
 
+function _isPatchPanel(device) {
+  return !!(device && device.device_type && device.device_type.category === "patch-panel");
+}
+
+function _pairPatchPort(deviceType, portName) {
+  // front_ports/rear_ports are ordinal-paired ({"name":"LC 1","face":"front"} <-> {"name":"LC 1
+  // rear","face":"rear"}) but carry no explicit pair-id field — try the " rear" naming
+  // convention first (more robust across stencils), fall back to same-index pairing.
+  const front = (deviceType && deviceType.front_ports) || [];
+  const rear = (deviceType && deviceType.rear_ports) || [];
+  const isRearName = /\s+rear$/i.test(portName);
+  if (isRearName) {
+    const base = portName.replace(/\s+rear$/i, "");
+    if (front.some(p => p.name === base)) return base;
+  } else {
+    const target = `${portName} rear`;
+    if (rear.some(p => p.name === target)) return target;
+  }
+  const frontIdx = front.findIndex(p => p.name === portName);
+  if (frontIdx !== -1 && rear[frontIdx]) return rear[frontIdx].name;
+  const rearIdx = rear.findIndex(p => p.name === portName);
+  if (rearIdx !== -1 && front[rearIdx]) return front[rearIdx].name;
+  return null;
+}
+
+function _findCableOnPort(cables, deviceId, port, excludeCableId) {
+  return cables.find(c =>
+    c.id !== excludeCableId &&
+    ((c.a_device_id === deviceId && c.a_port === port) || (c.b_device_id === deviceId && c.b_port === port))
+  );
+}
+
+// Walks a chain of raw Cable rows through any intermediate patch panel(s), stopping at the
+// first non-patch-panel device, a dead end (pairing/next-cable lookup fails), or hopCap —
+// whichever comes first. hopCap guards against an undetected cycle or unexpectedly long
+// chain, same reasoning NetBox's own maintainers cite for their multi-hop trace fragility.
+function traceLogicalPath(device, cable, rack, cables, hopCap) {
+  hopCap = hopCap || 4;
+  const hops = [cable];
+  let mine = cable.a_device_id === device.id;
+  let otherId = mine ? cable.b_device_id : cable.a_device_id;
+  let otherPort = mine ? cable.b_port : cable.a_port;
+  let prevCableId = cable.id;
+
+  for (let i = 1; i < hopCap; i++) {
+    const otherDevice = rack.devices.find(d => d.id === otherId);
+    if (!otherDevice || !_isPatchPanel(otherDevice)) {
+      return { hops, truncated: false, endDeviceId: otherId, endPort: otherPort };
+    }
+    const pairedPort = _pairPatchPort(otherDevice.device_type, otherPort);
+    if (!pairedPort) {
+      return { hops, truncated: true, endDeviceId: otherId, endPort: otherPort };
+    }
+    const nextCable = _findCableOnPort(cables, otherDevice.id, pairedPort, prevCableId);
+    if (!nextCable) {
+      return { hops, truncated: true, endDeviceId: otherDevice.id, endPort: pairedPort };
+    }
+    hops.push(nextCable);
+    const mine2 = nextCable.a_device_id === otherDevice.id && nextCable.a_port === pairedPort;
+    otherId = mine2 ? nextCable.b_device_id : nextCable.a_device_id;
+    otherPort = mine2 ? nextCable.b_port : nextCable.a_port;
+    prevCableId = nextCable.id;
+  }
+  const finalDevice = rack.devices.find(d => d.id === otherId);
+  return { hops, truncated: _isPatchPanel(finalDevice), endDeviceId: otherId, endPort: otherPort };
+}
+
+function buildTracedConnCard(device, rack, cable, trace) {
+  const ownPort = cable.a_device_id === device.id ? cable.a_port : cable.b_port;
+  const endDevice = rack.devices.find(d => d.id === trace.endDeviceId);
+
+  const card = h("div", { class: "row traced" + (trace.truncated ? " truncated" : "") });
+  if (panelEditMode) {
+    const del = h("button", {
+      class: "row-del",
+      title: "Removes only the physical cable segment nearest this device — edit far segments from the patch panel's own panel",
+    }, ["×"]);
+    del.onclick = () => deleteConnection(cable.id);
+    card.appendChild(del);
+  }
+  card.appendChild(h("div", { class: "rl" }, [h("b", {}, [ownPort]), h("span", {}, [subInfoFor(device, ownPort)])]));
+
+  if (trace.truncated) {
+    card.appendChild(h("div", { class: "rr" }, [h("b", { class: "truncated-end" }, ["? (incomplete path)"]), h("span", {}, [trace.endPort || ""])]));
+  } else {
+    card.appendChild(h("div", { class: "rr" }, [h("b", {}, [endDevice ? endDevice.name : "?"]), h("span", {}, [trace.endPort || ""])]));
+  }
+
+  if (trace.hops.length > 1) {
+    const mid = h("div", { class: "rm-hops" });
+    for (let i = 0; i < trace.hops.length - 1; i++) {
+      const hopCable = trace.hops[i];
+      const nextCable = trace.hops[i + 1];
+      const ppId = [hopCable.a_device_id, hopCable.b_device_id].find(id =>
+        id === nextCable.a_device_id || id === nextCable.b_device_id);
+      const pp = rack.devices.find(d => d.id === ppId);
+      const frontPort = hopCable.a_device_id === ppId ? hopCable.a_port : hopCable.b_port;
+      const rearPort = nextCable.a_device_id === ppId ? nextCable.a_port : nextCable.b_port;
+      mid.appendChild(h("span", { class: "hop-chip" }, [`${pp ? pp.name : "?"} (${frontPort} → ${rearPort})`]));
+    }
+    card.appendChild(mid);
+  }
+  return card;
+}
+
 function buildConnCard(device, rack, cable) {
   const mine = cable.a_device_id === device.id;
   const ownPort = mine ? cable.a_port : cable.b_port;
@@ -429,7 +534,16 @@ function buildConnectionsTab(device, rack, cables) {
     if (!groupCables.length) return;
     any = true;
     wrap.appendChild(buildGroupHeader(group, groupCables.length));
-    groupCables.forEach(c => wrap.appendChild(buildConnCard(device, rack, c)));
+    groupCables.forEach(c => {
+      const mine = c.a_device_id === device.id;
+      const otherId = mine ? c.b_device_id : c.a_device_id;
+      const otherDevice = rack.devices.find(d => d.id === otherId);
+      if (_isPatchPanel(otherDevice)) {
+        wrap.appendChild(buildTracedConnCard(device, rack, c, traceLogicalPath(device, c, rack, cables, 4)));
+      } else {
+        wrap.appendChild(buildConnCard(device, rack, c));
+      }
+    });
   });
   if (!any && !panelEditMode) wrap.appendChild(h("div", { class: "tab-empty" }, ["No connections."]));
   if (panelEditMode) wrap.appendChild(buildAddConnectionRow(device, rack));

@@ -144,6 +144,23 @@ function renderData(data) {
     block.appendChild(listBox);
   }
 
+  const log = data.lifecycle_log || [];
+  if (log.length) {
+    block.appendChild(h("div", { class: "san-h4" }, [`Recent BMC events (${log.length})`]));
+    block.appendChild(h("div", { class: "san-hint" }, [
+      "The BMC's own event log (Dell calls it the Lifecycle Log, HPE the IML) — persisted on the box itself, independent of anything RackView has seen before, and it survives an OS reinstall.",
+    ]));
+    const list = h("div", { class: "san-fw-list san-log-list" });
+    log.forEach(e => {
+      const row = h("div", { class: "san-log-row" });
+      row.appendChild(h("span", { class: "san-dot " + healthDotClass(e.severity) }));
+      row.appendChild(h("span", { class: "san-log-time" }, [e.created ? new Date(e.created).toLocaleString() : "?"]));
+      row.appendChild(h("span", { class: "san-log-msg" }, [e.message || "-"]));
+      list.appendChild(row);
+    });
+    block.appendChild(list);
+  }
+
   body.appendChild(block);
 }
 

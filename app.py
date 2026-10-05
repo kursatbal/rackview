@@ -13,6 +13,7 @@ from san import collect_one as san_collect_one
 from storage import collect_one as storage_collect_one
 from esxi import collect_one as esxi_collect_one, collect_from_vcenter as esxi_collect_from_vcenter
 from idrac_ilo import collect_one as idrac_collect_one
+from diffing import diff_snapshots
 
 
 def _data_dir():
@@ -38,6 +39,7 @@ JS_DIR = os.path.join(os.path.dirname(__file__), "static", "js")
 INDEX_BUNDLE_FILES = [
     "rv-defs.js", "rv-primitives.js", "rv-stencils-dell.js", "rv-stencils-misc.js",
     "rv-device-catalog.js", "rack.js", "panel.js", "cables.js", "catalog.js", "search.js", "main.js",
+    "unmanaged-badge.js",
 ]
 FLOOR_BUNDLE_FILES = ["rv-defs.js", "rv-primitives.js", "floor.js"]
 
@@ -1335,19 +1337,113 @@ def lldp_history_delete(history_id):
     return "", 204
 
 
+@app.route("/api/lldp/unmanaged-summary")
+def lldp_unmanaged_summary():
+    # Reads only — reflects whichever LLDP pull is newest per switch, not a live re-scan.
+    # "new" here is the same status lldp_match() already assigns to a neighbor seen on the
+    # wire with no matching Cable record, i.e. a device RackView doesn't know about yet.
+    latest_per_switch = (
+        db.session.query(LldpDiscovery)
+        .filter(
+            LldpDiscovery.id.in_(
+                db.session.query(db.func.max(LldpDiscovery.id)).group_by(LldpDiscovery.switch_id)
+            )
+        )
+        .all()
+    )
+    by_switch = []
+    total = 0
+    for row in latest_per_switch:
+        new_count = sum(1 for r in (row.results or []) if r.get("status") == "new")
+        if new_count == 0:
+            continue
+        total += new_count
+        switch = Device.query.get(row.switch_id)
+        by_switch.append({
+            "switch_id": row.switch_id,
+            "switch_name": row.switch_name,
+            "rack_name": switch.rack.name if switch and switch.rack else None,
+            "new_count": new_count,
+            "last_seen": row.timestamp.isoformat(),
+        })
+    by_switch.sort(key=lambda x: x["new_count"], reverse=True)
+    return jsonify({"total": total, "by_switch": by_switch})
+
+
+@app.route("/api/drift/summary")
+def drift_summary():
+    # Unified view across the three sources that can classify live-pulled state against the
+    # Cable table: LLDP (matched/conflict/new/removed, full vocabulary), SAN (same, via
+    # connected_wwn), and Storage (documented/new/missing only — no remote-identity signal).
+    # Each source contributes whatever its latest pull already computed; nothing is re-pulled
+    # here. Grouped by rack so a tech can see "where is there drift" at a glance.
+    by_rack = {}
+
+    def _bucket(rack_id, rack_name):
+        return by_rack.setdefault(rack_id, {
+            "rack_id": rack_id, "rack_name": rack_name,
+            "lldp_conflict": 0, "lldp_new": 0, "lldp_removed": 0,
+            "san_conflict": 0, "san_new": 0, "san_removed": 0,
+            "storage_new": 0, "storage_missing": 0,
+        })
+
+    latest_lldp = (
+        db.session.query(LldpDiscovery)
+        .filter(
+            LldpDiscovery.id.in_(
+                db.session.query(db.func.max(LldpDiscovery.id)).group_by(LldpDiscovery.switch_id)
+            )
+        )
+        .all()
+    )
+    for row in latest_lldp:
+        switch = Device.query.get(row.switch_id)
+        if not switch or not switch.rack:
+            continue
+        b = _bucket(switch.rack_id, switch.rack.name)
+        b["lldp_conflict"] += row.summary.get("changed", 0)
+        b["lldp_new"] += row.summary.get("added", 0)
+        b["lldp_removed"] += row.summary.get("removed", 0)
+
+    san_device_ids = [d.id for d in Device.query.join(Device.device_type).filter(DeviceType.category == "san-switch").all()]
+    for device_id in san_device_ids:
+        row = SanSnapshot.query.filter_by(device_id=device_id).order_by(SanSnapshot.timestamp.desc()).first()
+        if not row:
+            continue
+        device = Device.query.get(device_id)
+        if not device or not device.rack:
+            continue
+        s = (row.fabric or {}).get("drift_summary") or {}
+        b = _bucket(device.rack_id, device.rack.name)
+        b["san_conflict"] += s.get("conflict", 0)
+        b["san_new"] += s.get("new", 0)
+        b["san_removed"] += s.get("removed", 0)
+
+    storage_device_ids = [d.id for d in Device.query.join(Device.device_type).filter(DeviceType.category == "storage").all()]
+    for device_id in storage_device_ids:
+        row = StorageSnapshot.query.filter_by(device_id=device_id).order_by(StorageSnapshot.timestamp.desc()).first()
+        if not row:
+            continue
+        device = Device.query.get(device_id)
+        if not device or not device.rack:
+            continue
+        s = (row.data or {}).get("drift_summary") or {}
+        b = _bucket(device.rack_id, device.rack.name)
+        b["storage_new"] += s.get("new", 0)
+        b["storage_missing"] += s.get("missing", 0)
+
+    racks = sorted(by_rack.values(), key=lambda b: b["rack_name"] or "")
+    return jsonify({"racks": racks})
+
+
 def _port_number(name):
     m = re.search(r"(\d+)\s*$", str(name or ""))
     return int(m.group(1)) if m else None
 
 
-def _attach_cable_destinations(device, ports):
-    # RackView already knows the physical cabling for this switch (if it's been cabled in the
-    # app) — cross-reference by port number so each port card can show where the cable actually
-    # goes, without needing any external host/WWN inventory. Vendor CLI port numbering is 0-based
-    # (Brocade "0".."23") while every port stencil in this app numbers from 1 ("FC 1".."FC 24"),
-    # so only the +1 offset is tried — NOT also a direct/exact match, since trying both would let
-    # two different real switch ports (e.g. "0" and "1") both resolve to the same RackView port
-    # ("FC 1"), producing a false duplicate destination on the wrong port.
+def _cable_by_number(device):
+    # Shared by _attach_cable_destinations (display) and _san_port_drift (classification) so
+    # both read the exact same documented-cabling baseline off the Cable table.
     cables = Cable.query.filter(
         db.or_(Cable.a_device_id == device.id, Cable.b_device_id == device.id)
     ).all()
@@ -1365,6 +1461,18 @@ def _attach_cable_destinations(device, ports):
             "port": other_port,
             "rack_name": other.rack.name if other else None,
         }
+    return by_number
+
+
+def _attach_cable_destinations(device, ports):
+    # RackView already knows the physical cabling for this switch (if it's been cabled in the
+    # app) — cross-reference by port number so each port card can show where the cable actually
+    # goes, without needing any external host/WWN inventory. Vendor CLI port numbering is 0-based
+    # (Brocade "0".."23") while every port stencil in this app numbers from 1 ("FC 1".."FC 24"),
+    # so only the +1 offset is tried — NOT also a direct/exact match, since trying both would let
+    # two different real switch ports (e.g. "0" and "1") both resolve to the same RackView port
+    # ("FC 1"), producing a false duplicate destination on the wrong port.
+    by_number = _cable_by_number(device)
     for p in ports:
         n = _port_number(p.get("port"))
         if n is None:
@@ -1373,6 +1481,37 @@ def _attach_cable_destinations(device, ports):
         if match:
             p["connected_device"] = match
     return ports
+
+
+def _san_port_drift(device, ports):
+    # Classifies each live SAN port against the documented Cable baseline, using the same +1
+    # offset convention as _attach_cable_destinations. SAN switches carry a genuine remote-
+    # identity signal (connected_wwn = whatever actually logged into that port right now), so
+    # unlike storage (see _storage_port_drift) this can tell "something is plugged in" from
+    # "nothing is" — matched/conflict/new/removed, same vocabulary lldp_match() already uses.
+    by_number = _cable_by_number(device)
+    seen_numbers = set()
+    for p in ports:
+        n = _port_number(p.get("port"))
+        documented = n is not None and (n + 1) in by_number
+        if n is not None:
+            seen_numbers.add(n + 1)
+        live = bool(p.get("connected_wwn"))
+        if documented and live:
+            p["drift_status"] = "matched"
+        elif documented and not live:
+            p["drift_status"] = "conflict"
+        elif not documented and live:
+            p["drift_status"] = "new"
+        else:
+            p["drift_status"] = None
+    removed = len(set(by_number.keys()) - seen_numbers)
+    return {
+        "matched": sum(1 for p in ports if p.get("drift_status") == "matched"),
+        "conflict": sum(1 for p in ports if p.get("drift_status") == "conflict"),
+        "new": sum(1 for p in ports if p.get("drift_status") == "new"),
+        "removed": removed,
+    }
 
 
 @app.route("/api/san/devices")
@@ -1407,6 +1546,7 @@ def san_collect():
     fabric["ip"] = ip
     fabric["device_id"] = device_id
     fabric["ports"] = _attach_cable_destinations(device, fabric.get("ports") or [])
+    fabric["drift_summary"] = _san_port_drift(device, fabric["ports"])
 
     # Only the connection endpoint is kept — username/password are never written to disk.
     merged = dict(device.metadata_json or {})
@@ -1430,11 +1570,42 @@ def san_snapshot(device_id):
     return jsonify(row.to_dict() if row else None)
 
 
-def _attach_storage_cable_destinations(device, ports):
-    # Same purpose as _attach_cable_destinations (SAN) but a different naming scheme: the array's
-    # own port ids ("A0", "B1", ...) are 0-indexed and map straight across — no +1 offset — to the
-    # dell-me5-2u stencil's rear port names ("CtrlA P0", "CtrlB P1", ...), so this matches by exact
-    # constructed name instead of by numeric index.
+@app.route("/api/san/diff/<int:device_id>")
+def san_diff(device_id):
+    # "What changed since last pull," Oxidized-style, over the SanSnapshot rows that already
+    # accumulate on every collect — nothing new is pulled from the switch here.
+    Device.query.get_or_404(device_id)
+    against_id = request.args.get("against", type=int)
+    rows = SanSnapshot.query.filter_by(device_id=device_id).order_by(SanSnapshot.timestamp.desc()).all()
+    if len(rows) < 1:
+        return jsonify({"error": "no snapshots for this device"}), 404
+    new_row = rows[0]
+    if against_id:
+        old_row = next((r for r in rows if r.id == against_id), None)
+        if old_row is None:
+            return jsonify({"error": "snapshot id not found for this device"}), 404
+    else:
+        old_row = rows[1] if len(rows) > 1 else None
+    if old_row is None:
+        return jsonify({"error": "no earlier snapshot to compare against"}), 404
+
+    diff = diff_snapshots(
+        old_row.fabric, new_row.fabric,
+        port_key_fn=lambda p: p.get("port"),
+        port_fields=["status", "speed", "type", "connected_wwn"],
+        top_level_fields=["model", "firmware", "domain_id", "fabric_name", "wwn"],
+    )
+    diff["old_timestamp"] = old_row.timestamp.isoformat()
+    diff["new_timestamp"] = new_row.timestamp.isoformat()
+    diff["available_snapshots"] = [
+        {"id": r.id, "timestamp": r.timestamp.isoformat()} for r in rows
+    ]
+    return jsonify(diff)
+
+
+def _storage_cable_by_port_name(device):
+    # Shared by _attach_storage_cable_destinations (display) and _storage_port_drift
+    # (classification) so both read the exact same documented-cabling baseline.
     cables = Cable.query.filter(
         db.or_(Cable.a_device_id == device.id, Cable.b_device_id == device.id)
     ).all()
@@ -1449,6 +1620,15 @@ def _attach_storage_cable_destinations(device, ports):
             "port": other_port,
             "rack_name": other.rack.name if other else None,
         }
+    return by_port_name
+
+
+def _attach_storage_cable_destinations(device, ports):
+    # Same purpose as _attach_cable_destinations (SAN) but a different naming scheme: the array's
+    # own port ids ("A0", "B1", ...) are 0-indexed and map straight across — no +1 offset — to the
+    # dell-me5-2u stencil's rear port names ("CtrlA P0", "CtrlB P1", ...), so this matches by exact
+    # constructed name instead of by numeric index.
+    by_port_name = _storage_cable_by_port_name(device)
     for p in ports:
         controller = p.get("controller")
         num = re.sub(r"\D", "", p.get("port") or "")
@@ -1458,6 +1638,30 @@ def _attach_storage_cable_destinations(device, ports):
         if match:
             p["connected_device"] = match
     return ports
+
+
+def _storage_port_drift(device, ports):
+    # Storage ports carry no remote-identity signal — the array's own "wwn" field is its own
+    # port identity, not a connected host's — so unlike SAN (see _san_port_drift), there is no
+    # way to tell "wrong neighbor" from "right neighbor" here, only "something is physically
+    # there or not." Deliberately a smaller vocabulary than SAN/LLDP: documented/new/missing,
+    # no "conflict".
+    by_port_name = _storage_cable_by_port_name(device)
+    seen_names = set()
+    for p in ports:
+        controller = p.get("controller")
+        num = re.sub(r"\D", "", p.get("port") or "")
+        key = f"Ctrl{controller} P{num}" if controller and num else None
+        documented = bool(key) and key in by_port_name
+        if key:
+            seen_names.add(key)
+        p["drift_status"] = "documented" if documented else "new"
+    missing = len(set(by_port_name.keys()) - seen_names)
+    return {
+        "documented": sum(1 for p in ports if p.get("drift_status") == "documented"),
+        "new": sum(1 for p in ports if p.get("drift_status") == "new"),
+        "missing": missing,
+    }
 
 
 @app.route("/api/storage/devices")
@@ -1491,6 +1695,7 @@ def storage_collect():
     data["ip"] = ip
     data["device_id"] = device_id
     data["ports"] = _attach_storage_cable_destinations(device, data.get("ports") or [])
+    data["drift_summary"] = _storage_port_drift(device, data["ports"])
 
     merged = dict(device.metadata_json or {})
     merged["storage_config"] = {"ip": ip, "port": port}
@@ -1508,6 +1713,42 @@ def storage_snapshot(device_id):
     Device.query.get_or_404(device_id)
     row = StorageSnapshot.query.filter_by(device_id=device_id).order_by(StorageSnapshot.timestamp.desc()).first()
     return jsonify(row.to_dict() if row else None)
+
+
+@app.route("/api/storage/diff/<int:device_id>")
+def storage_diff(device_id):
+    Device.query.get_or_404(device_id)
+    against_id = request.args.get("against", type=int)
+    rows = StorageSnapshot.query.filter_by(device_id=device_id).order_by(StorageSnapshot.timestamp.desc()).all()
+    if len(rows) < 1:
+        return jsonify({"error": "no snapshots for this device"}), 404
+    new_row = rows[0]
+    if against_id:
+        old_row = next((r for r in rows if r.id == against_id), None)
+        if old_row is None:
+            return jsonify({"error": "snapshot id not found for this device"}), 404
+    else:
+        old_row = rows[1] if len(rows) > 1 else None
+    if old_row is None:
+        return jsonify({"error": "no earlier snapshot to compare against"}), 404
+
+    def _key(p):
+        controller = p.get("controller")
+        num = re.sub(r"\D", "", p.get("port") or "")
+        return f"Ctrl{controller} P{num}" if controller and num else None
+
+    diff = diff_snapshots(
+        old_row.data, new_row.data,
+        port_key_fn=_key,
+        port_fields=["status", "speed", "type"],
+        top_level_fields=["model", "firmware", "health", "serial"],
+    )
+    diff["old_timestamp"] = old_row.timestamp.isoformat()
+    diff["new_timestamp"] = new_row.timestamp.isoformat()
+    diff["available_snapshots"] = [
+        {"id": r.id, "timestamp": r.timestamp.isoformat()} for r in rows
+    ]
+    return jsonify(diff)
 
 
 def _attach_esxi_cable_destinations(device, nics):

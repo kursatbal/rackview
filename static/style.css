@@ -647,6 +647,21 @@ body {
   font-weight: normal;
 }
 
+.unmanaged-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #C0392B;
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 1;
+  border-radius: 8px;
+  padding: 3px 5px;
+  cursor: pointer;
+  z-index: 1;
+}
+
 .row {
   position: relative;
   display: grid;
@@ -696,6 +711,31 @@ body {
 .lldp-note-row {
   background: transparent;
   border: 1px dashed #B4B2A9;
+}
+
+.row.traced.truncated {
+  border: 1px dashed #A32D2D;
+}
+
+.rm-hops {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 2px 0;
+}
+
+.hop-chip {
+  font-size: 9.5px;
+  font-family: monospace;
+  color: #5F5E5A;
+  background: #D3D1C7;
+  border-radius: 9px;
+  padding: 1px 7px;
+}
+
+.truncated-end {
+  color: #A32D2D !important;
 }
 
 .row-del {
@@ -1711,6 +1751,126 @@ body {
 .san-fw-name { color: #e6edf3; }
 .san-fw-version { color: #7ee787; font-family: monospace; white-space: nowrap; }
 .san-dot-unknown { background: #484f58; }
+
+.san-drift-summary {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: #8b949e;
+  margin-top: 4px;
+}
+
+.san-drift-summary b { color: #e6edf3; }
+
+.san-drift-pill {
+  display: inline-block;
+  border-radius: 9px;
+  padding: 0 7px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+.san-drift-pill.conflict { background: #4a1414; color: #ff7b72; }
+.san-drift-pill.new { background: #3d2e0a; color: #e3b341; }
+.san-drift-pill.missing { background: #4a1414; color: #ff7b72; }
+
+.san-diff-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #8b949e;
+  margin-bottom: 10px;
+}
+
+.san-diff-picker select {
+  font-family: monospace;
+  font-size: 11px;
+  background: #161b22;
+  color: #e6edf3;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 3px 6px;
+}
+
+.san-diff-subhead {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin: 10px 0 4px;
+}
+
+.san-diff-subhead.added { color: #7ee787; }
+.san-diff-subhead.removed { color: #ff7b72; }
+.san-diff-subhead.changed { color: #e3b341; }
+
+.san-diff-list {
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.san-diff-row {
+  padding: 6px 11px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #e6edf3;
+  background: #161b22;
+  border-bottom: 1px solid #21262d;
+}
+
+.san-diff-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 11px 5px 22px;
+  font-size: 10.5px;
+  color: #8b949e;
+  border-bottom: 1px solid #21262d;
+}
+
+.san-diff-field-name {
+  min-width: 90px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.san-diff-from { color: #ff7b72; font-family: monospace; }
+.san-diff-to { color: #7ee787; font-family: monospace; }
+
+.san-log-list {
+  max-height: 380px;
+}
+
+.san-log-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 7px 11px;
+  font-size: 11px;
+  border-bottom: 1px solid #21262d;
+}
+
+.san-log-row:last-child { border-bottom: none; }
+.san-log-row:nth-child(even) { background: #161b22; }
+
+.san-log-time {
+  color: #8b949e;
+  font-family: monospace;
+  font-size: 10px;
+  white-space: nowrap;
+  flex: none;
+}
+
+.san-log-msg {
+  color: #e6edf3;
+  word-break: break-word;
+}
 
 .san-zonegrid {
   display: grid;

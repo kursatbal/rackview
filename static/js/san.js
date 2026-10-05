@@ -57,6 +57,80 @@ async function loadLastSnapshot(deviceId) {
   }
   hint.textContent = `Last pulled: ${new Date(snap.timestamp).toLocaleString()}`;
   renderFabric(snap.fabric);
+  loadDiffPanel(deviceId);
+}
+
+function fieldRow(field, from, to) {
+  return h("div", { class: "san-diff-field" }, [
+    h("span", { class: "san-diff-field-name" }, [field]),
+    h("span", { class: "san-diff-from" }, [from == null || from === "" ? "–" : String(from)]),
+    h("span", {}, ["→"]),
+    h("span", { class: "san-diff-to" }, [to == null || to === "" ? "–" : String(to)]),
+  ]);
+}
+
+async function loadDiffPanel(deviceId, against) {
+  const existing = document.getElementById("san-diff-panel");
+  if (existing) existing.remove();
+  const url = against ? `/api/san/diff/${deviceId}?against=${against}` : `/api/san/diff/${deviceId}`;
+  const diff = await fetchWithTimeout(url).then(r => r.ok ? r.json() : null).catch(() => null);
+  const body = document.getElementById("san-body");
+  const panel = h("div", { id: "san-diff-panel", class: "san-block" });
+  panel.appendChild(h("div", { class: "san-h4" }, ["What changed since last pull"]));
+
+  if (!diff || diff.error) {
+    panel.appendChild(h("div", { class: "san-empty" }, ["Only one pull recorded so far — nothing to compare yet."]));
+    body.appendChild(panel);
+    return;
+  }
+
+  if (diff.available_snapshots && diff.available_snapshots.length > 2) {
+    const row = h("div", { class: "san-diff-picker" });
+    row.appendChild(h("span", {}, ["Compare against:"]));
+    const sel = h("select", { id: "san-diff-against" });
+    diff.available_snapshots.slice(1).forEach(s => {
+      sel.appendChild(h("option", { value: s.id }, [new Date(s.timestamp).toLocaleString()]));
+    });
+    sel.value = diff.available_snapshots.find(s => s.timestamp === diff.old_timestamp).id;
+    sel.onchange = () => loadDiffPanel(deviceId, sel.value);
+    row.appendChild(sel);
+    panel.appendChild(row);
+  }
+
+  const nothingChanged = !diff.added.length && !diff.removed.length && !diff.changed.length && !diff.top_level.length;
+  if (nothingChanged) {
+    panel.appendChild(h("div", { class: "san-empty" }, [`No changes vs. ${new Date(diff.old_timestamp).toLocaleString()}.`]));
+    body.appendChild(panel);
+    return;
+  }
+
+  if (diff.top_level.length) {
+    const list = h("div", { class: "san-diff-list" });
+    diff.top_level.forEach(f => list.appendChild(fieldRow(f.field, f.from, f.to)));
+    panel.appendChild(list);
+  }
+  if (diff.added.length) {
+    panel.appendChild(h("div", { class: "san-diff-subhead added" }, [`Added (${diff.added.length})`]));
+    const list = h("div", { class: "san-diff-list" });
+    diff.added.forEach(p => list.appendChild(h("div", { class: "san-diff-row" }, [`Port ${p.port || "?"}`])));
+    panel.appendChild(list);
+  }
+  if (diff.removed.length) {
+    panel.appendChild(h("div", { class: "san-diff-subhead removed" }, [`Removed (${diff.removed.length})`]));
+    const list = h("div", { class: "san-diff-list" });
+    diff.removed.forEach(p => list.appendChild(h("div", { class: "san-diff-row" }, [`Port ${p.port || "?"}`])));
+    panel.appendChild(list);
+  }
+  if (diff.changed.length) {
+    panel.appendChild(h("div", { class: "san-diff-subhead changed" }, [`Changed (${diff.changed.length})`]));
+    const list = h("div", { class: "san-diff-list" });
+    diff.changed.forEach(c => {
+      list.appendChild(h("div", { class: "san-diff-row" }, [`Port ${c.port.port || "?"}`]));
+      c.fields.forEach(f => list.appendChild(fieldRow(f.field, f.from, f.to)));
+    });
+    panel.appendChild(list);
+  }
+  body.appendChild(panel);
 }
 
 function statusClass(status) {
@@ -83,7 +157,24 @@ function buildPortCard(p) {
     ]));
   }
   if (p.connected_wwn) card.appendChild(h("div", { class: "san-pwwn" }, [p.connected_wwn]));
+  // "matched" is the common/expected case and isn't called out — only conflict/new are,
+  // since those are what a tech actually needs to notice.
+  if (p.drift_status === "conflict") {
+    card.appendChild(h("span", { class: "san-drift-pill conflict" }, ["Documented, not logged in"]));
+  } else if (p.drift_status === "new") {
+    card.appendChild(h("span", { class: "san-drift-pill new" }, ["Not documented"]));
+  }
   return card;
+}
+
+function buildDriftSummaryLine(summary) {
+  if (!summary) return null;
+  const parts = [];
+  if (summary.conflict) parts.push(`${summary.conflict} conflict`);
+  if (summary.new) parts.push(`${summary.new} new`);
+  if (summary.removed) parts.push(`${summary.removed} removed`);
+  if (!parts.length) return h("div", { class: "san-drift-summary" }, [h("b", {}, ["No drift"]), " vs. documented cabling"]);
+  return h("div", { class: "san-drift-summary" }, [h("b", {}, [parts.join(" · ")]), " vs. documented cabling"]);
 }
 
 function buildZoneCard(zone, key) {
@@ -114,6 +205,8 @@ function renderFabric(fab) {
     ]),
   ]);
   block.appendChild(head);
+  const driftLine = buildDriftSummaryLine(fab.drift_summary);
+  if (driftLine) block.appendChild(driftLine);
 
   block.appendChild(h("div", { class: "san-h4" }, [`Ports (${(fab.ports || []).length})`]));
   const portGrid = h("div", { class: "san-portgrid" });

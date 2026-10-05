@@ -28,3 +28,7 @@ dist/
 .DS_Store
 Thumbs.db
 .claude/settings.local.json
+
+# Commit-oncesi sizinti taramasi yasakli-terim listesi (gercek musteri
+# adlari/IP icerir -> ASLA commit edilmez)
+.commit-denylist.txt
