@@ -89,6 +89,10 @@ let selectedId = null;
 let selectedPort = null;
 let currentFace = "front";
 let registry = {};
+// Rebuilt once per renderRack() call from the cables list; lets both the LED-lit decision at draw
+// time and the breathing overlay answer "is this exact (deviceId, portName) a real cable endpoint?"
+// from the same ground truth instead of duplicating the scan.
+let cabledPorts = new Set();
 let adjacency = {};
 let currentRack = null;
 let currentCables = [];
@@ -336,6 +340,7 @@ function drawDevice(rootG, device, y) {
   const hooks = {
     registerPort: (name, px, py) => { registry[device.id].ports[name] = { x: px, y: py }; },
     registerPortHover: portName => setTooltipPort(device.id, portName),
+    isPortCabled: portName => cabledPorts.has(`${device.id}:${portName}`),
     onPortClick: portName => onPortClick(device.id, portName),
     onPortContextMenu: (portName, ev) => {
       if (window.showPortContextMenu) window.showPortContextMenu(ev, device.id, portName);
@@ -758,16 +763,11 @@ function onDragEnd() {
 // endpoint of a real Cable gets a small breathing green dot at its already-registered coordinate;
 // a per-dot random animation-delay keeps them from all pulsing in lockstep.
 function applyPortActivityOverlay(g, cables) {
-  const cabled = new Set();
-  (cables || []).forEach(c => {
-    cabled.add(`${c.a_device_id}:${c.a_port}`);
-    cabled.add(`${c.b_device_id}:${c.b_port}`);
-  });
   Object.keys(registry).forEach(idStr => {
     const id = Number(idStr);
     const rec = registry[id];
     Object.entries(rec.ports || {}).forEach(([portName, pt]) => {
-      if (!cabled.has(`${id}:${portName}`)) return;
+      if (!cabledPorts.has(`${id}:${portName}`)) return;
       el("circle", {
         cx: pt.x, cy: pt.y, r: 1.1, fill: "url(#rvLedGreen)",
         class: "rv-port-live", "pointer-events": "none",
@@ -799,6 +799,11 @@ function renderRack(svgEl, rack, cables) {
   currentRack = rack;
   currentCables = cables;
   registry = {};
+  cabledPorts = new Set();
+  (cables || []).forEach(c => {
+    cabledPorts.add(`${c.a_device_id}:${c.a_port}`);
+    cabledPorts.add(`${c.b_device_id}:${c.b_port}`);
+  });
   adjacency = buildAdjacency(cables);
   svgEl.innerHTML = "";
   const g = el("g", {});

@@ -306,6 +306,8 @@ function rvRender(svg, model, face, x, y, w, hooks) {
   const ctx = Object.assign({
     x, y, w, h: dev.u * RV_U - 1, uHeight: dev.u,
     registerPort: (hooks && hooks.registerPort) || null,
+    registerPortHover: (hooks && hooks.registerPortHover) || null,
+    isPortCabled: (hooks && hooks.isPortCabled) || null,
     onPortClick: (hooks && hooks.onPortClick) || null,
     onPortContextMenu: (hooks && hooks.onPortContextMenu) || null,
     getLabelOffset: (hooks && hooks.getLabelOffset) || null,

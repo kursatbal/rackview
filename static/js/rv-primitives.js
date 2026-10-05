@@ -123,7 +123,11 @@ function rvLabel(parent, x, y, text, dark, ctx, labelKey) {
 
 function rvRj45(parent, x, y, ctx, portName, opts) {
   opts = opts || {};
-  const dark = !!opts.dark, lit = opts.lit !== false;
+  const dark = !!opts.dark;
+  // Decorative default is "lit" unless a call site says otherwise; but when this is a real,
+  // named port and the caller can tell us whether it's actually cabled, defer to that ground
+  // truth instead — an uncabled RJ45 port shouldn't show a green link light.
+  const lit = portName && ctx && ctx.isPortCabled ? ctx.isPortCabled(portName) : opts.lit !== false;
   const w = opts.w || 12, h = opts.h || 9.5;
   const g = el('g', { filter: 'url(#rvShadow)' }, parent);
   el('rect', { x, y, width: w, height: h, rx: 0.9, fill: dark ? '#5A5955' : '#8E8C85',
@@ -145,7 +149,7 @@ function rvRj45(parent, x, y, ctx, portName, opts) {
 
 function rvSfp(parent, x, y, ctx, portName, opts) {
   opts = opts || {};
-  const lit = !!opts.lit;
+  const lit = portName && ctx && ctx.isPortCabled ? ctx.isPortCabled(portName) : !!opts.lit;
   const w = opts.w || 13, h = opts.h || 9.5;
   const g = el('g', { filter: 'url(#rvShadow)' }, parent);
   el('rect', { x, y, width: w, height: h, rx: 0.8, fill: '#6B6A65', stroke: '#333230', 'stroke-width': 0.45 }, g);

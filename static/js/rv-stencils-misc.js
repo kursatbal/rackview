@@ -437,10 +437,11 @@ function rvFortiRj45(g, x, y, ctx, portName, opts) {
   opts = opts || {};
   const s = opts.s || 1;
   const w = 12 * s, h = 9.5 * s;
+  const lit = portName && ctx && ctx.isPortCabled ? ctx.isPortCabled(portName) : !!opts.lit;
   el('rect', { x, y, width: w, height: h, rx: 1, fill: '#3A3A38', stroke: '#1A1A18', 'stroke-width': 0.5 }, g);
   el('rect', { x: x + 1.5 * s, y: y + 1.5 * s, width: w - 3 * s, height: 1.6 * s, fill: '#D4A843' }, g);
   el('rect', { x: x + 2.3 * s, y: y + 5 * s, width: w - 4.6 * s, height: 3.2 * s, fill: '#141312' }, g);
-  if (opts.lit) el('circle', { cx: x + w - 1.6 * s, cy: y + 1.6 * s, r: 0.9 * s, fill: 'url(#rvLedGreen)', filter: 'url(#rvGlow)' }, g);
+  if (lit) el('circle', { cx: x + w - 1.6 * s, cy: y + 1.6 * s, r: 0.9 * s, fill: 'url(#rvLedGreen)', filter: 'url(#rvGlow)' }, g);
   rvHit(g, x, y, w, h, ctx, portName);
   return w;
 }
@@ -449,10 +450,11 @@ function rvFortiSfp(g, x, y, ctx, portName, opts) {
   opts = opts || {};
   const s = opts.s || 1;
   const w = 13 * s, h = 9.5 * s;
+  const lit = portName && ctx && ctx.isPortCabled ? ctx.isPortCabled(portName) : !!opts.lit;
   el('rect', { x, y, width: w, height: h, rx: 0.9 * s, fill: '#2A3A44', stroke: '#14202A', 'stroke-width': 0.5 }, g);
   el('rect', { x: x + 1.6 * s, y: y + 2.4 * s, width: w - 3.2 * s, height: h - 4.4 * s, rx: 0.4 * s, fill: '#0A1218' }, g);
   el('rect', { x: x + 1.6 * s, y: y + h * 0.42, width: w - 3.2 * s, height: 0.9 * s, fill: '#4A9EDE' }, g);
-  if (opts.lit) el('circle', { cx: x + w - 1.7 * s, cy: y + 1.6 * s, r: 0.9 * s, fill: 'url(#rvLedGreen)', filter: 'url(#rvGlow)' }, g);
+  if (lit) el('circle', { cx: x + w - 1.7 * s, cy: y + 1.6 * s, r: 0.9 * s, fill: 'url(#rvLedGreen)', filter: 'url(#rvGlow)' }, g);
   rvHit(g, x, y, w, h, ctx, portName);
   return w;
 }
