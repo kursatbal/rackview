@@ -209,8 +209,9 @@ const RV_CATALOG = [
   { model: 'Firepower 2140',         vendor: 'Cisco', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 12, sfpPorts: 4 } },
   { model: 'Secure Firewall 3120',   vendor: 'Cisco', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 8, sfpPorts: 8 } },
   { model: 'Secure Firewall 3140',   vendor: 'Cisco', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 8, sfpPorts: 8 } },
-  { model: 'Firepower 4115',         vendor: 'Cisco', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 0, sfpPorts: 8 } },
-  { model: 'Firepower 4125',         vendor: 'Cisco', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 0, sfpPorts: 8 } },
+  // Confirmed 1U against Cisco's own datasheet (was wrongly listed as 2U).
+  { model: 'Firepower 4115',         vendor: 'Cisco', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 0, sfpPorts: 8 } },
+  { model: 'Firepower 4125',         vendor: 'Cisco', stencil: 'firewall-1u', u: 1, opts: { copperPorts: 0, sfpPorts: 8 } },
   { model: 'Firepower 9300',         vendor: 'Cisco', stencil: 'firewall-2u', u: 2, opts: { copperPorts: 8, sfpPorts: 16, qsfpPorts: 12 } },
   // Port counts corrected against Juniper's own datasheets (onboard ports; PIM expansion slots
   // not counted since they're optional/not always populated).
@@ -234,7 +235,8 @@ const RV_CATALOG = [
   // template to draw those as copper instead of the generic SFP cage.
   { model: 'ISR 4321',               vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigIsCopper: true, gigPorts: 2, tenGigPorts: 1, nimSlots: 2 } },
   { model: 'ISR 4331',               vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigIsCopper: true, gigPorts: 2, tenGigPorts: 2, nimSlots: 2 } },
-  { model: 'ISR 4351',               vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigIsCopper: true, gigPorts: 3, tenGigPorts: 3, nimSlots: 3 } },
+  // Confirmed 2U against Cisco's own datasheet (was wrongly listed as 1U).
+  { model: 'ISR 4351',               vendor: 'Cisco', stencil: 'router-2u', u: 2, opts: { gigIsCopper: true, gigPorts: 3, tenGigPorts: 3, nimSlots: 3 } },
   { model: 'ISR 4431',               vendor: 'Cisco', stencil: 'router-1u', u: 1, opts: { gigIsCopper: true, gigPorts: 4, tenGigPorts: 4, nimSlots: 3 } },
   // Datasheet: 4 onboard RJ45 + 4 SFP, 3 NIM slots (was 4 SFP-only ports and 6 NIM slots — double
   // the real NIM count, and the router-2u template wasn't even reading opts.gigPorts before now).
@@ -281,7 +283,8 @@ const RV_CATALOG = [
   { model: 'Nexus 9508',             vendor: 'Cisco', stencil: 'modular-chassis', u: 13, opts: { uHeight: 13, supervisors: 2, lineCardSlots: 8,  fabricModules: 6, psuCount: 8,
       cards: [ {model:'N9K-X9736C-FX', ports:36, type:'qsfp'}, {model:'N9K-X9736C-FX', ports:36, type:'qsfp'}, {model:'N9K-X9788TC-FX', ports:48, type:'sfp'}, {model:'N9K-X9788TC-FX', ports:48, type:'sfp'}, null, null, null, null ] } },
   { model: 'Nexus 9516',             vendor: 'Cisco', stencil: 'modular-chassis', u: 21, opts: { uHeight: 21, supervisors: 2, lineCardSlots: 16, fabricModules: 6, psuCount: 10, cards: [] } },
-  { model: 'Catalyst 9606R',         vendor: 'Cisco', stencil: 'modular-chassis', u: 6,  opts: { uHeight: 6,  supervisors: 2, lineCardSlots: 4,  fabricModules: 4, psuCount: 4, cards: [] } },
+  // Confirmed 8U against Cisco's own datasheet/reseller listings (was wrongly listed as 6U).
+  { model: 'Catalyst 9606R',         vendor: 'Cisco', stencil: 'modular-chassis', u: 8,  opts: { uHeight: 8,  supervisors: 2, lineCardSlots: 4,  fabricModules: 4, psuCount: 4, cards: [] } },
   { model: 'Catalyst 9410R',         vendor: 'Cisco', stencil: 'modular-chassis', u: 13, opts: { uHeight: 13, supervisors: 2, lineCardSlots: 8,  fabricModules: 4, psuCount: 8, cards: [] } },
   { model: 'MX480',                  vendor: 'Juniper', stencil: 'modular-chassis', u: 8, opts: { uHeight: 8, supervisors: 2, lineCardSlots: 6, fabricModules: 4, psuCount: 4, cards: [] } },
   { model: 'MX960',                  vendor: 'Juniper', stencil: 'modular-chassis', u: 16, opts: { uHeight: 16, supervisors: 2, lineCardSlots: 11, fabricModules: 6, psuCount: 4, cards: [] } },
